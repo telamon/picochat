@@ -22,6 +22,6 @@ test('Create profile', async t => {
   t.end()
 })
 
-test('Create message')
-test('Exchange profiles with friends')
-test('Should see friends messages')
+test.skip('Create message')
+test.skip('Exchange profiles with friends')
+test.skip('Should see friends messages')
