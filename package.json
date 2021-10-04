@@ -20,7 +20,11 @@
   },
   "homepage": "https://github.com/telamon/picochat",
   "devDependencies": {
+    "memdown": "^6.1.1",
     "standard": "^16.0.4",
     "tape": "^5.3.1"
+  },
+  "dependencies": {
+    "levelup": "^5.1.1"
   }
 }
