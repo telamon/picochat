@@ -12,13 +12,16 @@ test('Create profile', async t => {
   // Create a new profile
   await app.register({
     name: 'Batman',
-    description: 'I love driving around at night',
-    age: 42
+    tagline: 'I love driving around at night',
+    age: 42,
+    sex: 1
   })
 
   t.equal(app.profile.name, 'Batman', 'Correct username registered')
-  t.equal(app.profile.description, 'I love driving around at night')
-  t.ok(app.profile.key, 'Public key is exposed')
+  t.equal(app.profile.tagline, 'I love driving around at night')
+  t.equal(app.profile.age, 42)
+  t.equal(app.profile.sex, 1)
+  t.ok(app.profile.pk, 'Public key is exposed')
   t.end()
 })
 
