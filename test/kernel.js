@@ -1,11 +1,11 @@
 const test = require('tape')
 const levelup = require('levelup')
 const memdown = require('memdown')
-const Kernel = require('.')
+const Kernel = require('../src/blockend/')
 const makeDatabase = () => levelup(memdown())
 
 test('Create profile', async t => {
-  const app = new Kernel(makeDatabase)
+  const app = new Kernel(makeDatabase())
   const loggedIn = await app.load()
   t.equal(loggedIn, false, 'Not logged in on first run')
 
