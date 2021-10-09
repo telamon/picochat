@@ -1,5 +1,3 @@
-import jsx from 'rollup-plugin-jsx'
-// import jsx from 'rollup-plugin-jsx-js'
 import polyfills from 'rollup-plugin-node-polyfills'
 import commonjs from '@rollup/plugin-commonjs'
 // import builtins from 'rollup-plugin-node-builtins'
@@ -8,6 +6,8 @@ import resolve from '@rollup/plugin-node-resolve'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import css from 'rollup-plugin-css-only'
+import SWC from '@swc/core'
+
 const production = !process.env.ROLLUP_WATCH
 
 export default {
@@ -24,11 +24,8 @@ export default {
   },
 
   plugins: [
-    jsx({
-      factory: 'React.createElement',
-      passUnknownTagsToFactory: true
-    }),
-    // jsx({ precise: false }),
+    swcJSX(),
+
     // we'll extract any component CSS out into
     // a separate file - better for performance
     css({ output: 'bundle.css' }),
@@ -87,6 +84,27 @@ function serve () {
 
       process.on('SIGTERM', toExit)
       process.on('exit', toExit)
+    }
+  }
+}
+
+function swcJSX (options = {}) {
+  return {
+    transform (code, id) {
+      if (!id.endsWith('.jsx')) return
+      const opts = {
+        ...options,
+        jsc: {
+          ...options.jsc,
+          parser: {
+            ...options.jsc?.parser,
+            jsx: true
+          }
+        },
+        sourceMaps: true,
+        filename: id
+      }
+      return SWC.transformSync(code, opts)
     }
   }
 }
