@@ -11,7 +11,7 @@ const emptyProfile = (pk = null) => ({
   sex: 2
 })
 
-module.exports = {
+module.exports = () => ({
   name: 'peers',
   initialValue: {}, // Initial state, empty hash
 
@@ -38,7 +38,7 @@ module.exports = {
     state[key].pk = block.key // Store profile.pk as hexString
     return state // return new state
   }
-}
+})
 
 function containsURL (s) {
   if (typeof s !== 'string') return false

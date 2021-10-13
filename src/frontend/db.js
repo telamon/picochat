@@ -22,4 +22,3 @@ export function useProfile () {
 export function useFriendsList () {
   return usePico(kernel.store, 'peers', s => Object.values(s).filter(p => p.pk !== kernel.pk))
 }
-
