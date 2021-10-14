@@ -2,6 +2,7 @@
 const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
+const { RPC } = require('./rpc')
 const PeerStore = require('./slices/peers')
 const {
   KEY_SK,
@@ -16,7 +17,7 @@ class Kernel {
     this.repo = new Repo(db)
     this.store = new Store(this.repo)
     // Setup sub-store
-    this.store.register(PeerStore) // Register PeerStore that holds user profiles
+    this.store.register(PeerStore()) // Register PeerStore that holds user profiles
   }
 
   /**
@@ -128,6 +129,46 @@ class Kernel {
   async dispatch (patch) {
     this._checkReady()
     return await this.store.dispatch(patch)
+  }
+
+  // ---- Network stuff
+
+  async enter (name) {
+    // TODO: Make disposable scoped store
+    // this.pub.store = new Store(makeDatabase(name))
+    // await this.pub.store.load()
+    const repo = this.repo
+    const store = this.store
+
+    const rpc = new RPC({
+      onblocks: async feed => {
+        const mut = await store.dispatch(feed)
+        return mut.length
+      },
+      // Lookups and read hit the permanent store first and then secondaries
+      queryHead: async key => (await this.repo.headOf(key)) || (await repo.headOf(key)),
+      queryTail: async key => (await this.repo.tailOf(key)) || (await repo.tailOf(key)),
+      onquery: async params => {
+        const keys = Object.values(store.state.peers)
+          // experimental
+          .filter(peer => peer.date > new Date().getTime() - 1000 * 60 * 60) // Only peers active last hour
+          .sort((a, b) => a.date > b.date) // Newest first or something
+          .map(peer => peer.pk)
+        const feeds = []
+        for (const key of keys) {
+          const f = await repo.loadHead(key)
+          if (f) feeds.push(f)
+        }
+        return feeds
+      }
+    })
+
+    return (details = {}) => {
+      // if (blocklist.contains(details.prop)) return
+      return rpc.createWire(send => { // on remote open
+        if (details.client) rpc.query(send, {})
+      })
+    }
   }
 }
 

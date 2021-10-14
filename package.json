@@ -11,9 +11,9 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public",
-    "surge": "yarn build && surge public/ tomodachi150.surge.sh",
+    "surge": "yarn build && surge public/ abyssmalsheep.surge.sh",
     "protobuf": "protocol-buffers -o src/blockend/schema.js schema.proto",
-    "modem": "browserify src/modem56.js -s Modem56 -o modem.js"
+    "modem": "browserify modem56.js -s Modem56 -o public/build/modem.js"
   },
   "repository": {
     "type": "git",
@@ -49,9 +49,11 @@
   },
   "dependencies": {
     "@telamon/picostore": "^1.1.0",
+    "deferinfer": "^1.0.1",
     "level-js": "^6.1.0",
     "levelup": "^5.1.1",
     "picofeed": "^3.3.2",
+    "piconet": "^1.0.1",
     "picorepo": "^1.0.0",
     "protocol-buffers-encodings": "^1.1.1"
   }

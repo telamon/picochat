@@ -25,6 +25,42 @@ test('Create profile', async t => {
   t.end()
 })
 
+test('Enter pub', async t => {
+  const PUB = 'Abyss'
+  const alice = new Kernel(makeDatabase())
+  const bob = new Kernel(makeDatabase())
+  await alice.load()
+  await bob.load()
+  await alice.register({ name: 'Amiss', tagline: 'yay', age: 24, sex: 0 })
+  await bob.register({ name: 'Bobby', tagline: 'hey', age: 27, sex: 1 })
+  // Upon entering same bar/topic
+  const spawnWireA = await alice.enter(PUB)
+  const spawnWireB = await bob.enter(PUB)
+
+  // Attach store observer
+  const observer = new Promise((resolve, reject) => {
+    let nRuns = 0
+    alice.store.on('peers', state => {
+      if (!nRuns++) return
+      // Their profiles should end up in the dynamic/disposable bar store.
+      const profiles = Object.values(state)
+      t.equal(profiles.length, 2)
+      t.ok(profiles.find(p => p.name === 'Bobby'))
+      resolve()
+    })
+  })
+  const b = spawnWireB()
+  spawnWireA({ client: true })(b)
+  await observer
+  t.end()
+  // TODO:
+  // - bob approaches alice by generating a new boxpair and sends the pk to alice
+  // - alice accept the communication request by generating her own box-pair and sending the public key to bob.
+  //   (a communcation request can be rejected by not replying)
+  // - once box keys have been exchanged, two peers should be able to chat.
+  // - if they choose so they can each other's identity-pk to the friends list pledging to long-term store
+})
+
 test.skip('Create message')
 test.skip('Exchange profiles with friends')
 test.skip('Should see friends messages')
