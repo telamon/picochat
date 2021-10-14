@@ -9,9 +9,10 @@ export const kernel = new Kernel(DB)
 // PicoHook
 export function usePico (store, name, selector) {
   selector = selector || (state => state)
-  const [value, set] = useState(selector(store.state[name]))
+  const [value, set] = useState()
   useEffect(() => {
     if (!kernel.ready) return
+    set(selector(store.state[name]))
     // ensure unsub on unmount
     return store.on(name, state => set(selector(state)))
   }, [store, name, set, kernel.ready])
