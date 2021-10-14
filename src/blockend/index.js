@@ -38,7 +38,7 @@ class Kernel {
    * Returns user's public key (same thing as userId)
    */
   get pk () {
-    return this._sk.slice(32)
+    return this._sk?.slice(32)
   }
 
   /**
