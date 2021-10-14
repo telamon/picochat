@@ -24,14 +24,17 @@ class Kernel {
    * Restores session/data from store
    * returns {boolean} true if user exists
    */
-  async load () {
-    await this.store.load() // returns notification
-    this._sk = await this.repo.readReg(KEY_SK)
+  load () {
+    // Experimental anti-pattern
+    if (this.__loading) return this.__loading
+    this.__loading = this.store.load() // returns notification
+      .then(() => this.repo.readReg(KEY_SK))
+      .then(sk => { this._sk = sk })
       .catch(err => {
         if (!err.notFound) throw err
       })
-
-    return !!this._sk
+      .then(() => !!this._sk)
+    return this.__loading
   }
 
   /**
