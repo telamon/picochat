@@ -10,7 +10,11 @@ export const kernel = new Kernel(DB)
 export function usePico (store, name, selector) {
   selector = selector || (state => state)
   const [value, set] = useState(selector(store.state[name]))
-  useEffect(() => store.on(name, state => set(selector(state))), [store, name, set]) // ensure unsub on unmount
+  useEffect(() => {
+    if (!kernel.ready) return
+    // ensure unsub on unmount
+    return store.on(name, state => set(selector(state)))
+  }, [store, name, set, kernel.ready])
   return value
 }
 
