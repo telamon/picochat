@@ -37,6 +37,7 @@ export default function Profile() {
     kernel.register(profile)
       .then(() => {
         console.log('reg success')
+        window.location.hash = '/'
       })
       .catch(err => {
         console.error('reg fail', err)

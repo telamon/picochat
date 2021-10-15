@@ -33,13 +33,13 @@ export default function () {
     <div className="container is-success">
       <Header />
       <Switch>
-        <Route component={Profile} path="/" exact />
+        <Route component={Mypage} path="/" exact />
+        <Route component={Profile} path="/register"/>
         <Route component={AboutPage} path="/about"/>
         <Route component={Bar} path="/bar"/>
         <Redirect to="/" />
       </Switch>
 
-      {loggedIn ? <Mypage /> : <Profile />}
       <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
     </div>
   </Router>
