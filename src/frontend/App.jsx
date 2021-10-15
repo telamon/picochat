@@ -10,26 +10,24 @@ import Bar from './components/FeedBar.jsx'
 import ReactDOM from "react-dom";
 
 
-const promise = kernel.load() 
-    .then(l => {
-     console.info('kernel loaded', l)
-     return l
-    }) 
-    .catch (err => {
-      console.error('kernel loaded fail', err)
-      return false
-    })
+const promise = kernel.load()
+  .then(l => {
+    console.info('kernel loaded', l)
+    window.location.hash = l ? '/' : '/register'
+    return l
+  })
+  .catch (err => {
+    window.location.hash = '/error'
+    console.error('kernel loaded fail', err)
+    return false
+  })
 
 export default function () {
   const peers = useFriendsList()
   console.log('Peers Store:', peers)
-  
-  const [loggedIn, setLoggedIn] = useState(false)
-  promise.then(l=>{
-    setLoggedIn(l)
-    window.location.hash=l?'/home':'/register'
-  })
 
+  const [loggedIn, setLoggedIn] = useState(false)
+  promise.then(setLoggedIn)
   return (
   <Router>
     <div className="container is-success">
@@ -40,7 +38,7 @@ export default function () {
         <Route component={Bar} path="/bar"/>
         <Redirect to="/" />
       </Switch>
-    
+
       {loggedIn ? <Mypage /> : <Profile />}
       <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
     </div>
