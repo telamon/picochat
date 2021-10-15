@@ -1,8 +1,14 @@
 import React, { useState } from 'react'
 import { kernel, useFriendsList } from './db'
-import Header from './Header.jsx'
-import Profile from './Profile.jsx'
+import Header from './components/Header.jsx'
+import Profile from './components/Profile.jsx'
+import Mypage from './components/Mypage.jsx'
 import 'bulma/css/bulma.css'
+import { HashRouter as Router, Route, Switch, Redirect } from "react-router-dom";
+import AboutPage from './components/AboutPage.jsx'
+import Bar from './components/FeedBar.jsx'
+import ReactDOM from "react-dom";
+
 
 const promise = kernel.load() 
     .then(l => {
@@ -19,13 +25,26 @@ export default function () {
   console.log('Peers Store:', peers)
   
   const [loggedIn, setLoggedIn] = useState(false)
-  promise.then(setLoggedIn)
+  promise.then(l=>{
+    setLoggedIn(l)
+    window.location.hash=l?'/home':'/register'
+  })
+
   return (
-    <div className="container">
+  <Router>
+    <div className="container is-success">
       <Header />
-      <h1>Hello Hyperspace</h1>
+      <Switch>
+        <Route component={Profile} path="/" exact />
+        <Route component={AboutPage} path="/about"/>
+        <Route component={Bar} path="/bar"/>
+        <Redirect to="/" />
+      </Switch>
+    
+      {loggedIn ? <Mypage /> : <Profile />}
       <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
-      <Profile />
     </div>
+  </Router>
+
   )
 }

@@ -17,3 +17,20 @@ height: 100%;
     margin: 10px;
 }
 
+.row-2 {
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+   padding: 20px;
+  border-right: 1px solid darkred;
+
+}
+
+.row-3 {
+  border-bottom: 1px solid darkred;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+   padding: 20px;
+
+}
