@@ -38,7 +38,6 @@ function kTypeToString (type) {
   }
 }
 
-
 class RPC {
   constructor (handlers) {
     this.hub = new Hub(this._controller.bind(this))
