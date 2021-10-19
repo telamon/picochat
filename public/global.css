@@ -1,36 +1,52 @@
-
+body {
+  background-color: burlywood;
+}
 
 .rows {
-    display: inline-flex;
-    align-items: center;
-    align-content: center;
-    align-self: center;
-justify-content: center;
-    flex-direction: column;
-    margin: 25px;
-width: 100%;
-height: 100%;
+  display: inline-flex;
+  align-items: center;
+  align-content: center;
+  align-self: center;
+  justify-content: center;
+  flex-direction: column;
+  margin: 5px;
+  width: 100%;
+  height: 100%;
 }
 
 #age {
-    width: 150px;
-    margin: 10px;
+  width: 150px;
+  margin: 10px;
 }
 
 .row-2 {
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
-   padding: 20px;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
   border-right: 1px solid darkred;
-
 }
 
 .row-3 {
-  border-bottom: 1px solid darkred;
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
-   padding: 20px;
-
+  padding: 20px;
+  text-align: center;
 }
+
+.raw-4 {
+  max-width: 100%;
+}
+
+.raw-5 {
+  display: inline-flex;
+  flex-direction: row;
+}
+
+.raw-6 {
+  width: 274px;
+}
+
+.raw-7 {
+  //width: 380px;
+  overflow-wrap: anywhere;
+}
+

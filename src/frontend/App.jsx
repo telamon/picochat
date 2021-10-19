@@ -4,11 +4,10 @@ import Header from './components/Header.jsx'
 import Profile from './components/Profile.jsx'
 import Mypage from './components/Mypage.jsx'
 import 'bulma/css/bulma.css'
-import { HashRouter as Router, Route, Switch, Redirect } from "react-router-dom";
+import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import AboutPage from './components/AboutPage.jsx'
 import Bar from './components/FeedBar.jsx'
-import ReactDOM from "react-dom";
-
+import Rules from './components/Rules.jsx'
 
 const promise = kernel.load()
   .then(l => {
@@ -16,7 +15,7 @@ const promise = kernel.load()
     window.location.hash = l ? '/' : '/register'
     return l
   })
-  .catch (err => {
+  .catch(err => {
     window.location.hash = '/error'
     console.error('kernel loaded fail', err)
     return false
@@ -29,20 +28,21 @@ export default function () {
   const [loggedIn, setLoggedIn] = useState(false)
   promise.then(setLoggedIn)
   return (
-  <Router>
-    <div className="container is-success">
-      <Header />
-      <Switch>
-        <Route component={Mypage} path="/" exact />
-        <Route component={Profile} path="/register"/>
-        <Route component={AboutPage} path="/about"/>
-        <Route component={Bar} path="/bar"/>
-        <Redirect to="/" />
-      </Switch>
+    <Router>
+      <div className='container is-success raw-4'>
+        <Header />
+        <Switch>
+          <Route component={Mypage} path='/' exact />
+          <Route component={Profile} path='/register' />
+          <Route component={AboutPage} path='/about' />
+          <Route component={Bar} path='/bar' />
+          <Route component={Rules} path='/policy' />
+          <Redirect to='/' />
+        </Switch>
 
-      <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
-    </div>
-  </Router>
+        <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
+      </div>
+    </Router>
 
   )
 }
