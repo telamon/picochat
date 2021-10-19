@@ -1,7 +1,7 @@
 import React from 'react'
 import { useHistory } from 'react-router-dom'
 
-const Error = () => {
+const Errors = () => {
   const history = useHistory()
   return (
     <>
@@ -12,4 +12,4 @@ const Error = () => {
   )
 }
 
-export default Error
+export default Errors

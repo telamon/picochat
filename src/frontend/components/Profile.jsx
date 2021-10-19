@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { kernel, useProfile } from '../db'
+import Bar from './components/FeedBar.jsx'
 
 export default function Profile () {
   const [name, setName] = useState('')
   const [tagline, setTagline] = useState('')
-  const [age, setAge] = useState(44)
+  const [age, setAge] = useState(18)
   const [sex] = useState(0)
 
   function onSubmit () {

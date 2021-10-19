@@ -10,7 +10,7 @@ export default function Header () {
               <a href='/' className='brand-logo'>LOGO</a>
               <li><a href='/'>PicoCHAT</a></li>
               <li><a href='#/policy'>Rules</a></li>
-              <li><a href='#/about'>Om Oss</a></li>
+              <li><a href='#/about'>About</a></li>
             </ul>
           </nav>
         </div>
