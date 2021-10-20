@@ -4,24 +4,25 @@ import Header from './components/Header.jsx'
 import Profile from './components/Profile.jsx'
 import Mypage from './components/MyPage.jsx'
 import 'bulma/css/bulma.css'
-import { HashRouter as Router, Route, Switch, Redirect, history } from 'react-router-dom'
+import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import AboutPage from './components/AboutPage.jsx'
 import Bar from './components/Pubs.jsx'
 import Rules from './components/RulesPage.jsx'
+import ErrorPage from './components/ErrorPage.jsx'
 
 const promise = kernel.load()
   .then(l => {
     console.info('kernel loaded', l)
-    history.push(l ? '/' : '/register')
+    window.location.hash = l ? '/' : '/register'
     return l
   })
   .catch(err => {
-    history.push('/error')
+    window.location.hash = '/error'
     console.error('kernel loaded fail', err)
     return false
   })
 
-export default function () {
+export default function App () {
   const peers = useFriendsList()
   console.log('Peers Store:', peers)
 
@@ -37,6 +38,7 @@ export default function () {
           <Route component={AboutPage} path='/about' />
           <Route component={Bar} path='/bar' />
           <Route component={Rules} path='/policy' />
+          <Route component={ErrorPage} path='/error' />
           <Redirect to='/' />
         </Switch>
 

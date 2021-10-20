@@ -30,6 +30,7 @@
     "@rollup/plugin-node-resolve": "^13.0.5",
     "@swc/cli": "^0.1.51",
     "@swc/core": "^1.2.93",
+    "browserify": "^17.0.0",
     "bulma": "^0.9.3",
     "hypercore-protocol": "^8.0.7",
     "hyperswarm-web": "^2.1.1",
