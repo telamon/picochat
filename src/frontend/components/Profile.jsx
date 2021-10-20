@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { kernel, useProfile } from '../db'
-import Bar from './components/FeedBar.jsx'
 
 export default function Profile () {
   const [name, setName] = useState('')

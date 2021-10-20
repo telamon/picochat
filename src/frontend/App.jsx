@@ -2,21 +2,21 @@ import React, { useState } from 'react'
 import { kernel, useFriendsList } from './db'
 import Header from './components/Header.jsx'
 import Profile from './components/Profile.jsx'
-import Mypage from './components/Mypage.jsx'
+import Mypage from './components/MyPage.jsx'
 import 'bulma/css/bulma.css'
-import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
+import { HashRouter as Router, Route, Switch, Redirect, history } from 'react-router-dom'
 import AboutPage from './components/AboutPage.jsx'
-import Bar from './components/FeedBar.jsx'
-import Rules from './components/Rules.jsx'
+import Bar from './components/Pubs.jsx'
+import Rules from './components/RulesPage.jsx'
 
 const promise = kernel.load()
   .then(l => {
     console.info('kernel loaded', l)
-    window.location.hash = l ? '/' : '/register'
+    history.push(l ? '/' : '/register')
     return l
   })
   .catch(err => {
-    window.location.hash = '/error'
+    history.push('/error')
     console.error('kernel loaded fail', err)
     return false
   })
