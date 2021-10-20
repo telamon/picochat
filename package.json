@@ -31,6 +31,8 @@
     "@swc/cli": "^0.1.51",
     "@swc/core": "^1.2.93",
     "bulma": "^0.9.3",
+    "hypercore-protocol": "^8.0.7",
+    "hyperswarm-web": "^2.1.1",
     "memdown": "^6.1.1",
     "protocol-buffers": "^4.2.0",
     "react": "^17.0.2",

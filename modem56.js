@@ -5,9 +5,15 @@ const PicoHub = require('piconet')
 const { hyperWire } = PicoHub
 
 /*
+ *  It's **beep** time!
+ *     ~¤~
+ *   ___|_
+ *  /____/|  ~ Modem 56 ~
+ * |_o_=_|/
+ *
  * Experimental! (pure digital anarchy)
  * Code scavenged from PoH in an attempt to make it easy to connect
- * to a swarm and use the piconet hyperwire protocol.
+ * to a swarm and use the piconet-hyperwire protocol.
  */
 class Modem56 {
   // Allow injection of a swarm instance,
