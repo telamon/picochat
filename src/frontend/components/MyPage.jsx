@@ -1,5 +1,6 @@
 import React from 'react'
 import { kernel, useProfile } from '../db'
+import Pubs from './Pubs.jsx'
 
 export default function Mypage () {
   function inspect () {
@@ -29,6 +30,7 @@ export default function Mypage () {
           <div className='column row-2'>the sex is {profile.sex}</div>
           <div className='column'>{profile.tagline}</div>
         </div>
+        <Pubs />
         <div className='level-item'>
           <a type='inspect' className='button is-danger' onClick={inspect}>Inspect FEED</a>
         </div>
