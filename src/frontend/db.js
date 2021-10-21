@@ -22,7 +22,10 @@ export function usePico (store, name, selector, initialValue) {
 
 // Helpers hooks for quick register access
 export function useProfile () {
-  return usePico(kernel.store, 'peers', state => state[kernel.pk.toString('hex')], {})
+  return usePico(kernel.store, 'peers', state => {
+    const p = state[kernel.pk.toString('hex')]
+    return p
+  }, {})
 }
 
 export function useFriendsList () {

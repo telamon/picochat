@@ -5,6 +5,7 @@
 const Hub = require('piconet')
 const Feed = require('picofeed')
 const { defer } = require('deferinfer')
+const debug = require('debug')('pico-rpc')
 
 // Messages over kernel-wire
 const K_BLOCKS = 1 // Synonymous with K_REQUEST_MERGE / publish
@@ -47,6 +48,7 @@ class RPC {
   // TO BE DEFINED
   query (target, params = {}) {
     const send = target || this.hub.broadcast.bind(this.hub)
+    debug('Sent K_QUERY', params)
     send(encodeMsg(K_QUERY, params), this._controller.bind(this))
     /*
     return defer(done =>
@@ -65,6 +67,7 @@ class RPC {
   async _controller (msg, replyTo) {
     try {
       const { type, data } = decodeMsg(msg)
+      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.hexSlice(1, Math.min(msg.length, 12)) : '[NO DATA]')
       switch (type) {
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)

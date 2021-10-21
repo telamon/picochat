@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { kernel, useProfile } from '../db'
+import { kernel } from '../db'
 
 export default function Profile () {
   const [name, setName] = useState('')

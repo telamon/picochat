@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@telamon/picostore": "^1.1.0",
+    "debug": "^4.3.2",
     "deferinfer": "^1.0.1",
     "level-js": "^6.1.0",
     "levelup": "^5.1.1",
