@@ -13,7 +13,8 @@
     "start": "sirv public",
     "surge": "yarn build && surge public/ abyssmalsheep.surge.sh",
     "protobuf": "protocol-buffers -o src/blockend/schema.js schema.proto",
-    "modem": "browserify modem56.js -s Modem56 -o public/build/modem.js"
+    "modem": "browserify modem56.js -s Modem56 -o public/build/modem.js",
+    "signal": "hyperswarm-web"
   },
   "repository": {
     "type": "git",

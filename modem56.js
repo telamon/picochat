@@ -3,7 +3,9 @@ const ProtoStream = require('hypercore-protocol')
 const crypto = require('crypto')
 const PicoHub = require('piconet')
 const { hyperWire } = PicoHub
+const debug = require('debug')
 
+debug.enable('*')
 /*
  *  It's **beep** time!
  *     ~¤~

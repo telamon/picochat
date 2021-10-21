@@ -46,7 +46,7 @@ export default function Pubs () {
         <h1><strong>{pub.name}</strong></h1>
         <h2>
           {pub.drinks.map(drink => (
-            <code key={drink}>{drink}</code>
+            <span className='icon' key={drink}>{drink}</span>
           ))}
         </h2>
       </div>

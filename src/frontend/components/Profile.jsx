@@ -11,7 +11,7 @@ export default function Profile () {
     const profile = {
       name,
       tagline,
-      age,
+      age: parseInt(age),
       sex
     }
     console.log('regUser', profile)
