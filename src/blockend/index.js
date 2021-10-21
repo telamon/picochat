@@ -10,6 +10,8 @@ const {
   parseBlock,
   encodeBlock
 } = require('./util')
+const debug = require('debug')
+debug.enable('pico*')
 
 class Kernel {
   constructor (db) {
@@ -50,9 +52,11 @@ class Kernel {
   async register (profile) {
     // Generate new KeyPair and save secretKey in storage
     const pair = Feed.signPair()
-    await this.repo.writeReg(KEY_SK, pair.sk)
     this._sk = pair.sk
-    return this.updateProfile(profile)
+    const mutations = await this.updateProfile(profile)
+    if (!mutations.length) throw new Error('Register failed')
+    await this.repo.writeReg(KEY_SK, pair.sk)
+    return mutations
   }
 
   /**
