@@ -67,7 +67,7 @@ class RPC {
   async _controller (msg, replyTo) {
     try {
       const { type, data } = decodeMsg(msg)
-      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.hexSlice(1, Math.min(msg.length, 12)) : '[NO DATA]')
+      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString('hex') : '[NO DATA]')
       switch (type) {
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
