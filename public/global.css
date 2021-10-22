@@ -50,6 +50,12 @@ body {
   overflow-wrap: anywhere;
 }
 
-.icon {
-  font-size: xx-large;
+.barName {
+  font-size: x-large;
+  letter-spacing: 0.5em;
+}
+
+.icon-2 {
+  font-size: 5vw;
+  letter-spacing: 1em;
 }

@@ -6,9 +6,9 @@ import Mypage from './components/MyPage.jsx'
 import 'bulma/css/bulma.css'
 import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import AboutPage from './components/AboutPage.jsx'
-import Bar from './components/Pubs.jsx'
 import Rules from './components/RulesPage.jsx'
 import ErrorPage from './components/ErrorPage.jsx'
+import Pubs from './components/PubPage.jsx'
 
 const promise = kernel.load()
   .then(l => {
@@ -36,9 +36,9 @@ export default function App () {
           <Route component={Mypage} path='/' exact />
           <Route component={Profile} path='/register' />
           <Route component={AboutPage} path='/about' />
-          <Route component={Bar} path='/bar' />
           <Route component={Rules} path='/policy' />
           <Route component={ErrorPage} path='/error' />
+          <Route component={Pubs} path='/pub' />
           <Redirect to='/' />
         </Switch>
 

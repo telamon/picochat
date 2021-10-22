@@ -4,7 +4,10 @@ import Pubs from './Pubs.jsx'
 
 export default function Mypage () {
   function inspect () {
-    return (null)
+    kernel.feed()
+    .then((feed) => {
+      feed.inspect()
+    })
   }
   const profile = useProfile()
   console.log('my profile', profile)
