@@ -126,16 +126,16 @@ class Kernel {
     const seq = (await this.seq()) + 1 // Increment block sequence
     const data = encodeBlock(type, seq, payload) // Pack data into string/buffer
     branch.append(data, this._sk) // Append data on selected branch
-    return await this.dispatch(branch.slice(-1)) // Dispatch last block to store
+    return await this.dispatch(branch.slice(-1), true) // Dispatch last block to store
   }
 
   /**
    * Mutates store and reduced state
    * returns {string[]} names of stores that were modified by this action
    */
-  async dispatch (patch) {
+  async dispatch (patch, loudFail = false) {
     this._checkReady()
-    return await this.store.dispatch(patch)
+    return await this.store.dispatch(patch, loudFail)
   }
 
   // ---- Network stuff
@@ -158,7 +158,7 @@ class Kernel {
       onquery: async params => {
         const keys = Object.values(store.state.peers)
           // experimental
-          .filter(peer => peer.date > new Date().getTime() - 1000 * 60 * 60) // Only peers active last hour
+          // .filter(peer => peer.date > new Date().getTime() - 1000 * 60 * 60) // Only peers active last hour
           .sort((a, b) => a.date > b.date) // Newest first or something
           .map(peer => peer.pk)
         const feeds = []
@@ -174,8 +174,8 @@ class Kernel {
       // if (blocklist.contains(details.prop)) return
       console.log('connected')
       return rpc.createWire(send => { // on remote open
-        console.log('opened')
-        if (details.client) rpc.query(send, {})
+        // if (details.client)
+        rpc.query(send, {})
       })
     }
   }
