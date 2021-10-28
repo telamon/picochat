@@ -104,20 +104,18 @@ test('Send vibe to peer', async t => {
   await alice.k.respondVibe(vibe.id, true)
 
   // Bob receives alice response
-  /* WIP
   vibes = await nextState(bob.k.store, 'vibes')
   t.equal(vibes.received.length, 1)
 
   vibe = null
-  debugger
   alice.k.vibes(vibes => {
     t.equal(vibes.length, 1)
     vibe = vibes[0]
   })()
+  debugger
   t.ok(vibe)
   t.ok(chatId.equals(vibe.id))
   t.equal(vibe.state, 'match')
-  */
 })
 
 test.skip('Exchange profiles with friends')
@@ -147,12 +145,12 @@ function nextState (store, name) {
 
 // TODO: write mdbook "ES6: The Good Awesomesauce"
 // chapter 1. (Don't) start what you can't finish
-
 function get (store) {
   let value = null
   store(v => { value = v })()
   return value
 }
+
 /*
 store.on('vibes', state => {
   const chats = []

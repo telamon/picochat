@@ -209,7 +209,7 @@ class Kernel {
         fetchPair: null,
         state: 'waiting',
         updatedAt: 0,
-        createdAt: 0
+        createdAt: Infinity
       }
     }
 
@@ -223,6 +223,8 @@ class Kernel {
         chats[id].peer = vibe.from
         chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
         chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
+        chats[id].initiator = !vibe.isResponse ? 'remote' : 'local'
+        chats[id].remoteRejected = vibe.rejected
       }
       for (const vibe of sent) {
         const id = vibe.chatId.toString('hex')
@@ -231,6 +233,18 @@ class Kernel {
         chats[id].fetchPair = () => this._getLocalChatKey(vibe.chatId)
         chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
         chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
+        chats[id].initiator = !vibe.isResponse ? 'local' : 'remote'
+        chats[id].localRejected = vibe.rejected
+      }
+
+      for (const vibe of Object.values(chats)) {
+        if (vibe.received && vibe.remoteRejected) vibe.state = 'rejected'
+        else if (vibe.sent && vibe.localRejected) vibe.state = 'rejected'
+        else if (vibe.received && !vibe.sent) vibe.state = 'remote_wait'
+        else if (vibe.sent && !vibe.received) vibe.state = 'local_wait'
+        else if (vibe.sent && vibe.received) vibe.state = 'match'
+        else vibe.state = 'mental_error'
+        if (vibe.state === 'rejected') debugger
       }
       sub(Object.values(chats))
     })
