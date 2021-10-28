@@ -32,6 +32,15 @@ export function useFriendsList () {
   return usePico(kernel.store, 'peers', s => Object.values(s).filter(p => p.pk !== kernel.pk), [])
 }
 
+export function useVibes () {
+  const [value, set] = useState([])
+  useEffect(() => {
+    if (!kernel.ready) return
+    return kernel.vibes(set)
+  }, [kernel.ready, set])
+  return value
+}
+
 /**
  *  It's **beep** time!
  *      ¤

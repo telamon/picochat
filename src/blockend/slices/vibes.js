@@ -63,19 +63,24 @@ class VibeCtrl {
     // Set lookup reference
     state.seen[key] = {
       date: vibe.date,
-      sig: block.sig
+      sig: block.sig // name sig- to make it easy to delete the block
     }
+
+    const rejected = VIBE_REJECTED.equals(vibe.box)
 
     // Attempt to determine if someone vibes us
     if (this._sk) {
       try {
-        const box = VIBE_REJECTED.equals(vibe.box) ? null : unseal(vibe.box, this._sk, this._pk)
+        const box = rejected ? null : unseal(vibe.box, this._sk, this._pk)
+        const isResponse = !!state.sent.find(v => v.chatId.equals(block.parentSig))
         // TODO: chatId is sometimes parentId
         debug('Someone\'s intrested in you')
         state.received.push({
-          chatId: block.sig, // convesation ID
+          chatId: isResponse ? block.parentSig : block.sig, // convesation ID
           from: block.key,
           date: vibe.date,
+          isResponse,
+          rejected,
           box // conversation Public key
         })
       } catch (error) {
@@ -84,9 +89,12 @@ class VibeCtrl {
     }
 
     if (this._peerId && this._peerId.equals(block.key)) {
+      const isResponse = !!state.received.find(v => v.chatId.equals(block.parentSig))
       state.sent.push({ // interesting, no clue to tell who we sent it too ('seal' algorithm prevents even sender from decrypting)
-        chatId: block.sig, // convesation ID
-        date: vibe.date
+        chatId: isResponse ? block.parentSig : block.sig, // convesation ID
+        date: vibe.date,
+        rejected,
+        isResponse
       })
     }
 
