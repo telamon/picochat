@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+// MSG 1, persit for upto 20 minutes
+message Profile {
+  uint32 seq = 1;
+  uint32 date = 2; // UTC timestamp
+  bytes box = 3;
+  string alias = 4;
+  string tagline = 5;
+  bytes picture = 6;
+  uint32 age = 7;
+  uint32 gender = 8;
+}
+
+// MSG 2, onto profile | Vibe | beer?
+message Vibe {
+  uint32 seq = 1;
+  uint32 date = 2; // UTC timestamp
+  // bytes profile = 3; // weak-ref to own profile? [Head of all feeds always own profile]
+  bytes box = 4; // msgBox public key encrypted with receiver vibeBox public key
+  // boolean goFirst? attack/defend
+}
+
+// Each message has a 5 minute TimeToLive in the network.
+// If no new messages are seen within the 5 minute mark then the
+// entire feed should be considered ended, scrapped/archived
+message Message {
+  uint32 seq = 1;
+  uint32 date = 2; // UTC timestamp
+  bytes content = 3; // encrypted with box pk. no larger than 150chars.
+}
+
+message Bye {
+  uint32 seq = 1;
+  uint32 date = 2; // UTC timestamp
+  string gesture = 3; // 0: Peace, 1: Understanding, 2: Love
+
+  // In case of a abysmally-bad exchange, a party can choose
+  // to publish their own box-secret to allow external moderation to come into play.
+  // at worst you might get banned from a bar/-tender.
+  // Panopticon: the knowledge of potential surveillance statistically improves behavior.
+  // bytes reveal = 4; // standard human behavior...
+}

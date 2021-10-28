@@ -1,6 +1,6 @@
 const {
   TYPE_PROFILE,
-  parseBlock
+  decodeBlock
 } = require('../util')
 
 const emptyProfile = (pk = null) => ({
@@ -16,7 +16,7 @@ module.exports = () => ({
   initialValue: {}, // Initial state, empty hash
 
   filter: ({ block, state }) => {
-    const data = parseBlock(block.body)
+    const data = decodeBlock(block.body)
     if (data.type !== TYPE_PROFILE) return true // Ignore non-profile blocks.
 
     // Validate profile content
@@ -34,7 +34,7 @@ module.exports = () => ({
   reducer: ({ block, state }) => {
     const key = block.key.toString('hex')
     state[key] = state[key] || emptyProfile(key) // Lazy initalize profile object
-    Object.assign(state[key], parseBlock(block.body, 1)) // Set new values
+    Object.assign(state[key], decodeBlock(block.body, 1)) // Set new values
     state[key].pk = block.key // Store profile.pk as hexString
     return state // return new state
   }

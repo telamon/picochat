@@ -3,6 +3,8 @@ const levelup = require('levelup')
 const memdown = require('memdown')
 const Kernel = require('../src/blockend/')
 const makeDatabase = () => levelup(memdown())
+const debug = require('debug')
+debug.enable('pico*')
 
 test('Create profile', async t => {
   const app = new Kernel(makeDatabase())
@@ -25,7 +27,7 @@ test('Create profile', async t => {
   t.end()
 })
 
-test('Enter pub', async t => {
+test('Enter pub see peers', async t => {
   const PUB = 'Abyss'
   const alice = new Kernel(makeDatabase())
   const bob = new Kernel(makeDatabase())
@@ -61,6 +63,111 @@ test('Enter pub', async t => {
   // - if they choose so they can each other's identity-pk to the friends list pledging to long-term store
 })
 
-test.skip('Create message')
+test('Send vibe to peer', async t => {
+  // Spawn actors
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+
+  // Connect them
+  bob.spawnWire({ client: true })(alice.spawnWire())
+
+  // Await profiles to be exchanged
+  const state = await nextState(bob.k.store, 'peers')
+  const aliceProfile = Object.values(state).find(p => p.name === 'Alice')
+  t.ok(Buffer.isBuffer(aliceProfile.pk))
+  t.ok(Buffer.isBuffer(aliceProfile.box))
+
+  // Bob approaches Alice causing a new chatId to be generated
+  const chatId = await bob.k.sendVibe(aliceProfile.box)
+
+  // Alice should have received a vibe
+  let vibes = await nextState(alice.k.store, 'vibes')
+  t.equal(vibes.received.length, 1)
+
+  t.ok(bob.k.pk.equals(vibes.received[0].from))
+  t.ok(Buffer.isBuffer(vibes.received[0].box))
+
+  // Bob should see the sent vibe
+  t.equal(bob.k.store.state.vibes.sent.length, 1)
+
+  // Alice should see she has a potential match
+  let vibe = null
+  alice.k.vibes(vibes => {
+    t.equal(vibes.length, 1)
+    vibe = vibes[0]
+  })()
+  t.ok(vibe)
+  t.ok(chatId.equals(vibe.id))
+  t.equal(vibe.state, 'waiting')
+
+  // Alice sends response
+  await alice.k.respondVibe(vibe.id, true)
+
+  // Bob receives alice response
+  /* WIP
+  vibes = await nextState(bob.k.store, 'vibes')
+  t.equal(vibes.received.length, 1)
+
+  vibe = null
+  debugger
+  alice.k.vibes(vibes => {
+    t.equal(vibes.length, 1)
+    vibe = vibes[0]
+  })()
+  t.ok(vibe)
+  t.ok(chatId.equals(vibe.id))
+  t.equal(vibe.state, 'match')
+  */
+})
+
 test.skip('Exchange profiles with friends')
 test.skip('Should see friends messages')
+
+// Guy walks into a bar
+async function spawnPeer (name) {
+  const app = new Kernel(makeDatabase())
+  await app.load()
+  await app.register({
+    name,
+    tagline: `${name} is awesome!`,
+    sex: Math.floor(Math.random() * 3), // \("v")/
+    age: Math.floor(Math.random() * 18 + 50)
+  })
+  const spawnWire = await app.enter('Abyss')
+  return {
+    k: app,
+    spawnWire
+  }
+}
+
+function nextState (store, name) {
+  let n = 1
+  return new Promise(resolve => store.on(name, m => !n-- ? resolve(m) : null))
+}
+
+// TODO: write mdbook "ES6: The Good Awesomesauce"
+// chapter 1. (Don't) start what you can't finish
+
+function get (store) {
+  let value = null
+  store(v => { value = v })()
+  return value
+}
+/*
+store.on('vibes', state => {
+  const chats = []
+  for (const a = state.sent) {
+    state.received.find(b => l.chatId.equals(r.chatId)) && chats.push(chatId)
+  }
+
+})
+
+const unsub = kernel.chats(chats => ...)
+useSelector(
+function select (selector: v => v) {
+  let value = undefined
+  return subFn => store.on(input = {
+  })
+}
+
+*/

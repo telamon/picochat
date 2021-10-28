@@ -53,11 +53,12 @@
     "tape": "^5.3.1"
   },
   "dependencies": {
-    "@telamon/picostore": "^1.2.0",
+    "@telamon/picostore": "^1.2.3",
     "debug": "^4.3.2",
     "deferinfer": "^1.0.1",
     "level-js": "^6.1.0",
     "levelup": "^5.1.1",
+    "pico-scheduler": "^1.0.0",
     "picofeed": "^3.3.2",
     "piconet": "^1.0.1",
     "picorepo": "^1.0.0",

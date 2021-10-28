@@ -62,10 +62,17 @@ class RPC {
     */
   }
 
+  sendBlock (blocks, target = null) {
+    const send = target || this.hub.broadcast.bind(this.hub)
+    debug('Sent K_BLOCKS', blocks.length)
+    send(encodeMsg(K_BLOCKS, blocks), this._controller.bind(this))
+  }
+
   get createWire () { return this.hub.createWire.bind(this.hub) }
 
   async _controller (msg, replyTo) {
     try {
+      if (!Buffer.isBuffer(msg)) debugger
       const { type, data } = decodeMsg(msg)
       debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString('hex') : '[NO DATA]')
       switch (type) {
@@ -78,7 +85,10 @@ class RPC {
 
         case K_BLOCKS: {
           const forward = await this.handlers.onblocks(data)
-          if (forward) this.hub.broadcast(replyTo, msg) // GOSSIP
+          // TODO: broadcast(msg, replyTo, filter..) here is broken.
+          // the replyTo handle we have in this context is the wrapped decoder function
+          // not the node ref.. Footgun activated! YAY!  this.hub._nodes.indexOf(replyTo) => -1
+          if (forward) this.hub.broadcast(msg, this._controller.bind(this), replyTo) // GOSSIP
         } break
 
         default:
