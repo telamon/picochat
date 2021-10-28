@@ -1,18 +1,27 @@
 import React, { useState } from 'react'
 import { kernel } from '../db'
+import Picker from 'emoji-picker-react'
 
 export default function Profile () {
   const [name, setName] = useState('')
   const [tagline, setTagline] = useState('')
   const [age, setAge] = useState(18)
   const [sex, setSex] = useState(1)
+  const [picture, setPicture] = useState('🕵️')
+  const [showPicker, setShowPicker] = useState(false)
+  const onEmoji = (event, { emoji }) => {
+    setPicture(emoji)
+    console.log('setPicture', emoji)
+    setShowPicker(false)
+  }
 
   function onSubmit () {
     const profile = {
       name,
       tagline,
       age: parseInt(age),
-      sex
+      sex,
+      picture
     }
     console.log('regUser', profile)
     kernel.register(profile)
@@ -34,7 +43,12 @@ export default function Profile () {
             <div className='column'>
               <input className='input is-hovered' type='text' placeholder='Username' value={name} onChange={ev => setName(ev.target.value)} />
             </div>
-            <div className='columns  raw-5' onChange={ev => setSex(parseInt (ev.target.value))}>
+            <div className='column'>
+              {showPicker
+                ? (<span><Picker onEmojiClick={onEmoji} /></span>)
+                : (<span className='icon-3' onClick={() => setShowPicker(true)}>{picture}</span>)}
+            </div>
+            <div className='columns  raw-5' onChange={ev => setSex(parseInt(ev.target.value))}>
               <input id='age' type='number' min='18' max='99' placeholder='Age' className='column' value={age} onChange={ev => setAge(ev.target.value)} />
               <div className='column'>
                 <input id='male' type='radio' name='sex' className='column' value='1' checked={sex === 1} />

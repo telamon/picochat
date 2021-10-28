@@ -1,5 +1,5 @@
-body { background-image: linear-gradient(to top, rgb(0, 255, 255), rgb(0, 0,
-155) 50%, rgb(128, 222, 128) 100%) }
+/* body { background-image: linear-gradient(to top, rgb(0, 255, 255), rgb(0, 0,
+155) 50%, rgb(25, 22, 28) 100%) } */
 
 
 .rows {
@@ -100,7 +100,10 @@ position:absolute;
 }
 
 .pk {
-   -webkit-line-clamp: 2; /* number of lines to show */
+  width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
 }
 
 .friendsList-2{
@@ -123,4 +126,11 @@ position:absolute;
 .friendsListWrap{
   display: flex;
   flex-wrap: wrap;
+}
+
+.smalleTagline {
+  width: 80%;
+  overflow: hidden;
+  text-overflow: "...";
+
 }

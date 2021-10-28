@@ -3,7 +3,7 @@ import React from 'react'
 export default function Header () {
   return (
     <>
-      <div className='hero is-danger'>
+      <div className='hero is-success'>
         <div className='centered'>
           <nav className='breadcrumb centered' aria-label='breadcrumbs'>
             <ul>
