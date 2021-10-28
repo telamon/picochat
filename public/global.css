@@ -1,6 +1,6 @@
-body {
-  background-color: burlywood;
-}
+body { background-image: linear-gradient(to top, rgb(0, 255, 255), rgb(0, 0,
+155) 50%, rgb(128, 222, 128) 100%) }
+
 
 .rows {
   display: inline-flex;
@@ -30,7 +30,7 @@ body {
 .row-3 {
   padding: 20px;
   text-align: center;
-}
+  }
 
 .raw-4 {
   max-width: 100%;
@@ -51,11 +51,76 @@ body {
 }
 
 .barName {
-  font-size: x-large;
-  letter-spacing: 0.5em;
+  font-size: 8vw;
+  letter-spacing: 0.2em;
+  color: dimgrey;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  position: all;
 }
 
 .icon-2 {
-  font-size: 5vw;
+  font-size: 2vw;
   letter-spacing: 1em;
+}
+
+.icon-3 {
+  font-size: 8vw;
+  letter-spacing: 1em;
+}
+
+.membersList {
+  color: darkred;
+  text-shadow: darkred;
+  text-align: center;
+}
+
+.card-div {
+  border-style: solid;
+  padding: 2vw;
+  margin: 15vw;
+  margin-top: 1vw;
+}
+
+h1 {
+  font-size: 160%;
+  font-weight: bold;
+}
+
+.containerbackground {
+position:absolute;
+}
+
+.w {
+  border-style: solid;
+  margin: 15vw;
+  margin-bottom: 1vw;
+  margin-top: 1vw;
+  justify-content: center;
+  display: flex;
+}
+
+.pk {
+   -webkit-line-clamp: 2; /* number of lines to show */
+}
+
+.friendsList-2{
+  border-style: solid;
+  margin: 2vw;
+  width: 25vw;
+  text-align: center;
+}
+
+.friendsList{
+  text-align: center;
+  display: flex;
+}
+
+.friendsIcon{
+  margin: 2vw;
+  width: 25vw;
+}
+
+.friendsListWrap{
+  display: flex;
+  flex-wrap: wrap;
 }

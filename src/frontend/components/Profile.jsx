@@ -5,7 +5,7 @@ export default function Profile () {
   const [name, setName] = useState('')
   const [tagline, setTagline] = useState('')
   const [age, setAge] = useState(18)
-  const [sex] = useState(0)
+  const [sex, setSex] = useState(1)
 
   function onSubmit () {
     const profile = {
@@ -34,18 +34,18 @@ export default function Profile () {
             <div className='column'>
               <input className='input is-hovered' type='text' placeholder='Username' value={name} onChange={ev => setName(ev.target.value)} />
             </div>
-            <div className='columns  raw-5'>
+            <div className='columns  raw-5' onChange={ev => setSex(parseInt (ev.target.value))}>
               <input id='age' type='number' min='18' max='99' placeholder='Age' className='column' value={age} onChange={ev => setAge(ev.target.value)} />
               <div className='column'>
-                <input id='male' type='radio' name='sex' className='column' />
+                <input id='male' type='radio' name='sex' className='column' value='1' checked={sex === 1} />
                 <label htmlFor='male'>♂️</label>
               </div>
               <div className='column'>
-                <input id='female' type='radio' name='sex' className='column' />
+                <input id='female' type='radio' name='sex' className='column' value='0' checked={sex === 0} />
                 <label htmlFor='female'>♀️</label>
               </div>
               <div className='column'>
-                <input id='others' type='radio' name='sex' className='column' />
+                <input id='others' type='radio' name='sex' className='column' value='2' checked={sex === 2} />
                 <label htmlFor='others'>⚧️</label>
               </div>
             </div>
