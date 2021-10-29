@@ -1,6 +1,7 @@
 // const Scheduler = require('pico-scheduler')
 const {
   TYPE_VIBE,
+  TYPE_PROFILE,
   VIBE_REJECTED,
   decodeBlock,
   unseal
@@ -44,9 +45,11 @@ class VibeCtrl {
     }
   }
 
-  filter ({ block, state }) {
+  filter ({ block, parentBlock, state }) {
     const data = decodeBlock(block.body)
     if (data.type !== TYPE_VIBE) return true // Ignore non-profile blocks.
+    const parentType = parentBlock && decodeBlock(parentBlock.body).type
+    if (parentType !== TYPE_VIBE && parentType !== TYPE_PROFILE) return `Invalid parent type: ${parentType}`
     const key = block.key.toString('hex')
     const vibe = decodeBlock(block.body, 1)
     // Reject block if vibe timestamp located in the future.

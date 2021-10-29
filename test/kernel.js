@@ -72,54 +72,61 @@ test('Send vibe to peer', async t => {
   bob.spawnWire({ client: true })(alice.spawnWire())
 
   // Await profiles to be exchanged
-  const state = await nextState(bob.k.store, 'peers')
+  const state = await nextState(s => bob.k.store.on('peers', s))
   const aliceProfile = Object.values(state).find(p => p.name === 'Alice')
   t.ok(Buffer.isBuffer(aliceProfile.pk))
   t.ok(Buffer.isBuffer(aliceProfile.box))
 
   // Bob approaches Alice causing a new chatId to be generated
-  const chatId = await bob.k.sendVibe(aliceProfile.box)
+  const chatId = await bob.k.sendVibe(aliceProfile.pk)
 
   // Alice should have received a vibe
-  let vibes = await nextState(alice.k.store, 'vibes')
+  let vibes = await nextState(s => alice.k.store.on('vibes', s))
   t.equal(vibes.received.length, 1)
 
   t.ok(bob.k.pk.equals(vibes.received[0].from))
   t.ok(Buffer.isBuffer(vibes.received[0].box))
 
   // Bob should see the sent vibe
-  t.equal(bob.k.store.state.vibes.sent.length, 1)
+  vibes = await nextState(s => bob.k.vibes(s), 0)
+  t.equal(vibes.length, 1)
+  let vibe = vibes[0]
+  t.ok(vibe)
+  t.ok(chatId.equals(vibe.id))
+  t.equal(vibe.state, 'waiting_remote')
+  t.equal(vibe.peer.name, 'Alice')
 
   // Alice should see she has a potential match
-  let vibe = null
   alice.k.vibes(vibes => {
     t.equal(vibes.length, 1)
     vibe = vibes[0]
   })()
+
+  vibes = await nextState(s => alice.k.vibes(s), 0)
+  t.equal(vibes.length, 1)
+  vibe = vibes[0]
   t.ok(vibe)
   t.ok(chatId.equals(vibe.id))
-  t.equal(vibe.state, 'waiting')
+  t.equal(vibe.state, 'waiting_local')
+  t.equal(vibe.peer.name, 'BoB')
 
   // Alice sends response
   await alice.k.respondVibe(vibe.id, true)
+  await nextState(s => bob.k.store.on('vibes', s)) // Wait for response to transfer
+
+  vibe = (await nextState(s => alice.k.vibes(s), 0))[0]
+  t.ok(vibe)
+  t.equal(vibe.state, 'match') // <3
 
   // Bob receives alice response
-  vibes = await nextState(bob.k.store, 'vibes')
-  t.equal(vibes.received.length, 1)
-
-  vibe = null
-  alice.k.vibes(vibes => {
-    t.equal(vibes.length, 1)
-    vibe = vibes[0]
-  })()
-  debugger
+  vibe = (await nextState(s => bob.k.vibes(s), 0))[0]
   t.ok(vibe)
-  t.ok(chatId.equals(vibe.id))
-  t.equal(vibe.state, 'match')
+  debugger
+  t.equal(vibe.state, 'match') // <3
+  t.end()
 })
 
-test.skip('Exchange profiles with friends')
-test.skip('Should see friends messages')
+// TODO: In next chat, fastforward match, and verify availablity of all box keys
 
 // Guy walks into a bar
 async function spawnPeer (name) {
@@ -138,9 +145,15 @@ async function spawnPeer (name) {
   }
 }
 
-function nextState (store, name) {
-  let n = 1
-  return new Promise(resolve => store.on(name, m => !n-- ? resolve(m) : null))
+function nextState (sub, n = 1) {
+  let unsub = null
+  return new Promise(resolve => {
+    unsub = sub(m => !n-- ? resolve(m) : null)
+  })
+    .then(v => {
+      unsub()
+      return v
+    })
 }
 
 // TODO: write mdbook "ES6: The Good Awesomesauce"

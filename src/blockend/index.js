@@ -139,16 +139,22 @@ class Kernel {
    * Sends a vibe to a peer giving initiating a private
    * channel for communication.
    * params:
-   * - vibePk {BoxPublicKey} the key advertised in someone's profile.
+   * - peerId {SignaturePublicKey} a peer's signing key
    */
-  async sendVibe (vibePk) {
+  async sendVibe (peerId) {
     const msgBox = boxPair()
-    const sealedMessage = seal(msgBox.pk, vibePk)
+    const peer = await this.profileOf(peerId)
+    const sealedMessage = seal(msgBox.pk, peer.box)
     const convo = await this._createBlock(TYPE_VIBE, {
       box: sealedMessage
     })
     const chatId = convo.last.sig
     await this._storeLocalChatKey(chatId, msgBox)
+    // Store target ref
+    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+    chatId.copy(key, 1)
+    key[0] = 84 // ASCII: 'T'
+    await this.repo.writeReg(key, peer.pk)
     return chatId
   }
 
@@ -190,10 +196,28 @@ class Kernel {
     const data = encodeBlock(type, seq, payload) // Pack data into string/buffer
     branch.append(data, this._sk) // Append data on selected branch
 
-    const mut = await this.dispatch(branch.slice(-1), true) // Dispatch last block to store
+    const mut = await this.dispatch(branch, true) // Dispatch last block to store
     if (!mut.length) throw new Error('CreateBlock failed: rejected by store')
     if (this._badCreateBlockHook) this._badCreateBlockHook(branch.slice(-1))
     return branch
+  }
+
+  async profileOf (key) {
+    /*
+    const tail = await this.repo.tailOf(key)
+    const block = await this.repo.readBlock(tail)
+    if (!block) throw new Error('Profile not found, error due to profileOf is WIP; Need multihead resolve + network query')
+    if (!key.equals(block.key)) throw new Error('Wrong profile encountered')
+    const profile = decodeBlock(block.body)
+    if (profile.type !== TYPE_PROFILE) throw new Error('Tail is not a profile: ' + profile.type)
+    */
+    if (Buffer.isBuffer(key)) key = key.toString('hex')
+    const profile = this.store.state.peers[key]
+    if (!profile) {
+      debugger
+      throw new Error('ProfileNotFound')
+    }
+    return profile
   }
 
   // the other kind of store
@@ -209,7 +233,10 @@ class Kernel {
         fetchPair: null,
         state: 'waiting',
         updatedAt: 0,
-        createdAt: Infinity
+        createdAt: Infinity,
+        respondedAt: -1,
+        remoteRejected: false,
+        localRejected: false
       }
     }
 
@@ -236,17 +263,41 @@ class Kernel {
         chats[id].initiator = !vibe.isResponse ? 'local' : 'remote'
         chats[id].localRejected = vibe.rejected
       }
-
+      const tasks = []
       for (const vibe of Object.values(chats)) {
         if (vibe.received && vibe.remoteRejected) vibe.state = 'rejected'
         else if (vibe.sent && vibe.localRejected) vibe.state = 'rejected'
-        else if (vibe.received && !vibe.sent) vibe.state = 'remote_wait'
-        else if (vibe.sent && !vibe.received) vibe.state = 'local_wait'
+        else if (vibe.received && !vibe.sent) vibe.state = 'waiting_local'
+        else if (vibe.sent && !vibe.received) vibe.state = 'waiting_remote'
         else if (vibe.sent && vibe.received) vibe.state = 'match'
         else vibe.state = 'mental_error'
-        if (vibe.state === 'rejected') debugger
+
+        // INNER JOIN profile on vibe
+        // Attempt to remember who we sent what to.
+        if (!vibe.peer && vibe.initiator === 'local') {
+          const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+          vibe.id.copy(key, 1)
+          key[0] = 84 // ASCII: 'T'
+          tasks.push(
+            this.repo.readReg(key)
+              .then(pk => this.profileOf(pk))
+              .then(peer => { vibe.peer = peer })
+          )
+        } else if (Buffer.isBuffer(vibe.peer)) {
+          tasks.push(
+            this.profileOf(vibe.peer)
+              .then(p => { vibe.peer = p })
+          )
+        }
       }
-      sub(Object.values(chats))
+
+      // When all tasks finish invoke subscriber
+      Promise.all(tasks)
+        .then(() => sub(Object.values(chats)))
+        .catch(err => {
+          console.error('Error occured during vibes derivation:', err)
+          throw err
+        })
     })
   }
 
