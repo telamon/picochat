@@ -74,7 +74,7 @@ class RPC {
     try {
       if (!Buffer.isBuffer(msg)) debugger
       const { type, data } = decodeMsg(msg)
-      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString('hex') : '[NO DATA]')
+      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString() : '[NO DATA]')
       switch (type) {
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
@@ -84,6 +84,7 @@ class RPC {
         } break
 
         case K_BLOCKS: {
+          data.inspect()
           const forward = await this.handlers.onblocks(data)
           // TODO: broadcast(msg, replyTo, filter..) here is broken.
           // the replyTo handle we have in this context is the wrapped decoder function
