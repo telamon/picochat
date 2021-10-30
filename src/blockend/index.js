@@ -15,7 +15,8 @@ const {
   decodeBlock,
   encodeBlock,
   boxPair,
-  seal
+  seal,
+  toBuffer
 } = require('./util')
 const debug = require('debug')
 debug.enable('pico*')
@@ -142,6 +143,8 @@ class Kernel {
    * - peerId {SignaturePublicKey} a peer's signing key
    */
   async sendVibe (peerId) {
+    peerId = toBuffer(peerId)
+    if (this.pk.equals(peerId)) throw new Error('SelfVibeNotAllowed')
     const msgBox = boxPair()
     const peer = await this.profileOf(peerId)
     const sealedMessage = seal(msgBox.pk, peer.box)
@@ -164,10 +167,13 @@ class Kernel {
    * - chatId {BlockSignature} id of the initial vibe-block.
    */
   async respondVibe (chatId, like = true) {
+    chatId = toBuffer(chatId)
     const msgBox = boxPair()
     const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
-    if (!vibe) throw new Error('Vibe not Found')
-    const sealedMessage = seal(msgBox.pk, vibe.box)
+    if (!vibe) throw new Error('VibeNotFound')
+    const peer = await this.profileOf(vibe.from)
+    if (!peer) throw new Error('PeerNotFound')
+    const sealedMessage = seal(msgBox.pk, peer.box)
     const block = await this.repo.readBlock(chatId)
     const convo = await this._createBlock(Feed.from(block), TYPE_VIBE, {
       box: !like ? VIBE_REJECTED : sealedMessage
@@ -211,10 +217,10 @@ class Kernel {
     const profile = decodeBlock(block.body)
     if (profile.type !== TYPE_PROFILE) throw new Error('Tail is not a profile: ' + profile.type)
     */
-    if (Buffer.isBuffer(key)) key = key.toString('hex')
-    const profile = this.store.state.peers[key]
+    key = toBuffer(key)
+    const profile = this.store.state.peers[key.toString('hex')]
     if (!profile) {
-      debugger
+      // debugger
       throw new Error('ProfileNotFound')
     }
     return profile
@@ -386,6 +392,13 @@ class Kernel {
       sk: value.slice(0, 32)
     }
     return box
+  }
+
+  async _getRemoteChatKey (chatId) {
+    const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
+    if (!vibe) throw new Error('ConversationNotFound')
+    if (!vibe.box) throw new Error('BoxPublicKeyNotAvailable')
+    return vibe.box
   }
 }
 

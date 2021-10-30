@@ -55,12 +55,6 @@ test('Enter pub see peers', async t => {
   spawnWireA({ client: true })(b)
   await observer
   t.end()
-  // TODO:
-  // - bob approaches alice by generating a new boxpair and sends the pk to alice
-  // - alice accept the communication request by generating her own box-pair and sending the public key to bob.
-  //   (a communcation request can be rejected by not replying)
-  // - once box keys have been exchanged, two peers should be able to chat.
-  // - if they choose so they can each other's identity-pk to the friends list pledging to long-term store
 })
 
 test('Send vibe to peer', async t => {
@@ -121,12 +115,70 @@ test('Send vibe to peer', async t => {
   // Bob receives alice response
   vibe = (await nextState(s => bob.k.vibes(s), 0))[0]
   t.ok(vibe)
-  debugger
   t.equal(vibe.state, 'match') // <3
   t.end()
 })
 
+test('Vibe rejected by remote', async t => {
+  // Spawn actors
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+
+  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
+
+  const chatId = await bob.k.sendVibe(alice.k.pk)
+  await nextState(s => alice.k.store.on('vibes', s)) // await vibe recv
+
+  await alice.k.respondVibe(chatId, false)
+
+  const vibe = (await nextState(s => bob.k.vibes(s)))[0]
+  t.equal(vibe.state, 'rejected')
+  t.end()
+})
+
 // TODO: In next chat, fastforward match, and verify availablity of all box keys
+test('After match each peer has a pair and the remote public key', async t => {
+  // Spawn actors
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+
+  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
+
+  const chatId = await bob.k.sendVibe(alice.k.pk)
+  await nextState(s => alice.k.store.on('vibes', s)) // await vibe recv
+
+  await alice.k.respondVibe(chatId, true)
+  await nextState(s => bob.k.store.on('vibes', s)) // await vibe-resp
+
+  // Conversation keys
+  const aPair = await alice.k._getLocalChatKey(chatId)
+  const aPub = await alice.k._getRemoteChatKey(chatId)
+
+  const bPair = await bob.k._getLocalChatKey(chatId)
+  const bPub = await bob.k._getRemoteChatKey(chatId)
+
+  t.ok(aPair.sk, 'Alice has a secret key')
+  t.ok(bPair.sk, 'Bob has a secret key')
+  t.equal(aPair.pk?.hexSlice(), bPub.hexSlice(), 'Alice has Bob`s pubkey')
+  t.equal(bPair.pk?.hexSlice(), aPub.hexSlice(), 'Bob has Alice`s pubkey')
+  t.end()
+})
+
+test('Self-vibes throws error', async t => {
+  // Spawn actors
+  const alice = await spawnPeer('Alice')
+  try {
+    await alice.k.sendVibe(alice.k.pk)
+    t.fail('Error was not thrown')
+  } catch (e) {
+    t.equal(e.message, 'SelfVibeNotAllowed')
+  }
+  t.end()
+})
 
 // Guy walks into a bar
 async function spawnPeer (name) {

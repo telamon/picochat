@@ -56,6 +56,7 @@ class VibeCtrl {
     if (vibe.date > new Date().getTime()) return 'Vibe from the future'
     const prev = state.seen[key]
     if (prev && prev.date + this.ttl > vibe.date) return 'Vibe flood'
+
     return false // All good, accept block
   }
 

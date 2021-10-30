@@ -1,6 +1,5 @@
-# Reverse policy .gitignore
 node_modules/
 public/build/
-yarn.lock
+# yarn.lock
 package-lock.json
 

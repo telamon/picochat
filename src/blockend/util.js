@@ -68,6 +68,7 @@ function fixJsonBuffers (o) {
 function toBuffer (o) {
   if (!o) return o
   if (Buffer.isBuffer(o)) return o
+  if (typeof o === 'string' && /^[0-9A-f]+$/.test(o)) return Buffer.from(o, 'hex')
   if (typeof o === 'object' && o.type === 'Buffer') return Buffer.from(o.data)
   else return o
 }
