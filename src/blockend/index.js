@@ -503,6 +503,11 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
     return true // All good, merge permitted
   }
 
+  // Allow Messages onto foreign VibeResponses or Messages
+  if (type === TYPE_MESSAGE) {
+    debugger
+  }
+
   return false // disallow by default
 }
 module.exports = Kernel

@@ -188,9 +188,14 @@ test('Kernel#getChat()', async t => {
 
 test.skip('Conversation: Hi! ... Hello', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  const bChat = await nextState(s => bob.k.getChat(chatId, s))
+  let bChat = await nextState(s => bob.k.getChat(chatId, s))
   t.ok(bChat.myTurn)
   await bChat.send('Hi!')
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.equal(bChat.myTurn, false, 'Nolonger bobs turn')
+  t.equal(bChat.messages.length, 1, 'Message should be stored')
+  t.equal(bChat.messages[0].type, 'sent')
+  t.equal(bChat.messages[0].content, 'Hi!', 'Sent should be readable')
   debugger
 })
 
