@@ -2,8 +2,7 @@ const {
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
   PASS_TURN,
-  decodeBlock,
-  unseal
+  decodeBlock
 } = require('../util')
 
 function ConversationCtrl () {
@@ -19,7 +18,8 @@ function ConversationCtrl () {
 
     initialValue: {
       chats: {},
-      heads: {}
+      heads: {},
+      own: []
     },
 
     filter ({ block, parentBlock, state, root }) {
@@ -42,9 +42,11 @@ function ConversationCtrl () {
         if (match.state !== 'match') return 'MessagingNotAllowed'
         if (![match.a, match.b].find(k => from.equals(k))) return 'NotYourConversation'
       } else {
-        debugger
-        // Ensure reciever != sender
-        if (from.equals(parentBlock.key)) return 'NotYourTurn'
+        const chatId = state.heads[block.parentSig.toString('hex')]
+        if (!chatId) return 'ConversationNotFound'
+        const chat = state.chats[chatId.toString('hex')]
+        const nextAuthor = chat.mLength % 2 ? chat.b : chat.a
+        if (!from.equals(nextAuthor)) return 'NotYourConversation'
       }
 
       return false // All good, accept block
@@ -55,13 +57,11 @@ function ConversationCtrl () {
       const parentType = decodeBlock(parentBlock.body).type
       const peerId = root.peer.pk
       const from = block.key
+      const turnPassed = PASS_TURN.equals(data.content)
       let chatId = null
 
       if (parentType === TYPE_VIBE_RESP) chatId = parentBlock.parentSig
-      else {
-        // lookup chatId by block.parentSig
-        debugger
-      }
+      else chatId = state.heads[block.parentSig.toString('hex')]
 
       const indexKey = chatId.toString('hex')
       // Initialize entry from vibes.matches register
@@ -72,27 +72,33 @@ function ConversationCtrl () {
         chat.b = match.b
         chat.remoteBox = match.remoteBox
         chat.createdAt = match.createdAt
+        chat.mLength = 0
         state.chats[indexKey] = chat
       }
 
       const chat = state.chats[indexKey]
-      // Push messages
-      chat.updatedAt = data.date
+      chat.head = block.sig
 
+      chat.updatedAt = data.date
+      chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
       chat.own = !![chat.a, chat.b].find(k => peerId.equals(k))
       if (chat.own) {
-        const isARemote = chat.a.equals(peerId)
-        const isToMe = isARemote && chat.a.equals(from)
-
+        // Push messages
+        const isSent = peerId.equals(from)
         chat.messages.push({
-          type: isToMe ? 'received' : 'sent',
+          type: isSent ? 'sent' : 'received',
           date: data.date,
-          content: isToMe ? data.content : null, // contents are encrypted, decrypt here?
+          content: !isSent ? data.content : null, // contents are encrypted, decrypt here?
+          pass: turnPassed,
           sig: block.sig // when type is sent, use signature to lookup decrypted copy of contents.
         })
       }
 
+      // Insert into "own" register
+      if (chat.own && !state.own.find(b => b.equals(chatId))) state.own.push(chatId)
+
       // Bump head of findChatIdBy(parentSig) index
+      // console.log('BUMPHEAD', root.peer.name, block.parentSig.hexSlice(0, 10), ' => ', block.sig.hexSlice(0, 10))
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId
       return state

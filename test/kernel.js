@@ -173,7 +173,7 @@ test('Self-vibes throws error', async t => {
 test('Kernel#getChat()', async t => {
   const { alice, bob, chatId } = await makeMatch()
 
-  const aChat = await nextState(s => alice.k.getChat(chatId, s))
+  const aChat = await nextState(s => alice.k.getChat(chatId, s), 0)
   t.equal(aChat.myTurn, false)
   t.equal(aChat.state, 'active')
   t.ok(Array.isArray(aChat.messages))
@@ -181,22 +181,42 @@ test('Kernel#getChat()', async t => {
   t.equal(typeof aChat.pass, 'function')
   t.equal(typeof aChat.bye, 'function')
 
-  const bChat = await nextState(s => bob.k.getChat(chatId, s))
+  const bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.state, 'active')
 })
 
-test.skip('Conversation: Hi! ... Hello', async t => {
+test('Conversation: Hi! ... Hello', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(s => bob.k.getChat(chatId, s))
+  // Bob says Hi
+  let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.ok(bChat.myTurn)
   await bChat.send('Hi!')
-  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.myTurn, false, 'Nolonger bobs turn')
   t.equal(bChat.messages.length, 1, 'Message should be stored')
   t.equal(bChat.messages[0].type, 'sent')
   t.equal(bChat.messages[0].content, 'Hi!', 'Sent should be readable')
-  debugger
+
+  // Alice reads
+  let aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
+  t.equal(aChat.myTurn, true, 'Alice Turn')
+  t.equal(aChat.messages.length, 1, 'Message should be received')
+  t.equal(aChat.messages[0].type, 'received')
+  t.equal(aChat.messages[0].content, 'Hi!', 'should be readable')
+
+  // Alice replies
+  await aChat.send('Hello~')
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
+  t.equal(aChat.myTurn, false, 'Nolonger alice turn')
+  t.equal(aChat.messages.length, 2, 'Message should be appended')
+
+  // Bob recieves reply
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  t.equal(bChat.messages.length, 2, 'new message visible')
+  t.equal(bChat.messages[1].content, 'Hello~')
+
+  t.end()
 })
 
 // Alice and Bob sits down at a table
