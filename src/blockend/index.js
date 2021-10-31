@@ -178,11 +178,13 @@ class Kernel {
   async respondVibe (chatId, like = true) {
     chatId = toBuffer(chatId)
     const msgBox = boxPair()
+
     const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
     if (!vibe) throw new Error('VibeNotFound')
     const peer = await this.profileOf(vibe.from)
     if (!peer) throw new Error('PeerNotFound')
     const sealedMessage = seal(msgBox.pk, peer.box)
+
     const block = await this.repo.readBlock(chatId)
     const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
       box: !like ? VIBE_REJECTED : sealedMessage
@@ -237,86 +239,74 @@ class Kernel {
 
   // the other kind of store
   vibes (sub) {
-    const chats = {}
-    function initChat (id, peer, date) {
-      return {
-        id,
-        peer,
-        received: 0,
-        sent: 0,
-        box: null,
-        fetchPair: null,
-        state: 'waiting',
-        updatedAt: 0,
-        createdAt: Infinity,
-        respondedAt: -1,
-        remoteRejected: false,
-        localRejected: false,
-        head: null
-      }
-    }
-
-    return this.store.on('vibes', ({ sent, received }) => {
-      for (const vibe of received) {
-        const id = vibe.chatId.toString('hex')
-        chats[id] = chats[id] || initChat(vibe.chatId, vibe.date, vibe.from)
-        chats[id].received = 1
-        chats[id].respondedAt = vibe.date
-        chats[id].box = vibe.box
-        chats[id].peer = vibe.from
-        chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
-        chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
-        chats[id].initiator = !vibe.isResponse ? 'remote' : 'local'
-        chats[id].remoteRejected = vibe.rejected
-        if (vibe.isResponse) chats[id].head = vibe.sig
-      }
-      for (const vibe of sent) {
-        const id = vibe.chatId.toString('hex')
-        chats[id] = chats[id] || initChat(vibe.chatId)
-        chats[id].sent = 1
-        chats[id].fetchPair = () => this._getLocalChatKey(vibe.chatId)
-        chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
-        chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
-        chats[id].initiator = !vibe.isResponse ? 'local' : 'remote'
-        chats[id].localRejected = vibe.rejected
-        if (vibe.isResponse) chats[id].head = vibe.sig
-      }
+    return this.store.on('vibes', ({ sent, received, own, matches }) => {
       const tasks = []
-      for (const vibe of Object.values(chats)) {
-        if (vibe.received && vibe.remoteRejected) vibe.state = 'rejected'
-        else if (vibe.sent && vibe.localRejected) vibe.state = 'rejected'
-        else if (vibe.received && !vibe.sent) vibe.state = 'waiting_local'
-        else if (vibe.sent && !vibe.received) vibe.state = 'waiting_remote'
-        else if (vibe.sent && vibe.received) vibe.state = 'match'
-        else vibe.state = 'mental_error'
+      const vibes = []
+      for (const chatId of own) {
+        const match = matches[chatId.toString('hex')]
+        const initiator = this.pk.equals(match.a)
+        const out = {
+          ...initChat(chatId),
+          updatedAt: match.updatedAt,
+          createdAt: match.createdAt,
+          box: match.remoteBox,
+          initiator: initiator ? 'local' : 'remote',
+          localRejected: initiator && match.state === 'rejected',
+          remoteRejected: !initiator && match.state === 'rejected',
+          head: match.response
+        }
+
+        if (match.state === 'rejected') out.state = 'rejected'
+        else if (match.a && match.b) out.state = 'match'
+        else if (!initiator && !match.b) out.state = 'waiting_local'
+        else if (initiator && !match.b) out.state = 'waiting_remote'
+        else out.state = 'mental_error'
+        // The 3 lines above can be replaced with: state = !initiator ? 'waiting_local' : 'waiting_remote'
+        // given that there are no mental errors...
 
         // INNER JOIN profile on vibe
         // Attempt to remember who we sent what to.
-        if (!vibe.peer && vibe.initiator === 'local') {
+        if (initiator) {
           const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-          vibe.id.copy(key, 1)
+          chatId.copy(key, 1)
           key[0] = 84 // ASCII: 'T'
           tasks.push(
             this.repo.readReg(key)
               .then(pk => this.profileOf(pk))
-              .then(peer => { vibe.peer = peer })
+              .then(peer => { out.peer = peer })
           )
-        } else if (Buffer.isBuffer(vibe.peer)) {
+        } else {
           tasks.push(
-            this.profileOf(vibe.peer)
-              .then(p => { vibe.peer = p })
+            this.profileOf(match.a)
+              .then(p => { out.peer = p })
           )
         }
+        vibes.push(out)
       }
 
       // When all tasks finish invoke subscriber
       Promise.all(tasks)
-        .then(() => sub(Object.values(chats)))
+        .then(() => sub(vibes))
         .catch(err => {
           console.error('Error occured during vibes derivation:', err)
           throw err
         })
     })
+
+    function initChat (id, peer, date) {
+      return {
+        id,
+        peer,
+        box: null,
+        fetchPair: null,
+        state: 'waiting',
+        updatedAt: 0,
+        createdAt: Infinity,
+        remoteRejected: false,
+        localRejected: false,
+        head: null
+      }
+    }
   }
 
   /*

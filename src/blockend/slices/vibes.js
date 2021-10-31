@@ -11,15 +11,6 @@ const debug = require('debug')('picochat:SliceVibes')
 
 const TTL = 5 * 1000 * 60 // Defaults to 5 minutes
 
-const mkMatch = () => ({
-  chatId: null, // tail blocksig
-  response: null, // head blocksig
-  updatedAt: 0, // Counter for garbage collection
-  // Participants/Peers
-  a: null,
-  b: null
-})
-
 class VibeCtrl { // TODO: revert back to factory instead of class pattern.
   constructor (vibeTTL = TTL) {
     this._sk = null
@@ -54,7 +45,8 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       // TODO: introducing this register creates incentive to mess with it.
       // patch 3rd-party vibe-response by introducing a public hash(nonce) in init and reveal the nonce in reply
       // this will most likely superseed the sent/received[] registers
-      matches: {}
+      matches: {},
+      own: []
     }
   }
 
@@ -91,7 +83,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
   }
 
   // Reducer updates state with values from block
-  reducer ({ block, state, parentBlock }) {
+  reducer ({ block, state, parentBlock, root }) {
     const key = block.key.toString('hex')
     const vibe = decodeBlock(block.body, 1)
     const parentType = decodeBlock(block.body, 1).type
@@ -102,7 +94,6 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       date: vibe.date,
       sig: block.sig // name sig- to make it easy to delete the block
     }
-
 
     // Reduce received vibes
     if (this._sk) {
@@ -137,9 +128,54 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       })
     }
 
+    // REFACTOR
+    {
+      const { type } = vibe
+      const chatId = type === TYPE_VIBE ? block.sig : block.parentSig
+      const key = chatId.toString('hex')
+      if (type === TYPE_VIBE) {
+        if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
+        const match = state.matches[key] = mkMatch()
+        match.chatId = chatId
+        match.a = block.key
+        match.updatedAt = vibe.date
+        match.createdAt = vibe.date
+        match.state = 'wait'
+      } else { // type === TYPE_VIBE_RESP
+        const match = state.matches[key]
+        if (!match) throw new Error('InternalError: MatchNotFound')
+        match.response = block.sig
+        match.b = block.key
+        match.updatedAt = vibe.date
+        match.state = rejected ? 'rejected' : 'match'
+      }
+
+      const peerId = root.peer.pk
+      const match = state.matches[key]
+
+      // Push sent vibes to "own" registry
+      if (type === TYPE_VIBE && peerId.equals(block.key)) state.own.push(chatId)
+
+      let decrypted = null
+      if (!rejected && !peerId.equals(block.key) && this._sk) { // Attempt decryption
+        try {
+          decrypted = unseal(vibe.box, this._sk, this._pk)
+        } catch (error) {
+          if (error.message !== 'DecryptionFailedError') throw error
+        }
+      }
+
+      if (decrypted) {
+        // Push decryptable received vibes/responses to "own" registry
+        if (!~state.own.indexOf(chatId)) state.own.push(chatId)
+        match.remoteBox = decrypted
+      }
+    }
+
     this._reduceHasRun = true
 
     // Collect garbage
+    // TODO: Rewrite to handle matches & own registries
     {
       const before = [state.received.length, state.sent.length, Object.keys(state.seen).length]
       debug(`Collecting garbage. r/s/t: ${before}`)
@@ -157,5 +193,15 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
     return state // return new state
   }
 }
+
+const mkMatch = () => ({
+  chatId: null, // tail blocksig
+  response: null, // head blocksig
+  updatedAt: 0, // Counter for garbage collection
+  // Participants/Peers
+  a: null,
+  b: null,
+  remoteBox: null
+})
 
 module.exports = VibeCtrl

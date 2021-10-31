@@ -101,6 +101,7 @@ test('Send vibe to peer', async t => {
   vibe = vibes[0]
   t.ok(vibe)
   t.ok(chatId.equals(vibe.id))
+
   t.equal(vibe.state, 'waiting_local')
   t.equal(vibe.peer.name, 'BoB')
 
