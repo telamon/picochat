@@ -74,12 +74,13 @@ test('Send vibe to peer', async t => {
   // Bob approaches Alice causing a new chatId to be generated
   const chatId = await bob.k.sendVibe(aliceProfile.pk)
 
-  // Alice should have received a vibe
+  // Alice should have received a vibe (inspect lowlevel registers)
   let vibes = await nextState(s => alice.k.store.on('vibes', s))
-  t.equal(vibes.received.length, 1)
+  t.equal(vibes.own.length, 1)
+  const match = vibes.matches[vibes.own[0].toString('hex')]
 
-  t.ok(bob.k.pk.equals(vibes.received[0].from))
-  t.ok(Buffer.isBuffer(vibes.received[0].box))
+  t.ok(bob.k.pk.equals(match.a))
+  t.ok(Buffer.isBuffer(match.remoteBox))
 
   // Bob should see the sent vibe
   vibes = await nextState(s => bob.k.vibes(s), 0)

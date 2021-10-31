@@ -179,9 +179,12 @@ class Kernel {
     chatId = toBuffer(chatId)
     const msgBox = boxPair()
 
-    const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
+    if (!this.store.state.vibes.own.find(v => v.equals(chatId))) throw new Error('NotYourVibe')
+
+    const vibe = this.store.state.vibes.matches[chatId.toString('hex')]
     if (!vibe) throw new Error('VibeNotFound')
-    const peer = await this.profileOf(vibe.from)
+    const peer = await this.profileOf(vibe.a)
+
     if (!peer) throw new Error('PeerNotFound')
     const sealedMessage = seal(msgBox.pk, peer.box)
 
@@ -229,6 +232,7 @@ class Kernel {
     if (profile.type !== TYPE_PROFILE) throw new Error('Tail is not a profile: ' + profile.type)
     */
     key = toBuffer(key)
+    if (!key) throw new Error(`PublicKey expected got "${key}"`)
     const profile = this.store.state.peers[key.toString('hex')]
     if (!profile) {
       // debugger
@@ -473,10 +477,11 @@ class Kernel {
   }
 
   async _getRemoteChatKey (chatId) {
-    const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
+    const key = chatId.toString('hex')
+    const vibe = this.store.state.vibes.matches[key]
     if (!vibe) throw new Error('ConversationNotFound')
-    if (!vibe.box) throw new Error('BoxPublicKeyNotAvailable')
-    return vibe.box
+    if (!vibe.remoteBox) throw new Error('BoxPublicKeyNotAvailable')
+    return vibe.remoteBox
   }
 }
 

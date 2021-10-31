@@ -33,10 +33,6 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
   get initialValue () {
     return {
-      // Registers to detect matches
-      sent: [],
-      received: [],
-
       // Register to maintain flood rules/timers
       seen: {},
 
@@ -84,111 +80,69 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
   // Reducer updates state with values from block
   reducer ({ block, state, parentBlock, root }) {
-    const key = block.key.toString('hex')
     const vibe = decodeBlock(block.body, 1)
-    const parentType = decodeBlock(block.body, 1).type
+    const { type } = vibe
+    const chatId = type === TYPE_VIBE ? block.sig : block.parentSig
+    const key = chatId.toString('hex')
     const rejected = VIBE_REJECTED.equals(vibe.box)
 
     // Set lookup reference
-    state.seen[key] = {
-      date: vibe.date,
-      sig: block.sig // name sig- to make it easy to delete the block
+    state.seen[block.key.toString('hex')] = chatId
+
+    if (type === TYPE_VIBE) {
+      if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
+      const match = state.matches[key] = mkMatch()
+      match.chatId = chatId
+      match.a = block.key
+      match.updatedAt = vibe.date
+      match.createdAt = vibe.date
+      match.state = 'wait'
+    } else { // type === TYPE_VIBE_RESP
+      const match = state.matches[key]
+      if (!match) throw new Error('InternalError: MatchNotFound')
+      match.response = block.sig
+      match.b = block.key
+      match.updatedAt = vibe.date
+      match.state = rejected ? 'rejected' : 'match'
     }
 
-    // Reduce received vibes
-    if (this._sk) {
+    const peerId = root.peer.pk
+    const match = state.matches[key]
+
+    // Push sent vibes to "own" registry
+    if (type === TYPE_VIBE && peerId.equals(block.key)) state.own.push(chatId)
+
+    let decrypted = null
+    if (!rejected && !peerId.equals(block.key) && this._sk) { // Attempt decryption
       try {
-        const box = rejected ? null : unseal(vibe.box, this._sk, this._pk)
-        const isResponse = !!state.sent.find(v => v.chatId.equals(block.parentSig))
-        // TODO: chatId is sometimes parentId
-        debug('Someone\'s intrested in you')
-        state.received.push({
-          chatId: isResponse ? block.parentSig : block.sig, // convesation ID
-          sig: block.sig,
-          from: block.key,
-          date: vibe.date,
-          isResponse,
-          rejected,
-          box // conversation Public key
-        })
+        decrypted = unseal(vibe.box, this._sk, this._pk)
       } catch (error) {
         if (error.message !== 'DecryptionFailedError') throw error
       }
     }
 
-    // Reduce sent vibes
-    if (this._peerId && this._peerId.equals(block.key)) {
-      const isResponse = !!state.received.find(v => v.chatId.equals(block.parentSig))
-      state.sent.push({ // interesting, no clue to tell who we sent it too ('seal' algorithm prevents even sender from decrypting)
-        chatId: isResponse ? block.parentSig : block.sig, // convesation ID
-        sig: block.sig,
-        date: vibe.date,
-        rejected,
-        isResponse
-      })
-    }
-
-    // REFACTOR
-    {
-      const { type } = vibe
-      const chatId = type === TYPE_VIBE ? block.sig : block.parentSig
-      const key = chatId.toString('hex')
-      if (type === TYPE_VIBE) {
-        if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
-        const match = state.matches[key] = mkMatch()
-        match.chatId = chatId
-        match.a = block.key
-        match.updatedAt = vibe.date
-        match.createdAt = vibe.date
-        match.state = 'wait'
-      } else { // type === TYPE_VIBE_RESP
-        const match = state.matches[key]
-        if (!match) throw new Error('InternalError: MatchNotFound')
-        match.response = block.sig
-        match.b = block.key
-        match.updatedAt = vibe.date
-        match.state = rejected ? 'rejected' : 'match'
-      }
-
-      const peerId = root.peer.pk
-      const match = state.matches[key]
-
-      // Push sent vibes to "own" registry
-      if (type === TYPE_VIBE && peerId.equals(block.key)) state.own.push(chatId)
-
-      let decrypted = null
-      if (!rejected && !peerId.equals(block.key) && this._sk) { // Attempt decryption
-        try {
-          decrypted = unseal(vibe.box, this._sk, this._pk)
-        } catch (error) {
-          if (error.message !== 'DecryptionFailedError') throw error
-        }
-      }
-
-      if (decrypted) {
-        // Push decryptable received vibes/responses to "own" registry
-        if (!~state.own.indexOf(chatId)) state.own.push(chatId)
-        match.remoteBox = decrypted
-      }
+    if (decrypted) {
+      // Push decryptable received vibes/responses to "own" registry
+      if (!~state.own.indexOf(chatId)) state.own.push(chatId)
+      match.remoteBox = decrypted
     }
 
     this._reduceHasRun = true
 
     // Collect garbage
     // TODO: Rewrite to handle matches & own registries
+    // TODO: somehow remove obsolete blocks from repo
+    /*
     {
       const before = [state.received.length, state.sent.length, Object.keys(state.seen).length]
       debug(`Collecting garbage. r/s/t: ${before}`)
       // All timestamps older/less than timout are considered expired
       const timeout = new Date().getTime() - this.ttl
-      // TODO: somehow remove obsolete blocks from repo
-      state.received = state.received.filter(v => !(v.date < timeout))
-      state.sent = state.sent.filter(v => !(v.date < timeout))
       for (const key in state.seen) {
         if (state.seen[key].date < timeout) delete state.seen[key]
       }
       debug(`Collected. r/s/t: ${[state.received.length, state.sent.length, Object.keys(state.seen).length]}`)
-    }
+    } */
 
     return state // return new state
   }
