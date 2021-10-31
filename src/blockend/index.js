@@ -12,6 +12,7 @@ const {
   KEY_BOX_LIKES_SK,
   TYPE_PROFILE,
   TYPE_VIBE,
+  TYPE_VIBE_RESP,
   TYPE_MESSAGE,
   VIBE_REJECTED,
   PASS_TURN,
@@ -23,7 +24,8 @@ const {
 } = require('./util')
 const debug = require('debug')
 const D = debug('picochat:Kernel')
-debug.enable('pico*')
+
+// debug.enable('pico*')
 
 class Kernel {
   constructor (db) {
@@ -182,7 +184,7 @@ class Kernel {
     if (!peer) throw new Error('PeerNotFound')
     const sealedMessage = seal(msgBox.pk, peer.box)
     const block = await this.repo.readBlock(chatId)
-    const convo = await this._createBlock(Feed.from(block), TYPE_VIBE, {
+    const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
       box: !like ? VIBE_REJECTED : sealedMessage
     })
     if (!convo) throw new Error('Failed creating block')
@@ -488,17 +490,24 @@ class Kernel {
   }
 }
 
-async function mergeStrategy (block, repo) {
+// This function is called by repo when a non-linear block is encountered
+async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? mergStr(b, r, !dryMerge && loud)
   const content = decodeBlock(block.body)
-  if (content.type !== TYPE_VIBE) return false
-  const pBlock = await repo.readBlock(block.parentSig)
-  const pContent = decodeBlock(pBlock.body)
-  if (pContent.type !== TYPE_VIBE) return false
-  if (!VIBE_REJECTED.equals(content.box)) {
-    D(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
-  } else {
-    D(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+  const { type } = content
+
+  // Allow VibeResponses to be merged onto foreign vibes
+  if (type === TYPE_VIBE_RESP) {
+    const pBlock = await repo.readBlock(block.parentSig)
+    const pContent = decodeBlock(pBlock.body)
+    if (pContent.type !== TYPE_VIBE) return false
+    if (!VIBE_REJECTED.equals(content.box)) {
+      D(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    } else {
+      D(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    }
+    return true // All good, merge permitted
   }
-  return true
+
+  return false // disallow by default
 }
 module.exports = Kernel

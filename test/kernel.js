@@ -4,7 +4,7 @@ const memdown = require('memdown')
 const Kernel = require('../src/blockend/')
 const makeDatabase = () => levelup(memdown())
 const debug = require('debug')
-debug.enable('pico*')
+// debug.enable('pico*')
 
 test('Create profile', async t => {
   const app = new Kernel(makeDatabase())

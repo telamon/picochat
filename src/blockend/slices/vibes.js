@@ -60,15 +60,32 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
   filter ({ block, parentBlock, state }) {
     const data = decodeBlock(block.body)
-    if (data.type !== TYPE_VIBE) return true // Ignore non-profile blocks.
+    const { type } = data
+
+    // Silently ignore unrelated blocks
+    if (type !== TYPE_VIBE && type !== TYPE_VIBE_RESP) return true
+
     const parentType = parentBlock && decodeBlock(parentBlock.body).type
-    if (parentType !== TYPE_VIBE && parentType !== TYPE_PROFILE) return `Invalid parent type: ${parentType}`
-    const key = block.key.toString('hex')
-    const vibe = decodeBlock(block.body, 1)
-    // Reject block if vibe timestamp located in the future.
-    if (vibe.date > new Date().getTime()) return 'Vibe from the future'
-    const prev = state.seen[key]
-    if (prev && prev.date + this.ttl > vibe.date) return 'Vibe flood'
+
+    // Assert vibes
+    if (type === TYPE_VIBE) {
+      // Ensure parent is either profile or own chat-head or tail?
+      if (parentType !== TYPE_VIBE && parentType !== TYPE_PROFILE) return `InvalidParent: ${parentType}`
+
+      const key = block.key.toString('hex')
+      // Reject block if vibe timestamp located in the future.
+      if (data.date > new Date().getTime()) return 'Vibe from the future'
+      const prev = state.seen[key]
+      if (prev && prev.date + this.ttl > data.date) return 'Vibe flood'
+    }
+
+    // Assert VibeResponses
+    if (type === TYPE_VIBE_RESP) {
+      // TODO: assert parent.nonce equals SHA(vibeRes.reveal)
+
+      // VibeResponses only allowed onto a Vibe
+      if (parentType !== TYPE_VIBE) return `InvalidParent: ${parentType}`
+    }
 
     return false // All good, accept block
   }

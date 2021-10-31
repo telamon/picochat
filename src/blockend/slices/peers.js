@@ -58,7 +58,6 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
       exp: 0 // fck
     },
     filter ({ block }) {
-      console.log('Filter')
       peerId = peerId || pubKeyGetter()
       if (!peerId) return 'Cannot process block without knowing own identity'
       if (!block.key.equals(peerId)) return true // Ignore non self-authored blocks
@@ -67,7 +66,6 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
       return false
     },
     reducer ({ block, state }) {
-      console.log('Reducer')
       const data = decodeBlock(block.body)
       Object.assign(state, data)
       state.pk = block.key
