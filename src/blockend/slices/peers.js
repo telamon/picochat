@@ -5,6 +5,7 @@ const {
 
 const emptyProfile = (pk = null) => ({
   name: null,
+  picture: ':-)',
   pk,
   tagline: null,
   date: null,
@@ -44,4 +45,33 @@ function containsURL (s) {
   if (typeof s !== 'string') return false
   if (s.match('://')) return true
   return false
+}
+// Experiment, attempt maintaining own profile as separate slice
+// registering it as the first controller should ensure that all other slices
+// will run after it, making it possible to use as a dependency through rootState...
+module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
+  let peerId = null
+  return {
+    name: 'peer',
+    initialValue: {
+      ...emptyProfile(),
+      exp: 0 // fck
+    },
+    filter ({ block }) {
+      console.log('Filter')
+      peerId = peerId || pubKeyGetter()
+      if (!peerId) return 'Cannot process block without knowing own identity'
+      if (!block.key.equals(peerId)) return true // Ignore non self-authored blocks
+      const data = decodeBlock(block.body)
+      if (data.type !== TYPE_PROFILE) return true // Ignore non-profile blocks.
+      return false
+    },
+    reducer ({ block, state }) {
+      console.log('Reducer')
+      const data = decodeBlock(block.body)
+      Object.assign(state, data)
+      state.pk = block.key
+      return state
+    }
+  }
 }

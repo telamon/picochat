@@ -3,15 +3,18 @@ const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
 const { RPC } = require('./rpc')
-const PeerStore = require('./slices/peers')
-const VibeStore = require('./slices/vibes')
+const PeerCtrl = require('./slices/peers')
+const VibeCtrl = require('./slices/vibes')
+const ConversationCtrl = require('./slices/chats')
 const {
   KEY_SK,
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK,
   TYPE_PROFILE,
   TYPE_VIBE,
+  TYPE_MESSAGE,
   VIBE_REJECTED,
+  PASS_TURN,
   decodeBlock,
   encodeBlock,
   boxPair,
@@ -19,6 +22,7 @@ const {
   toBuffer
 } = require('./util')
 const debug = require('debug')
+const D = debug('picochat:Kernel')
 debug.enable('pico*')
 
 class Kernel {
@@ -26,10 +30,13 @@ class Kernel {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
-    // Setup sub-store
-    this.store.register(PeerStore()) // Register PeerStore that holds user profiles
-    this._vibeController = new VibeStore()
+
+    // Setup slices
+    this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
+    this.store.register(PeerCtrl()) // Register PeerStore that holds user profiles
+    this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
+    this.store.register(ConversationCtrl())
   }
 
   /**
@@ -242,7 +249,8 @@ class Kernel {
         createdAt: Infinity,
         respondedAt: -1,
         remoteRejected: false,
-        localRejected: false
+        localRejected: false,
+        head: null
       }
     }
 
@@ -258,6 +266,7 @@ class Kernel {
         chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
         chats[id].initiator = !vibe.isResponse ? 'remote' : 'local'
         chats[id].remoteRejected = vibe.rejected
+        if (vibe.isResponse) chats[id].head = vibe.sig
       }
       for (const vibe of sent) {
         const id = vibe.chatId.toString('hex')
@@ -268,6 +277,7 @@ class Kernel {
         chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
         chats[id].initiator = !vibe.isResponse ? 'local' : 'remote'
         chats[id].localRejected = vibe.rejected
+        if (vibe.isResponse) chats[id].head = vibe.sig
       }
       const tasks = []
       for (const vibe of Object.values(chats)) {
@@ -305,6 +315,81 @@ class Kernel {
           throw err
         })
     })
+  }
+
+  /*
+   * A reactive store whose value is conversation object
+   * containing all then necesarry tidbits and bound actions
+   * to progress the conversation
+   */
+  getChat (chatId, subscriber) {
+    chatId = toBuffer(chatId)
+    let head = chatId
+    // Actions
+    const send = async message => {
+      if (!chat.myTurn) throw new Error('NotYourTurn')
+      if (typeof message !== 'string') throw new Error('Message should be a string')
+      if (!message.length) throw new Error('EmptyMessage')
+      // const { sk } = await this._getLocalChatKey(chatId) // Local Secret Key
+      const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
+      const branch = await this.repo.loadFeed(head)
+      await this._createBlock(branch, TYPE_MESSAGE, {
+        content: message ? seal(toBuffer(message), pk) : null
+      })
+    }
+    const pass = async () => {
+      if (!chat.myTurn) throw new Error('NotYourTurn')
+      return send(PASS_TURN)
+    }
+    const bye = async () => {} // TODO: black magic
+
+    // State
+    let dirty = true
+    const chat = {
+      id: chatId,
+      state: 'init',
+      myTurn: true,
+      messages: [],
+      updatedAt: 0,
+      remoteBox: 0,
+      send,
+      pass,
+      bye
+    }
+
+    const subs = [
+      this.vibes(vibes => {
+        const vibe = vibes.find(v => chatId.equals(v.id))
+        // All conversations must start with a vibe
+        if (!vibe) set({ state: 'error', message: 'VibeNotFound' })
+        head = vibe.head
+        if (vibe.state === 'match') set({ state: 'active' })
+        else if (vibe.state === 'rejected') set({ state: 'inactive' })
+        set({
+          updatedAt: Math.max(chat.updatedAt, vibe.updatedAt),
+          createdAt: vibe.createdAt
+        })
+        if (!chat.messages.length && vibe.state === 'match') {
+          // First to vibe is first to write
+          set({ myTurn: vibe.initiator === 'local' })
+        }
+        notify()
+      })
+    ]
+    notify()
+    return () => { for (const unsub of subs) unsub() }
+
+    function notify (force = true) {
+      if (!force && !dirty) return
+      dirty = false
+      subscriber(chat)
+    }
+    function set (patch) {
+      for (const k in patch) {
+        if (chat[k] !== patch[k]) dirty = true
+        chat[k] = patch[k]
+      }
+    }
   }
 
   /**
@@ -387,6 +472,7 @@ class Kernel {
     chatId.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
     const value = await this.repo.readReg(key)
+    if (!value) throw new Error('BoxPairNotFound')
     const box = {
       pk: value.slice(32),
       sk: value.slice(0, 32)
@@ -409,9 +495,9 @@ async function mergeStrategy (block, repo) {
   const pContent = decodeBlock(pBlock.body)
   if (pContent.type !== TYPE_VIBE) return false
   if (!VIBE_REJECTED.equals(content.box)) {
-    console.info(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    D(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
   } else {
-    console.info(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    D(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
   }
   return true
 }

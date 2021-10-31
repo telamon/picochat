@@ -129,30 +129,18 @@ test('Vibe rejected by remote', async t => {
   await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
 
   const chatId = await bob.k.sendVibe(alice.k.pk)
-  await nextState(s => alice.k.store.on('vibes', s)) // await vibe recv
+  await nextState(s => alice.k.vibes(s)) // await vibe recv
 
   await alice.k.respondVibe(chatId, false)
 
-  const vibe = (await nextState(s => bob.k.vibes(s)))[0]
+  const vibe = (await nextState(s => bob.k.vibes(s)))[0] // await vibe resp
   t.equal(vibe.state, 'rejected')
   t.end()
 })
 
 // TODO: In next chat, fastforward match, and verify availablity of all box keys
 test('After match each peer has a pair and the remote public key', async t => {
-  // Spawn actors
-  const alice = await spawnPeer('Alice')
-  const bob = await spawnPeer('BoB')
-
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
-
-  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
-
-  const chatId = await bob.k.sendVibe(alice.k.pk)
-  await nextState(s => alice.k.store.on('vibes', s)) // await vibe recv
-
-  await alice.k.respondVibe(chatId, true)
-  await nextState(s => bob.k.store.on('vibes', s)) // await vibe-resp
+  const { alice, bob, chatId } = await makeMatch()
 
   // Conversation keys
   const aPair = await alice.k._getLocalChatKey(chatId)
@@ -179,6 +167,43 @@ test('Self-vibes throws error', async t => {
   }
   t.end()
 })
+
+test('Kernel#getChat()', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+
+  const aChat = await nextState(s => alice.k.getChat(chatId, s))
+  t.equal(aChat.myTurn, false)
+  t.equal(aChat.state, 'active')
+  t.ok(Array.isArray(aChat.messages))
+  t.equal(typeof aChat.send, 'function')
+  t.equal(typeof aChat.pass, 'function')
+  t.equal(typeof aChat.bye, 'function')
+
+  const bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.equal(bChat.myTurn, true)
+  t.equal(bChat.state, 'active')
+})
+
+test.skip('Conversation: Hi! ... Hello', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+  const bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.ok(bChat.myTurn)
+  await bChat.send('Hi!')
+  debugger
+})
+
+// Alice and Bob sits down at a table
+async function makeMatch () {
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
+  const chatId = await bob.k.sendVibe(alice.k.pk)
+  await nextState(s => alice.k.vibes(s)) // await vibe recv
+  await alice.k.respondVibe(chatId)
+  await nextState(s => bob.k.vibes(s)) // await vibe resp
+  return { alice, bob, chatId }
+}
 
 // Guy walks into a bar
 async function spawnPeer (name) {
