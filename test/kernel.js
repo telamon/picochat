@@ -217,7 +217,33 @@ test('Conversation: Hi! ... Hello', async t => {
   t.equal(bChat.messages[1].content, 'Hello~')
   t.equal(bChat.myTurn, true, 'Bob`s turn again')
 
+  /*
+  console.log('A feed');
+  (await alice.k.feed()).inspect()
+  console.log('B feed');
+  (await bob.k.feed()).inspect()
+  */
   t.end()
+})
+
+test.skip('Conversation: Pass', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+  let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  await bChat.send('Hi')
+  t.equal(bChat.aPassed, 0)
+  t.equal(bChat.bPassed, 0)
+
+  let aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.send('Hello')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.pass()
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.equal(bChat.aPassed, 1)
 })
 
 // Alice and Bob sits down at a table
