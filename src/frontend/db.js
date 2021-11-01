@@ -22,10 +22,7 @@ export function usePico (store, name, selector, initialValue) {
 
 // Helpers hooks for quick register access
 export function useProfile () {
-  return usePico(kernel.store, 'peers', state => {
-    const p = state[kernel.pk.toString('hex')]
-    return p
-  }, {})
+  return usePico(kernel.store, 'peer', state => state, {})
 }
 
 export function useFriendsList () {
@@ -50,7 +47,7 @@ export function useVibes () {
  *   // Props
  *   myTurn, // boolean, actions can only be invoked when true.
  *   updatedAt, // Last activity of chat
- *   status, // string 'init|active|timeout|ended'
+ *   status, // string '|active|timeout|exhausted|ended'
  *   messages // Array of messages.
  *
  *   // Actions
