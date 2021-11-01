@@ -191,7 +191,7 @@ test('Conversation: Hi! ... Hello', async t => {
   // Bob says Hi
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.ok(bChat.myTurn)
-  await bChat.send('Hi!')
+  await bChat.send('Hi!') // Send the message
   bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.myTurn, false, 'Nolonger bobs turn')
   t.equal(bChat.messages.length, 1, 'Message should be stored')
@@ -206,7 +206,7 @@ test('Conversation: Hi! ... Hello', async t => {
   t.equal(aChat.messages[0].content, 'Hi!', 'should be readable')
 
   // Alice replies
-  await aChat.send('Hello~')
+  await aChat.send('Hello~') // Send reply
   aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
   t.equal(aChat.myTurn, false, 'Nolonger alice turn')
   t.equal(aChat.messages.length, 2, 'Message should be appended')
@@ -215,6 +215,7 @@ test('Conversation: Hi! ... Hello', async t => {
   bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
   t.equal(bChat.messages.length, 2, 'new message visible')
   t.equal(bChat.messages[1].content, 'Hello~')
+  t.equal(bChat.myTurn, true, 'Bob`s turn again')
 
   t.end()
 })

@@ -41,6 +41,33 @@ export function useVibes () {
   return value
 }
 
+/*
+ * subscribes your component to a specific conversation.
+ * returns a high-level object containing both stats and actions
+ *
+ * usage example:
+ * const {
+ *   // Props
+ *   myTurn, // boolean, actions can only be invoked when true.
+ *   updatedAt, // Last activity of chat
+ *   status, // string 'init|active|timeout|ended'
+ *   messages // Array of messages.
+ *
+ *   // Actions
+ *   send, // async function, send(message: string)
+ *   pass, // async function, passes turn to opponent
+ *   bye,  // async function, bye(mood)
+ * } = useChat(id) // <-- same id as vibeId
+ */
+export function useChat (chatId) {
+  const [value, set] = useState([])
+  useEffect(() => {
+    if (!kernel.ready) return
+    return kernel.getChat(chatId, set)
+  }, [kernel.ready, set])
+  return value
+}
+
 /**
  *  It's **beep** time!
  *      ¤
