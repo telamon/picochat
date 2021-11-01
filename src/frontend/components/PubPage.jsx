@@ -10,7 +10,8 @@ export default function Pubs () {
     2: '⚧️'
   }
   const sendVibe = (peer) => {
-    kernel.sendVibe(peer.box)
+    console.log('pk0',peer.pk)
+    kernel.sendVibe(peer.pk)
       .then(chatId => {
         console.log(chatId)
       })
