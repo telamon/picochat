@@ -340,6 +340,8 @@ class Kernel {
     const rpc = new RPC({
       onblocks: async feed => {
         const mut = await store.dispatch(feed, false)
+        D(this.store.state.peer.name, 'received block', mut)
+        D(feed.inspect(true))
         return mut.length
       },
       // Lookups and read hit the permanent store first and then secondaries
@@ -359,7 +361,11 @@ class Kernel {
         return feeds
       }
     })
-    this._badCreateBlockHook = block => rpc.sendBlock(block)
+    this._badCreateBlockHook = block => {
+      D(this.store.state.peer.name, 'sharing new block')
+      D(block.inspect(true))
+      rpc.sendBlock(block)
+    }
 
     return (details = {}) => {
       // if (blocklist.contains(details.prop)) return
@@ -455,12 +461,11 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
     }
     return true // All good, merge permitted
   }
-
+  console.warn('MergeStrategy rejected', type)
   // Allow Messages onto foreign VibeResponses or Messages
   if (type === TYPE_MESSAGE) {
     // debugger
   }
-  console.warn('MergeStrategy rejected', type, block.key.toString('hex').slice(0, 10))
   return false // disallow by default
 }
 module.exports = Kernel

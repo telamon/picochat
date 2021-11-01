@@ -226,24 +226,37 @@ test('Conversation: Hi! ... Hello', async t => {
   t.end()
 })
 
-test.skip('Conversation: Pass', async t => {
+test.only('Conversation: Pass', async t => {
   const { alice, bob, chatId } = await makeMatch()
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  t.equal(bChat.myTurn, true)
+  t.equal(bChat.health, 3)
   await bChat.send('Hi')
-  t.equal(bChat.aPassed, 0)
-  t.equal(bChat.bPassed, 0)
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.equal(bChat.myTurn, false, 'Bob initiates')
 
   let aChat = await nextState(s => alice.k.getChat(chatId, s))
-  await aChat.send('Hello')
+  t.equal(aChat.myTurn, true)
 
-  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await aChat.send('Hello what')
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  t.equal(aChat.myTurn, false, 'Alice replied')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  t.equal(bChat.myTurn, true)
+
   await bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  t.equal(bChat.myTurn, false, 'Bob being bob')
 
   aChat = await nextState(s => alice.k.getChat(chatId, s))
+  t.equal(aChat.myTurn, true)
   await aChat.pass()
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  t.equal(aChat.myTurn, false)
 
   bChat = await nextState(s => bob.k.getChat(chatId, s))
-  t.equal(bChat.aPassed, 1)
+  t.equal(bChat.health, 2) // oops bob oops </3
 })
 
 // Alice and Bob sits down at a table
