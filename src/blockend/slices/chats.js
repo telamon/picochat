@@ -98,7 +98,10 @@ function ConversationCtrl (opts = {}) {
 
       if (turnPassed && --chat.hp < 0) {
         chat.state = 'exhausted'
-      } else chat.hp = Math.min(RegenerateAmount + chat.hp, InitialHealth)
+      } else if (!turnPassed) {
+        // Regenerate
+        chat.hp = Math.min(RegenerateAmount + chat.hp, InitialHealth)
+      }
 
       chat.own = !![chat.a, chat.b].find(k => peerId.equals(k))
       if (chat.own) {

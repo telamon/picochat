@@ -92,7 +92,7 @@ module.exports = function getChat (chatId, subscriber) {
       updatedAt: low.updatedAt,
       mLength: low.mLength,
       head: low.head,
-      health: low.p,
+      health: low.hp, // Math.floor(low.hp),
       myTurn
     })
 
@@ -106,11 +106,13 @@ module.exports = function getChat (chatId, subscriber) {
       for (let i = chat.messages.length; i < low.messages.length; i++) {
         const msg = { ...low.messages[i] }
         head = msg.sig
-        if (msg.type === 'received') {
-          msg.content = unseal(msg.content, localPair.sk, localPair.pk).toString()
-        } else {
-          msg.content = await this._getMessageBody(msg.sig)
-        }
+        if (!msg.pass) {
+          if (msg.type === 'received') {
+            msg.content = unseal(msg.content, localPair.sk, localPair.pk).toString()
+          } else {
+            msg.content = await this._getMessageBody(msg.sig)
+          }
+        } else msg.content = PASS_TURN.toString()
         unread.push(msg)
       }
       return unread
