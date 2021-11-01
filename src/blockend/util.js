@@ -17,11 +17,13 @@ const KEY_BOX_LIKES_SK = 'reg/likes_sk'
 // Block-types
 const TYPE_PROFILE = 'profile'
 const TYPE_VIBE = 'vibe' // A.k.a ❤️ Like ❤️
+const TYPE_VIBE_RESP = 'vibe-response' // <3 / </3
 const TYPE_MESSAGE = 'message'
 const TYPE_BYE = 'bye'
 
 // Other Constants
-const VIBE_REJECTED = Buffer.from('🖕')
+const VIBE_REJECTED = Buffer.from('💔')
+const PASS_TURN = Buffer.from('😶')
 
 /**
  * Convert Object to buffer
@@ -35,6 +37,7 @@ function encodeBlock (type, seq, payload) {
     date: new Date().getTime()
   })
 }
+
 /**
  * Converts buffer to Object
  */
@@ -68,6 +71,8 @@ function fixJsonBuffers (o) {
 function toBuffer (o) {
   if (!o) return o
   if (Buffer.isBuffer(o)) return o
+  if (typeof o === 'string' && /^[0-9A-f]+$/.test(o)) return Buffer.from(o, 'hex')
+  if (typeof o === 'string') return Buffer.from(o) // Not sure if like, remember PHP anyone?
   if (typeof o === 'object' && o.type === 'Buffer') return Buffer.from(o.data)
   else return o
 }
@@ -102,8 +107,10 @@ module.exports = {
   KEY_BOX_LIKES_SK,
   TYPE_PROFILE,
   TYPE_VIBE,
+  TYPE_VIBE_RESP,
   TYPE_MESSAGE,
   VIBE_REJECTED,
+  PASS_TURN,
   encodeBlock,
   decodeBlock,
   fixJsonBuffers,

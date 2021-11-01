@@ -3,32 +3,43 @@ const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
 const { RPC } = require('./rpc')
-const PeerStore = require('./slices/peers')
-const VibeStore = require('./slices/vibes')
+const PeerCtrl = require('./slices/peers')
+const VibeCtrl = require('./slices/vibes')
+const ConversationCtrl = require('./slices/chats')
 const {
   KEY_SK,
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK,
   TYPE_PROFILE,
   TYPE_VIBE,
+  TYPE_VIBE_RESP,
+  TYPE_MESSAGE,
   VIBE_REJECTED,
+  PASS_TURN,
   decodeBlock,
   encodeBlock,
   boxPair,
-  seal
+  seal,
+  unseal,
+  toBuffer
 } = require('./util')
 const debug = require('debug')
-debug.enable('pico*')
+const D = debug('picochat:Kernel')
+
+// debug.enable('pico*')
 
 class Kernel {
   constructor (db) {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
-    // Setup sub-store
-    this.store.register(PeerStore()) // Register PeerStore that holds user profiles
-    this._vibeController = new VibeStore()
+
+    // Setup slices
+    this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
+    this.store.register(PeerCtrl()) // Register PeerStore that holds user profiles
+    this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
+    this.store.register(ConversationCtrl())
   }
 
   /**
@@ -142,6 +153,8 @@ class Kernel {
    * - peerId {SignaturePublicKey} a peer's signing key
    */
   async sendVibe (peerId) {
+    peerId = toBuffer(peerId)
+    if (this.pk.equals(peerId)) throw new Error('SelfVibeNotAllowed')
     const msgBox = boxPair()
     const peer = await this.profileOf(peerId)
     const sealedMessage = seal(msgBox.pk, peer.box)
@@ -164,12 +177,20 @@ class Kernel {
    * - chatId {BlockSignature} id of the initial vibe-block.
    */
   async respondVibe (chatId, like = true) {
+    chatId = toBuffer(chatId)
     const msgBox = boxPair()
-    const vibe = this.store.state.vibes.received.find(v => v.chatId.equals(chatId))
-    if (!vibe) throw new Error('Vibe not Found')
-    const sealedMessage = seal(msgBox.pk, vibe.box)
+
+    if (!this.store.state.vibes.own.find(v => v.equals(chatId))) throw new Error('NotYourVibe')
+
+    const vibe = this.store.state.vibes.matches[chatId.toString('hex')]
+    if (!vibe) throw new Error('VibeNotFound')
+    const peer = await this.profileOf(vibe.a)
+
+    if (!peer) throw new Error('PeerNotFound')
+    const sealedMessage = seal(msgBox.pk, peer.box)
+
     const block = await this.repo.readBlock(chatId)
-    const convo = await this._createBlock(Feed.from(block), TYPE_VIBE, {
+    const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
       box: !like ? VIBE_REJECTED : sealedMessage
     })
     if (!convo) throw new Error('Failed creating block')
@@ -211,10 +232,11 @@ class Kernel {
     const profile = decodeBlock(block.body)
     if (profile.type !== TYPE_PROFILE) throw new Error('Tail is not a profile: ' + profile.type)
     */
-    if (Buffer.isBuffer(key)) key = key.toString('hex')
-    const profile = this.store.state.peers[key]
+    key = toBuffer(key)
+    if (!key) throw new Error(`PublicKey expected got "${key}"`)
+    const profile = this.store.state.peers[key.toString('hex')]
     if (!profile) {
-      debugger
+      // debugger
       throw new Error('ProfileNotFound')
     }
     return profile
@@ -222,83 +244,197 @@ class Kernel {
 
   // the other kind of store
   vibes (sub) {
-    const chats = {}
-    function initChat (id, peer, date) {
-      return {
-        id,
-        peer,
-        received: 0,
-        sent: 0,
-        box: null,
-        fetchPair: null,
-        state: 'waiting',
-        updatedAt: 0,
-        createdAt: Infinity,
-        respondedAt: -1,
-        remoteRejected: false,
-        localRejected: false
-      }
-    }
-
-    return this.store.on('vibes', ({ sent, received }) => {
-      for (const vibe of received) {
-        const id = vibe.chatId.toString('hex')
-        chats[id] = chats[id] || initChat(vibe.chatId, vibe.date, vibe.from)
-        chats[id].received = 1
-        chats[id].respondedAt = vibe.date
-        chats[id].box = vibe.box
-        chats[id].peer = vibe.from
-        chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
-        chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
-        chats[id].initiator = !vibe.isResponse ? 'remote' : 'local'
-        chats[id].remoteRejected = vibe.rejected
-      }
-      for (const vibe of sent) {
-        const id = vibe.chatId.toString('hex')
-        chats[id] = chats[id] || initChat(vibe.chatId)
-        chats[id].sent = 1
-        chats[id].fetchPair = () => this._getLocalChatKey(vibe.chatId)
-        chats[id].updatedAt = Math.max(chats[id].updatedAt, vibe.date)
-        chats[id].createdAt = Math.min(chats[id].createdAt, vibe.date)
-        chats[id].initiator = !vibe.isResponse ? 'local' : 'remote'
-        chats[id].localRejected = vibe.rejected
-      }
+    return this.store.on('vibes', ({ sent, received, own, matches }) => {
       const tasks = []
-      for (const vibe of Object.values(chats)) {
-        if (vibe.received && vibe.remoteRejected) vibe.state = 'rejected'
-        else if (vibe.sent && vibe.localRejected) vibe.state = 'rejected'
-        else if (vibe.received && !vibe.sent) vibe.state = 'waiting_local'
-        else if (vibe.sent && !vibe.received) vibe.state = 'waiting_remote'
-        else if (vibe.sent && vibe.received) vibe.state = 'match'
-        else vibe.state = 'mental_error'
+      const vibes = []
+      for (const chatId of own) {
+        const match = matches[chatId.toString('hex')]
+        const initiator = this.pk.equals(match.a)
+        const out = {
+          ...initVibe(chatId),
+          updatedAt: match.updatedAt,
+          createdAt: match.createdAt,
+          box: match.remoteBox,
+          initiator: initiator ? 'local' : 'remote',
+          localRejected: initiator && match.state === 'rejected',
+          remoteRejected: !initiator && match.state === 'rejected',
+          head: match.response
+        }
+
+        if (match.state === 'rejected') out.state = 'rejected'
+        else if (match.a && match.b) out.state = 'match'
+        else if (!initiator && !match.b) out.state = 'waiting_local'
+        else if (initiator && !match.b) out.state = 'waiting_remote'
+        else out.state = 'mental_error'
+        // The 3 lines above can be replaced with: state = !initiator ? 'waiting_local' : 'waiting_remote'
+        // given that there are no mental errors...
 
         // INNER JOIN profile on vibe
         // Attempt to remember who we sent what to.
-        if (!vibe.peer && vibe.initiator === 'local') {
+        if (initiator) {
           const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-          vibe.id.copy(key, 1)
+          chatId.copy(key, 1)
           key[0] = 84 // ASCII: 'T'
           tasks.push(
             this.repo.readReg(key)
               .then(pk => this.profileOf(pk))
-              .then(peer => { vibe.peer = peer })
+              .then(peer => { out.peer = peer })
           )
-        } else if (Buffer.isBuffer(vibe.peer)) {
+        } else {
           tasks.push(
-            this.profileOf(vibe.peer)
-              .then(p => { vibe.peer = p })
+            this.profileOf(match.a)
+              .then(p => { out.peer = p })
           )
         }
+        vibes.push(out)
       }
 
       // When all tasks finish invoke subscriber
       Promise.all(tasks)
-        .then(() => sub(Object.values(chats)))
+        .then(() => sub(vibes))
         .catch(err => {
           console.error('Error occured during vibes derivation:', err)
           throw err
         })
     })
+
+    function initVibe (id, peer, date) {
+      return {
+        id,
+        peer,
+        box: null,
+        fetchPair: null,
+        state: 'waiting',
+        updatedAt: 0,
+        createdAt: Infinity,
+        remoteRejected: false,
+        localRejected: false,
+        head: null
+      }
+    }
+  }
+
+  /*
+   * A reactive store whose value is conversation object
+   * containing all then necesarry tidbits and bound actions
+   * to progress the conversation
+   */
+  getChat (chatId, subscriber) {
+    chatId = toBuffer(chatId)
+    let head = chatId
+    let localPair = null
+    // Actions
+    const send = async (message, pass = false) => {
+      if (!chat.myTurn) throw new Error('NotYourTurn')
+      if (!pass && typeof message !== 'string') throw new Error('Message should be a string')
+      if (!pass && !message.length) throw new Error('EmptyMessage')
+      // const { sk } = await this._getLocalChatKey(chatId) // Local Secret Key
+      const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
+      const kHead = this.store.state.chats.chats[chatId.toString('hex')]?.head
+      const branch = await this.repo.loadFeed(kHead || head)
+
+      const content = pass ? PASS_TURN : seal(toBuffer(message), pk)
+      await this._createBlock(branch, TYPE_MESSAGE, { content })
+      // Branch "hopefully" contains new block, if not use return of createBlock() in future
+      if (!pass) await this._setMessageBody(branch.last.sig, message)
+    }
+    const pass = async () => {
+      if (!chat.myTurn) throw new Error('NotYourTurn')
+      return send(0, true)
+    }
+    const bye = async () => {} // TODO: black magic
+
+    // State
+    let dirty = true
+    const chat = {
+      id: chatId,
+      state: 'init',
+      myTurn: true,
+      mLength: 0,
+      messages: [],
+      updatedAt: 0,
+      createdAt: 0,
+      remoteBox: null,
+      send,
+      pass,
+      bye
+    }
+
+    const vibesUnsub = this.vibes(vibes => {
+      const vibe = vibes.find(v => chatId.equals(v.id))
+      // All conversations must start with a vibe
+      if (!vibe) set({ state: 'error', message: 'VibeNotFound' })
+      head = vibe.head
+      if (vibe.state === 'match') set({ state: 'active' })
+      else if (vibe.state === 'rejected') set({ state: 'inactive' })
+      set({
+        updatedAt: Math.max(chat.updatedAt, vibe.updatedAt),
+        createdAt: vibe.createdAt,
+        remoteBox: vibe.remoteBox
+      })
+      if (!chat.mLength && vibe.state === 'match') {
+        // First to vibe is first to write
+        set({ myTurn: vibe.initiator === 'local' })
+        vibesUnsub() // Once a vibe reaches state match it will no longer update.
+      }
+      notify()
+    })
+
+    const subs = [
+      vibesUnsub,
+      this.store.on('chats', state => {
+        // If head of an owned conversation was updated, then set and notify
+        const low = state.chats[chatId.toString('hex')] // lowlevel chat
+        if (!low) return
+        const myTurn = !((low.mLength % 2) ^ (this.pk.equals(low.b) ? 1 : 0))
+        // Update headers
+        set({
+          state: low.state,
+          updatedAt: low.updatedAt,
+          mLength: low.mLength,
+          head: low.head,
+          myTurn
+        })
+
+        if (chat.messages.length === low.messages.length) {
+          return notify()
+        }
+
+        (async () => {
+          if (!localPair) localPair = await this._getLocalChatKey(chatId)
+          const unread = []
+          for (let i = chat.messages.length; i < low.messages.length; i++) {
+            const msg = { ...low.messages[i] }
+            head = msg.sig
+            if (msg.type === 'received') {
+              msg.content = unseal(msg.content, localPair.sk, localPair.pk).toString()
+            } else {
+              msg.content = await this._getMessageBody(msg.sig)
+            }
+            unread.push(msg)
+          }
+          return unread
+        })()
+          .catch(console.error)
+          .then(unread => {
+            if (unread && unread.length) set({ messages: [...chat.messages, ...unread] })
+            notify()
+          })
+      })
+    ]
+
+    return () => { for (const unsub of subs) unsub() }
+    function notify (force = false) {
+      if (!force && !dirty) return
+      dirty = false
+      subscriber(chat)
+    }
+    function set (patch) {
+      for (const k in patch) {
+        if (chat[k] !== patch[k]) dirty = true
+        chat[k] = patch[k]
+      }
+    }
   }
 
   /**
@@ -321,7 +457,7 @@ class Kernel {
 
     const rpc = new RPC({
       onblocks: async feed => {
-        const mut = await store.dispatch(feed)
+        const mut = await store.dispatch(feed, false)
         return mut.length
       },
       // Lookups and read hit the permanent store first and then secondaries
@@ -359,8 +495,7 @@ class Kernel {
     // const CONVERSATION_PREFIX = 99 // Ascii 'c'
     const vLength = msgBox.sk.length + msgBox.pk.length
     if (vLength !== 64) throw new Error(`Expected box keypair to be 32bytes each, did algorithm change?: ${vLength}`)
-    if (typeof chatId === 'string') chatId = Buffer.from(chatId, 'hex') // Attempt normalize to buffer
-    if (!Buffer.isBuffer(chatId)) throw new Error('Expected chatId to be a Buffer')
+    chatId = toBuffer(chatId)
     if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
 
     const value = Buffer.allocUnsafe(msgBox.sk.length + msgBox.pk.length)
@@ -375,32 +510,76 @@ class Kernel {
   async _getLocalChatKey (chatId) {
     const CONVERSATION_PREFIX = 67 // Ascii 'C'
     if (typeof chatId === 'string') chatId = Buffer.from(chatId, 'hex') // Attempt normalize to buffer
-    if (!Buffer.isBuffer(chatId)) throw new Error('Expected chatId to be a Buffer')
+    chatId = toBuffer(chatId)
     if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
 
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     chatId.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
     const value = await this.repo.readReg(key)
+    if (!value) throw new Error('BoxPairNotFound')
     const box = {
       pk: value.slice(32),
       sk: value.slice(0, 32)
     }
     return box
   }
+
+  // -- Encrypted messages can only be decrypted by receiver
+  // hence we need to store a copy of each message locally (might add some local encryption to it later)
+  async _getRemoteChatKey (chatId) {
+    const key = chatId.toString('hex')
+    const vibe = this.store.state.vibes.matches[key]
+    if (!vibe) throw new Error('ConversationNotFound')
+    if (!vibe.remoteBox) throw new Error('BoxPublicKeyNotAvailable')
+    return vibe.remoteBox
+  }
+
+  async _setMessageBody (chatId, message) {
+    const CONVERSATION_PREFIX = 77 // Ascii 'M'
+    chatId = toBuffer(chatId)
+    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
+    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+    chatId.copy(key, 1)
+    key[0] = CONVERSATION_PREFIX
+    return await this.repo.writeReg(key, toBuffer(message))
+  }
+
+  async _getMessageBody (chatId) {
+    const CONVERSATION_PREFIX = 77 // Ascii 'M'
+    chatId = toBuffer(chatId)
+    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
+    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+    chatId.copy(key, 1)
+    key[0] = CONVERSATION_PREFIX
+    const msg = await this.repo.readReg(key)
+    if (!msg) throw new Error('MessageNotFound')
+    return msg.toString()
+  }
 }
 
-async function mergeStrategy (block, repo) {
+// This function is called by repo when a non-linear block is encountered
+async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? mergStr(b, r, !dryMerge && loud)
   const content = decodeBlock(block.body)
-  if (content.type !== TYPE_VIBE) return false
-  const pBlock = await repo.readBlock(block.parentSig)
-  const pContent = decodeBlock(pBlock.body)
-  if (pContent.type !== TYPE_VIBE) return false
-  if (!VIBE_REJECTED.equals(content.box)) {
-    console.info(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
-  } else {
-    console.info(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+  const { type } = content
+  // Allow VibeResponses to be merged onto foreign vibes
+  if (type === TYPE_VIBE_RESP) {
+    const pBlock = await repo.readBlock(block.parentSig)
+    const pContent = decodeBlock(pBlock.body)
+    if (pContent.type !== TYPE_VIBE) return false
+    if (!VIBE_REJECTED.equals(content.box)) {
+      D(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    } else {
+      D(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+    }
+    return true // All good, merge permitted
   }
-  return true
+
+  // Allow Messages onto foreign VibeResponses or Messages
+  if (type === TYPE_MESSAGE) {
+    // debugger
+  }
+  console.warn('MergeStrategy rejected', type, block.key.toString('hex').slice(0, 10))
+  return false // disallow by default
 }
 module.exports = Kernel

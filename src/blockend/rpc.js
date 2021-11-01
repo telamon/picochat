@@ -84,7 +84,7 @@ class RPC {
         } break
 
         case K_BLOCKS: {
-          data.inspect()
+          debug(data.inspect(true))
           const forward = await this.handlers.onblocks(data)
           // TODO: broadcast(msg, replyTo, filter..) here is broken.
           // the replyTo handle we have in this context is the wrapped decoder function
