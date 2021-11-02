@@ -5,7 +5,7 @@ const {
 
 const emptyProfile = (pk = null) => ({
   name: null,
-  picture: ':-)',
+  picture: null,
   pk,
   tagline: null,
   date: null,
@@ -21,6 +21,8 @@ module.exports = () => ({
     if (data.type !== TYPE_PROFILE) return true // Ignore non-profile blocks.
 
     // Validate profile content
+    if (!data.picture) return 'Profile Picture missing'
+    if (typeof data.picture !== 'string' || data.picture.length > 10) return 'Picture should be an emoji'
     if (containsURL(data.tagline)) return 'URL in tagline not permitted'
     if (containsURL(data.name)) return 'Links in name is not permitted'
     if (data.name.match(/^\s/)) return 'Name must contain only letters or numbers'

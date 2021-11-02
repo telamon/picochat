@@ -96,7 +96,7 @@ function ConversationCtrl (opts = {}) {
       chat.updatedAt = data.date
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
 
-      if (turnPassed && --chat.hp < 0) {
+      if (turnPassed && --chat.hp < 1) {
         chat.state = 'exhausted'
       } else if (!turnPassed) {
         // Regenerate

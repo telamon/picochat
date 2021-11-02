@@ -13,6 +13,7 @@ test('Create profile', async t => {
 
   // Create a new profile
   await app.register({
+    picture: ':]',
     name: 'Batman',
     tagline: 'I love driving around at night',
     age: 42,
@@ -33,8 +34,8 @@ test('Enter pub see peers', async t => {
   const bob = new Kernel(makeDatabase())
   await alice.load()
   await bob.load()
-  await alice.register({ name: 'Amiss', tagline: 'yay', age: 24, sex: 0 })
-  await bob.register({ name: 'Bobby', tagline: 'hey', age: 27, sex: 1 })
+  await alice.register({ name: 'Amiss', tagline: 'yay', age: 24, sex: 0, picture: 'a' })
+  await bob.register({ name: 'Bobby', tagline: 'hey', age: 27, sex: 1, picture: 'b' })
   // Upon entering same bar/topic
   const spawnWireA = await alice.enter(PUB)
   const spawnWireB = await bob.enter(PUB)
@@ -258,14 +259,26 @@ test('Conversation: Pass', async t => {
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 1)
 
-  // Not sure but this technically should be a goodbye block avoiding full msg roundtrip.
-  // either way gotta gently break the timelock
   await bChat.pass() // bob gives up, conversation exhausted
 
   bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.health, 0)
 
-  // In bob's defense, alice didn't even read the messages :'/
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
+  t.equal(aChat.myTurn, true)
+  t.equal(aChat.health, 0, 'Alice also sees the health drop to zero')
+  t.equal(aChat.state, 'exhausted')
+  try {
+    await aChat.send('U gave up?')
+    t.fail('exhausted chat should throw')
+  } catch (err) {
+    t.equal(err.message, 'InvalidBlock: ConversationEnded')
+  }
+  t.end()
+
+  // I wonder what happens if we just say exhausted conversations cannot add more blocks.
+  // It's a failed head so to speak; vibe blocks only attachable on profile and 'bye'.
+  // all other conversations results in 0 points? Need to sleep on this. but exhausted convo is exhausted.
 })
 
 // Alice and Bob sits down at a table
@@ -289,7 +302,8 @@ async function spawnPeer (name) {
     name,
     tagline: `${name} is awesome!`,
     sex: Math.floor(Math.random() * 3), // \("v")/
-    age: Math.floor(Math.random() * 18 + 50)
+    age: Math.floor(Math.random() * 18 + 50),
+    picture: ':|'
   })
   const spawnWire = await app.enter('Abyss')
   return {
