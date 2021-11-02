@@ -23,7 +23,7 @@ export default function VibeList () {
             <li key={vibe.id}>
               <strong>
                 You get one Vibe from {vibe.peer.name}
-                at {date.toLocaleString('en-GB', { hour12: false })} {vibe.state}
+                 at {date.toLocaleString('en-GB', { hour12: false })} {vibe.state}
               </strong>
               {vibe.state === 'waiting_local' && (
                 <div className='column'>

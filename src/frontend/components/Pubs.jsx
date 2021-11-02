@@ -13,23 +13,22 @@ export default function Pubs () {
       cider: '🍸'
     }
     function click () {
-      console.log('pub name clicked', pub.name)
       enterPub(pub.name).then(() => {
-        console.log('pub entered', pub.name)
+        console.log('Pub entered', pub.name)
         history.push('/pub')
       }).catch(err => {
-        console.error('faild entered Pub', err)
+        console.error('Failed entering pub', err)
       })
     }
     return (
-        <div className='w' key={pub.id} onClick={click}>
-          <div className='containerbackground'><h1 className='barName'><strong>{pub.name}</strong></h1></div>
-          <h2 className='icon-2'>
-            {pub.drinks.map(drink => (
-              <span className='icon-3' key={drink}>{icons[drink]}</span>
-            ))}
-          </h2>
-        </div>
+      <div className='w' key={pub.id} onClick={click}>
+        <div className='containerbackground'><h1 className='bar-name'><strong>{pub.name}</strong></h1></div>
+        <h2 className='icon-2'>
+          {pub.drinks.map(drink => (
+            <span className='icon-3' key={drink}>{icons[drink]}</span>
+          ))}
+        </h2>
+      </div>
     )
   }
 

@@ -50,7 +50,7 @@
   overflow-wrap: anywhere;
 }
 
-.barName {
+.bar-name {
   font-size: 8vw;
   letter-spacing: 0.2em;
   color: dimgrey;
@@ -68,7 +68,7 @@
   letter-spacing: 1em;
 }
 
-.membersList {
+.members-list {
   color: darkred;
   text-shadow: darkred;
   text-align: center;
@@ -106,29 +106,29 @@ position:absolute;
   display: inline-block;
 }
 
-.friendsList-2{
+.peers-list-2{
   border-style: solid;
   margin: 2vw;
   width: 25vw;
   text-align: center;
 }
 
-.friendsList{
+.peers-list{
   text-align: center;
   display: flex;
 }
 
-.friendsIcon{
+.peers-icon{
   margin: 2vw;
   width: 25vw;
 }
 
-.friendsListWrap{
+.peers-list-wrap{
   display: flex;
   flex-wrap: wrap;
 }
 
-.smalleTagline {
+.smalle-tagline {
   width: 80%;
   overflow: hidden;
   text-overflow: "...";

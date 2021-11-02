@@ -10,7 +10,7 @@ export default function Pubs () {
     2: '⚧️'
   }
   const sendVibe = (peer) => {
-    console.log('pk0',peer.pk)
+    console.log('pk', peer.pk)
     kernel.sendVibe(peer.pk)
       .then(chatId => {
         console.log(chatId)
@@ -23,19 +23,19 @@ export default function Pubs () {
     <>
       <div className='hero'>
         <h1 className='bar'>Pub name is <strong>"HardRock"</strong></h1>
-        <h3 className='membersList'>Here is memmbers list which is at this bar now</h3>
+        <h3 className='members-list'>Here is memmbers list which is at this bar now</h3>
         <VibeList />
-        <div className='friendsList friendsListWrap'>
+        <div className='peers-list peers-list-wrap'>
           {peers.map(friend => (
-            <div className='friendsListWrap2' key={friend.pk}>
-              <div className='column friendsList-2'>
-                <div className='column friendsIcon'>
+            <div className='peers-list-wrap-2' key={friend.pk}>
+              <div className='column peers-list-2'>
+                <div className='column peers-icon'>
                   <span className='icon-3'>{friend.picture}</span>
                 </div>
                 <div className='column'>
                   <h1>{friend.name}</h1>
                   <span className='icon-2'>{icons[friend.sex]}</span>
-                  <h3 className='smalleTagline'>{friend.tagline}</h3>
+                  <h3 className='smalle-tagline'>{friend.tagline}</h3>
                   <button className='button is-primary' onClick={() => sendVibe(friend)}>Send Vibe</button>
                 </div>
               </div>
