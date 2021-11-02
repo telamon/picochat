@@ -92,7 +92,7 @@ module.exports = function getChat (chatId, subscriber) {
       updatedAt: low.updatedAt,
       mLength: low.mLength,
       head: low.head,
-      health: low.hp, // Math.floor(low.hp),
+      health: Math.floor(low.hp),
       myTurn
     })
 

@@ -47,7 +47,7 @@ function decodeBlock (body, offset = 0) {
 }
 
 function bufferReplacer (k, o) {
-  return (typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o
+  return (o && typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o
 }
 
 /**

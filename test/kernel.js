@@ -235,18 +235,37 @@ test('Conversation: Pass', async t => {
 
   let aChat = await nextState(s => alice.k.getChat(chatId, s))
   t.equal(aChat.myTurn, true)
-  aChat.send('Hello what')
+  await aChat.send('Hello what')
 
   bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
   t.equal(bChat.myTurn, true)
-  bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
+  await bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
 
   aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
   t.equal(aChat.myTurn, true)
   await aChat.pass()
 
   bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
-  t.equal(bChat.health, 2) // oops bob oops </3
+  t.equal(bChat.myTurn, true)
+  t.equal(bChat.health, 2) // first hit
+  await bChat.send('Y U NO SHAW THEM???') // Recovers 0.3
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
+  t.equal(aChat.myTurn, true)
+  await aChat.pass()
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  t.equal(bChat.myTurn, true)
+  t.equal(bChat.health, 1)
+
+  // Not sure but this technically should be a goodbye block avoiding full msg roundtrip.
+  // either way gotta gently break the timelock
+  await bChat.pass() // bob gives up, conversation exhausted
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
+  t.equal(bChat.health, 0)
+
+  // In bob's defense, alice didn't even read the messages :'/
 })
 
 // Alice and Bob sits down at a table
@@ -290,8 +309,6 @@ function nextState (sub, n = 1) {
     })
 }
 
-// TODO: write mdbook "ES6: The Good Awesomesauce"
-// chapter 1. (Don't) start what you can't finish
 function get (store) {
   let value = null
   store(v => { value = v })()
