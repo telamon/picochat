@@ -9,6 +9,7 @@ import AboutPage from './components/AboutPage.jsx'
 import Rules from './components/RulesPage.jsx'
 import ErrorPage from './components/ErrorPage.jsx'
 import Pubs from './components/PubPage.jsx'
+import Chat from './components/Chat.jsx'
 
 const promise = kernel.load()
   .then(l => {
@@ -39,6 +40,7 @@ export default function App () {
           <Route component={Rules} path='/policy' />
           <Route component={ErrorPage} path='/error' />
           <Route component={Pubs} path='/pub' />
+          <Route component={Chat} path='/chat' />
           <Redirect to='/' />
         </Switch>
 

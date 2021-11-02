@@ -38,7 +38,7 @@ export default function Mypage () {
       </div>
       <div className='columns card-div'>
         <div className='column'>
-          <span className='icon-3'>{profile.picture}</span>
+
         </div>
         <div className='column'>
           <h1 className='pk'>@{profile.name}<span>#{profile.pk}</span></h1>
