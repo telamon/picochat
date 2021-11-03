@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { kernel, useFriendsList } from './db'
+import { kernel, usePeers } from './db'
 import Header from './components/Header.jsx'
 import Profile from './components/Profile.jsx'
 import Mypage from './components/MyPage.jsx'
@@ -24,7 +24,7 @@ const promise = kernel.load()
   })
 
 export default function App () {
-  const peers = useFriendsList()
+  const peers = usePeers()
   console.log('Peers Store:', peers)
 
   const [loggedIn, setLoggedIn] = useState(false)
