@@ -1,9 +1,9 @@
 import React from 'react'
-import { kernel, useFriendsList } from '../db'
+import { kernel, usePeers } from '../db'
 import VibeList from './Vibe.jsx'
 
 export default function Pubs () {
-  const peers = useFriendsList()
+  const peers = usePeers()
   const icons = {
     0: '♀️',
     1: '♂️',
@@ -27,17 +27,17 @@ export default function Pubs () {
         <h3 className='members-list'>Here is memmbers list which is at this bar now</h3>
         <VibeList />
         <div className='peers-list peers-list-wrap'>
-          {peers.map(friend => (
-            <div className='peers-list-wrap-2' key={friend.pk}>
+          {peers.map(peer => (
+            <div className='peers-list-wrap-2' key={peer.pk}>
               <div className='column peers-list-2'>
                 <div className='column peers-icon'>
-                  <span className='icon-3'>{friend.picture}</span>
+                  <span className='icon-3'>{peer.picture}</span>
                 </div>
                 <div className='column'>
-                  <h1>{friend.name}</h1>
-                  <span className='icon-2'>{icons[friend.sex]}</span>
-                  <h3 className='smalle-tagline'>{friend.tagline}</h3>
-                  <button className='button is-primary' onClick={() => sendVibe(friend)}>Send Vibe</button>
+                  <h1>{peer.name}</h1>
+                  <span className='icon-2'>{icons[peer.sex]}</span>
+                  <h3 className='smalle-tagline'>{peer.tagline}</h3>
+                  <button className='button is-primary' onClick={() => sendVibe(peer)}>Send Vibe</button>
                 </div>
               </div>
             </div>
