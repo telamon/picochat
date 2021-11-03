@@ -13,16 +13,17 @@ export default function Pubs () {
     console.log('pk', peer.pk)
     kernel.sendVibe(peer.pk)
       .then(chatId => {
-        console.log(chatId)
+        console.log('Vibe sent!', chatId)
       })
       .catch(err => {
-        console.log(err)
+        console.error('Send vibe failed', err)
       })
   }
+  const pubName = 'My favourite pub 🍺'
   return (
     <>
       <div className='hero'>
-        <h1 className='bar'>Pub name is <strong>"HardRock"</strong></h1>
+        <h1 className='bar'>{pubName}</h1>
         <h3 className='members-list'>Here is memmbers list which is at this bar now</h3>
         <VibeList />
         <div className='peers-list peers-list-wrap'>
