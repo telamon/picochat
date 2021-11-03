@@ -1,6 +1,8 @@
 const {
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
+  TYPE_BYE,
+  TYPE_BYE_RESP,
   PASS_TURN,
   decodeBlock
 } = require('../util')
@@ -25,7 +27,9 @@ function ConversationCtrl (opts = {}) {
     state: 'active',
     a: null, // Peer id
     b: null, // Peer id
-    hp: InitialHealth // Mana/ Conversation health
+    hp: InitialHealth, // Mana/ Conversation health
+    aEnd: -1,
+    bEnd: -1
   })
 
   return {
@@ -39,9 +43,18 @@ function ConversationCtrl (opts = {}) {
 
     filter ({ block, parentBlock, state, root }) {
       const data = decodeBlock(block.body)
-      if (data.type !== TYPE_MESSAGE) return true // Ignore non-profile blocks.
+      const { type } = data
+      if (!~[TYPE_MESSAGE, TYPE_BYE, TYPE_BYE_RESP].indexOf(type)) return true
       const parentType = parentBlock && decodeBlock(parentBlock.body).type
-      if (parentType !== TYPE_MESSAGE && parentType !== TYPE_VIBE_RESP) return `Invalid parent type: ${parentType}`
+
+      if (
+        // message onto message or vibe_resp
+        (type === TYPE_MESSAGE && parentType !== TYPE_MESSAGE && parentType !== TYPE_VIBE_RESP) ||
+        // bye onto message
+        (type === TYPE_BYE && parentType !== TYPE_MESSAGE) ||
+        // bye-response onto bye
+        (type === TYPE_BYE_RESP && parentType !== TYPE_BYE)
+      ) return `Invalid parent type: ${parentType}`
 
       const from = block.key
       if (from.equals(parentBlock.key)) return 'MonologueNotAllowed'
@@ -54,30 +67,33 @@ function ConversationCtrl (opts = {}) {
         if (match.state !== 'match') return 'MessagingNotAllowed'
         if (![match.a, match.b].find(k => from.equals(k))) return 'NotYourConversation'
         if (match.updatedAt < now() - MessageTimeout) return 'ConversationTimeout'
-      } else { // TYPE_MESSAGE
+      } else { // TYPE_MESSAGE || TYPE_BYE
         const chatId = state.heads[block.parentSig.toString('hex')]
         if (!chatId) return 'ConversationNotFound'
         const chat = state.chats[chatId.toString('hex')]
         const nextAuthor = chat.mLength % 2 ? chat.b : chat.a
         if (!from.equals(nextAuthor)) return 'NotYourConversation'
         if (chat.updatedAt < now() - MessageTimeout) return 'ConversationTimeout'
-        if (chat.state !== 'active') return 'ConversationEnded'
+        if (type !== TYPE_BYE_RESP && chat.state !== 'active') return 'ConversationEnded'
+        else if (type === TYPE_BYE_RESP && chat.state !== 'finalizing') return 'InvalidState'
       }
       return false // All good, accept block
     },
 
     reducer ({ block, parentBlock, root, state }) {
       const data = decodeBlock(block.body)
+      const { type } = data
       const parentType = decodeBlock(parentBlock.body).type
       const peerId = root.peer.pk
       const from = block.key
-      const turnPassed = PASS_TURN.equals(data.content)
+
       let chatId = null
 
       if (parentType === TYPE_VIBE_RESP) chatId = parentBlock.parentSig
       else chatId = state.heads[block.parentSig.toString('hex')]
 
       const indexKey = chatId.toString('hex')
+
       // Initialize entry from vibes.matches register
       if (parentType === TYPE_VIBE_RESP) {
         const match = root.vibes.matches[indexKey]
@@ -96,28 +112,37 @@ function ConversationCtrl (opts = {}) {
       chat.updatedAt = data.date
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
 
-      if (turnPassed && --chat.hp < 1) {
-        chat.state = 'exhausted'
-      } else if (!turnPassed) {
-        // Regenerate
-        chat.hp = Math.min(RegenerateAmount + chat.hp, InitialHealth)
-      }
+      if (TYPE_MESSAGE === type) {
+        const turnPassed = PASS_TURN.equals(data.content)
+        if (turnPassed && --chat.hp < 1) {
+          chat.state = 'exhausted'
+        } else if (!turnPassed) {
+          // Regenerate
+          chat.hp = Math.min(RegenerateAmount + chat.hp, InitialHealth)
+        }
 
-      chat.own = !![chat.a, chat.b].find(k => peerId.equals(k))
-      if (chat.own) {
-        // Push messages
-        const isSent = peerId.equals(from)
-        chat.messages.push({
-          type: isSent ? 'sent' : 'received',
-          date: data.date,
-          content: !isSent ? data.content : null, // contents are encrypted, decrypt here?
-          pass: turnPassed,
-          sig: block.sig // when type is sent, use signature to lookup decrypted copy of contents.
-        })
-      }
+        chat.own = !![chat.a, chat.b].find(k => peerId.equals(k))
+        if (chat.own) {
+          // Push messages
+          const isSent = peerId.equals(from)
+          chat.messages.push({
+            type: isSent ? 'sent' : 'received',
+            date: data.date,
+            content: !isSent ? data.content : null, // contents are encrypted, decrypt here?
+            pass: turnPassed,
+            sig: block.sig // when type is sent, use signature to lookup decrypted copy of contents.
+          })
+        }
 
-      // Insert into "own" register
-      if (chat.own && !state.own.find(b => b.equals(chatId))) state.own.push(chatId)
+        // Insert into "own" register
+        if (chat.own && !state.own.find(b => b.equals(chatId))) state.own.push(chatId)
+      } else {
+        if (TYPE_BYE === type) chat.state = 'finalizing'
+        else chat.state = 'end'
+        if (chat.a.equals(from)) chat.aEnd = data.gesture
+        else chat.bEnd = data.gesture
+        //console.log('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
+      }
 
       // Bump head of findChatIdBy(parentSig) index
       // console.log('BUMPHEAD', root.peer.name, block.parentSig.hexSlice(0, 10), ' => ', block.sig.hexSlice(0, 10))

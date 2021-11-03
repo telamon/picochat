@@ -1,6 +1,11 @@
 const {
   TYPE_MESSAGE,
+  TYPE_BYE,
+  TYPE_BYE_RESP,
   PASS_TURN,
+  PEACE,
+  LOVE,
+  UNDERSTANDING,
   seal,
   unseal,
   toBuffer
@@ -14,20 +19,14 @@ module.exports = function getChat (chatId, subscriber) {
   chatId = toBuffer(chatId)
   let head = chatId
   let localPair = null
+
   // Actions
   const _send = async (message, pass = false) => {
-    if (!chat.myTurn) {
-      console.log('Out of turn', this.store.state.peer.name)
-      debugger
-    }
-    if (!chat.myTurn) throw new Error('NotYourTurn')
+    if (!cache.myTurn) throw new Error('NotYourTurn')
     if (!pass && typeof message !== 'string') throw new Error('Message should be a string')
     if (!pass && !message.length) throw new Error('EmptyMessage')
-    // const { sk } = await this._getLocalChatKey(chatId) // Local Secret Key
     const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
-    const kHead = this.store.state.chats.chats[chatId.toString('hex')]?.head
-    const branch = await this.repo.loadFeed(kHead || head)
-
+    const branch = await this.repo.loadFeed(head)
     const content = pass ? PASS_TURN : seal(toBuffer(message), pk)
     await this._createBlock(branch, TYPE_MESSAGE, { content })
     // Branch "hopefully" contains new block, if not use return of createBlock() in future
@@ -35,110 +34,184 @@ module.exports = function getChat (chatId, subscriber) {
   }
   const send = async message => _send(message)
   const pass = async () => {
-    if (!chat.myTurn) throw new Error('NotYourTurn')
+    if (!cache.myTurn) throw new Error('NotYourTurn')
     return _send(0, true)
   }
-  const bye = async () => {} // TODO: black magic
 
-  // State
-  let dirty = true
+  const bye = async gesture => {
+    if (!cache.myTurn) throw new Error('NotYourTurn')
+    if (!~[PEACE, LOVE, UNDERSTANDING].indexOf(gesture)) throw new Error('InvalidGesture')
+    if (!~['active', 'finalizing'].indexOf(cache.state)) throw new Error('InvalidState')
+    const branch = await this.repo.loadFeed(head)
+    await this._createBlock(branch, cache.state === 'active' ? TYPE_BYE : TYPE_BYE_RESP,
+      {
+        gesture
+        // TBD
+      }
+    )
+  }
   const chat = {
     id: chatId,
     state: 'loading',
     myTurn: true,
+    peer: null,
     mLength: 0,
     messages: [],
     updatedAt: 0,
     createdAt: 0,
-    remoteBox: null,
     health: 3, // TODO: initial health prop is in chats reducer
+    errorMessage: null,
     send,
     pass,
     bye
   }
+  const cache = chat
+  const set = subscriber
+  // State
+  const unsubCombined = combine(
+    this.vibes.bind(this),
+    s => this.store.on('chats', s),
+    ($vibes, $chats) => {
+      const vibe = $vibes.find(v => chatId.equals(v.id))
+      const lChat = $chats.chats[chatId.toString('hex')]
 
-  const vibesUnsub = this.vibes(vibes => {
-    const vibe = vibes.find(v => chatId.equals(v.id))
-    // All conversations must start with a vibe
-    if (!vibe) set({ state: 'error', message: 'VibeNotFound' })
-    head = vibe.head
-    if (vibe.state === 'match') set({ state: 'active' })
-    else if (vibe.state === 'rejected') set({ state: 'inactive' })
-    set({
-      updatedAt: Math.max(chat.updatedAt, vibe.updatedAt),
-      createdAt: vibe.createdAt,
-      remoteBox: vibe.remoteBox
-    })
-    if (vibe.state === 'match') vibesUnsub() // final state reached
-
-    if (!chat.mLength && vibe.state === 'match') {
-      // First to vibe is first to write
-      set({ myTurn: vibe.initiator === 'local' })
-    }
-
-    const lowLevelState = this.store.state.chats[chatId.toString('hex')]
-    if (lowLevelState) reduceChatState(this.store.state.chats)
-    else notify()
-  })
-
-  const reduceChatState = state => {
-    // If head of an owned conversation was updated, then set and notify
-    const low = state.chats[chatId.toString('hex')] // lowlevel chat
-    if (!low) return
-    const myTurn = !((low.mLength % 2) ^ (this.pk.equals(low.b) ? 1 : 0))
-    // Update headers
-    set({
-      state: low.state,
-      updatedAt: low.updatedAt,
-      mLength: low.mLength,
-      head: low.head,
-      health: Math.floor(low.hp),
-      myTurn
-    })
-
-    if (chat.messages.length === low.messages.length) {
-      return notify()
-    }
-
-    (async () => {
-      if (!localPair) localPair = await this._getLocalChatKey(chatId)
-      const unread = []
-      for (let i = chat.messages.length; i < low.messages.length; i++) {
-        const msg = { ...low.messages[i] }
-        head = msg.sig
-        if (!msg.pass) {
-          if (msg.type === 'received') {
-            msg.content = unseal(msg.content, localPair.sk, localPair.pk).toString()
-          } else {
-            msg.content = await this._getMessageBody(msg.sig)
-          }
-        } else msg.content = PASS_TURN.toString()
-        unread.push(msg)
+      // All conversations must start with a vibe
+      if (!vibe) {
+        chat.state = 'error'
+        chat.errorMessage = 'VibeNotFound'
+        return set(chat)
       }
-      return unread
-    })()
-      .catch(console.error)
-      .then(unread => {
-        if (unread && unread.length) set({ messages: [...chat.messages, ...unread] })
-        notify()
-      })
-  }
-  const chatsUnsub = this.store.on('chats', reduceChatState)
 
-  const subs = [
-    vibesUnsub,
-    chatsUnsub
-  ]
-  return () => { for (const unsub of subs) unsub() }
-  function notify (force = false) {
-    if (!force && !dirty) return
-    dirty = false
-    subscriber(chat)
+      head = vibe.head
+      if (vibe.state === 'match') chat.state = 'active'
+      else if (vibe.state === 'rejected') chat.state = 'inactive'
+      chat.updatedAt = Math.max(chat.updatedAt, vibe.updatedAt)
+      chat.createdAt = vibe.createdAt
+      chat.peer = vibe.peer
+
+      if (!lChat && vibe.state === 'match') {
+        // First to vibe is first to write
+        chat.myTurn = vibe.initiator === 'local'
+      }
+      if (!lChat) return set(chat)
+      head = lChat.head
+
+      // Update headers
+      chat.state = lChat.state
+      chat.updatedAt = lChat.updatedAt
+      chat.mLength = lChat.mLength
+      chat.health = Math.floor(lChat.hp)
+      chat.myTurn = !((lChat.mLength % 2) ^ (this.pk.equals(lChat.b) ? 1 : 0))
+
+      // Skip message decryption if no new messages available
+      if (chat.messages.length === lChat.messages.length) return set(chat)
+
+      const decryptMessages = async () => {
+        if (!localPair) localPair = await this._getLocalChatKey(chatId)
+        const unread = []
+        for (let i = chat.messages.length; i < lChat.messages.length; i++) {
+          const msg = { ...lChat.messages[i] } // Make a copy
+          head = msg.sig
+          if (!msg.pass) {
+            if (msg.type === 'received') {
+              msg.content = unseal(msg.content, localPair.sk, localPair.pk).toString()
+            } else {
+              msg.content = await this._getMessageBody(msg.sig)
+            }
+          } else msg.content = PASS_TURN.toString()
+          unread.push(msg)
+        }
+        return unread
+      }
+
+      decryptMessages()
+        .catch(err => {
+          chat.state = 'error'
+          chat.errorMessage = err.message
+          console.error(err)
+        })
+        .then(unread => {
+          // TODO: write proper tests for the functional stores
+          chat.messages = [...chat.messages, ...unread]
+          if (unread && unread.length) set(chat)
+        })
+      // return set(chat) // initial value
+    })
+  return unsubCombined
+}
+
+/**
+ * Gates first notify until all store have returned a value, similar to Promise.all
+ */
+function combine (...stores) {
+  const notify = stores.pop()
+  if (!Array.isArray(stores) || !stores.length) throw new Error('A list of stores is required')
+  if (typeof notify !== 'function') throw new Error('Derivation function required')
+
+  const loaded = []
+  const values = []
+  let remaining = stores.length
+
+  const subscriptions = []
+  for (let i = 0; i < stores.length; i++) {
+    subscriptions.push(stores[i](handler.bind(null, i)))
   }
-  function set (patch) {
-    for (const k in patch) {
-      if (chat[k] !== patch[k]) dirty = true
-      chat[k] = patch[k]
+  return () => {
+    for (const unsub of subscriptions) unsub()
+  }
+  function handler (i, val) {
+    if (!loaded[i]) {
+      loaded[i] = true
+      remaining--
     }
+    values[i] = val
+    if (!remaining) notify(...values)
   }
+}
+
+// Shallow compares two values targeting computationally efficient
+// in-memory comparision with minimal recursion.
+// Quick returns true if a difference is detected.
+// if array, compare lengths and elements identities
+// if object, compare props count and reference identities
+// properties of object are expected to be enumerable.
+function notEqual (a, b) {
+  return a !== b ||
+    (Array.isArray(a) && (
+      b.length !== a.length ||
+      !!a.find((o, i) => b[i] !== o))
+    ) ||
+    (typeof a === 'object' &&
+      !!((kA, kBl) => kA.length !== kBl ||
+        kA.find(p => a[p] !== b[p])
+      )(Object.keys(a), Object.keys(b).length)
+    )
+}
+
+// TODO: Use in derived to cache computed values across multiple subscribers
+function writable (value) {
+  const subs = []
+  return [
+    function WritableSubscribe (notify) {
+      subs.push(notify)
+      notify(value)
+      return () => {
+        const idx = subs.indexOf(notify)
+        if (~idx) subs.splice(idx, 1)
+      }
+    },
+    function WritableSet (val) {
+      if (notEqual(value, val)) {
+        value = val
+        for (const subcriber of subs) subcriber(val)
+      }
+      return val
+    }
+  ]
+}
+
+function get (store) {
+  let value = null
+  store(v => { value = v })()
+  return value
 }

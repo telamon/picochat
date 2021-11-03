@@ -193,7 +193,7 @@ test('Conversation: Hi! ... Hello', async t => {
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.ok(bChat.myTurn)
   await bChat.send('Hi!') // Send the message
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.equal(bChat.myTurn, false, 'Nolonger bobs turn')
   t.equal(bChat.messages.length, 1, 'Message should be stored')
   t.equal(bChat.messages[0].type, 'sent')
@@ -208,12 +208,12 @@ test('Conversation: Hi! ... Hello', async t => {
 
   // Alice replies
   await aChat.send('Hello~') // Send reply
-  aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 0)
   t.equal(aChat.myTurn, false, 'Nolonger alice turn')
   t.equal(aChat.messages.length, 2, 'Message should be appended')
 
   // Bob recieves reply
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.messages.length, 2, 'new message visible')
   t.equal(bChat.messages[1].content, 'Hello~')
   t.equal(bChat.myTurn, true, 'Bob`s turn again')
@@ -227,7 +227,7 @@ test('Conversation: Hi! ... Hello', async t => {
   t.end()
 })
 
-test('Conversation: Pass', async t => {
+test('Conversation: lose-lose', async t => {
   const { alice, bob, chatId } = await makeMatch()
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.equal(bChat.myTurn, true)
@@ -238,33 +238,33 @@ test('Conversation: Pass', async t => {
   t.equal(aChat.myTurn, true)
   await aChat.send('Hello what')
 
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.myTurn, true)
   await bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
 
-  aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
   t.equal(aChat.myTurn, true)
   await aChat.pass()
 
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 2) // first hit
   await bChat.send('Y U NO SHAW THEM???') // Recovers 0.3
 
-  aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
   t.equal(aChat.myTurn, true)
   await aChat.pass()
 
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 2)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 1)
 
   await bChat.pass() // bob gives up, conversation exhausted
 
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   t.equal(bChat.health, 0)
 
-  aChat = await nextState(s => alice.k.getChat(chatId, s), 2)
+  aChat = await nextState(s => alice.k.getChat(chatId, s), 1)
   t.equal(aChat.myTurn, true)
   t.equal(aChat.health, 0, 'Alice also sees the health drop to zero')
   t.equal(aChat.state, 'exhausted')
@@ -279,6 +279,69 @@ test('Conversation: Pass', async t => {
   // I wonder what happens if we just say exhausted conversations cannot add more blocks.
   // It's a failed head so to speak; vibe blocks only attachable on profile and 'bye'.
   // all other conversations results in 0 points? Need to sleep on this. but exhausted convo is exhausted.
+})
+
+test('Conversation: win-win', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+
+  let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  bChat.send('Hi')
+
+  let aChat = await nextState(s => alice.k.getChat(chatId, s))
+
+  await aChat.send('hi')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('Nice profile pic') // Master pickup artist
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.send('Thx :>')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('Is that a snake? 🤨')
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.send('What? No, It`s a bracelet!!')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('Whoa that`s rad!')
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  // mental-note: messages should be buffered with a 1-3sec delay, if user is still typing
+  // then give them a chance to finish writing the next paragraph before commiting the block.
+  // paragrafs should be embedded in the content as usual but visually represented as different messages.
+  // - sometimes people burst into talkativity, they should be given a chance to speak their mind during the turn.
+  await aChat.send('I know right?!\nBirthday present from mom\nI use it almost every day!')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('So your mom`s into snakes?')
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.send('Naw.. but I actually have a live one')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('No way? What do you feed it with')
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.send('You don`t wanna know...')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  await bChat.send('then tell me next time <3, was really cool talking to you')
+
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  await aChat.bye(2) // Alice hangs up
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 1)
+  t.equal(bChat.state, 'finalizing')
+  await bChat.bye(2) // Bob hangs up
+
+  // Both are at state end
+  aChat = await nextState(s => alice.k.getChat(chatId, s))
+  t.equal(aChat.state, 'end')
+
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  t.equal(bChat.state, 'end')
+  t.end()
 })
 
 // Alice and Bob sits down at a table

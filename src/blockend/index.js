@@ -422,22 +422,22 @@ class Kernel {
     return vibe.remoteBox
   }
 
-  async _setMessageBody (chatId, message) {
+  async _setMessageBody (sig, message) {
     const CONVERSATION_PREFIX = 77 // Ascii 'M'
-    chatId = toBuffer(chatId)
-    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
+    sig = toBuffer(sig)
+    if (!Buffer.isBuffer(sig) ||sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    chatId.copy(key, 1)
+    sig.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
     return await this.repo.writeReg(key, toBuffer(message))
   }
 
-  async _getMessageBody (chatId) {
+  async _getMessageBody (sig) {
     const CONVERSATION_PREFIX = 77 // Ascii 'M'
-    chatId = toBuffer(chatId)
-    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
+    sig = toBuffer(sig)
+    if (!Buffer.isBuffer(sig) || sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    chatId.copy(key, 1)
+    sig.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
     const msg = await this.repo.readReg(key)
     if (!msg) throw new Error('MessageNotFound')
