@@ -19,7 +19,7 @@ export default function Pubs () {
         console.error('Send vibe failed', err)
       })
   }
-  const pubName = 'My favourite pub 🍺'
+  const pubName = 'HardCode'
   return (
     <>
       <div className='hero'>
