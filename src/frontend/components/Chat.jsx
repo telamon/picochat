@@ -1,15 +1,14 @@
 import React from 'react'
 import { useHistory } from 'react-router-dom'
 
-const AboutPage = () => {
+export default function Chat () {
   const history = useHistory()
+  console.log('chats-console')
   return (
-    <>
-      <h2>About</h2>
-      <h4>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Odio, modi!</h4>
+    <div className='hero is-success'>
+      <h1>hej</h1>
       <button className='button is-primary' onClick={() => history.push('/')}>Back to START</button>
-    </>
+
+    </div>
   )
 }
-
-export default AboutPage
