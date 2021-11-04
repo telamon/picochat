@@ -32,7 +32,7 @@ export default function App () {
   return (
     <Router>
       <div className='container is-success raw-4'>
-        <Header loggedIn={loggedIn}/>
+        <Header loggedIn={loggedIn} />
         <Switch>
           <Route component={Mypage} path='/' exact />
           <Route component={Profile} path='/register' />

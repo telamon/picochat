@@ -105,6 +105,84 @@ function boxPair () {
   return { pk, sk }
 }
 
+
+// -------- purely functional pico reactive store pattern - adrenaline/synapse?
+
+/**
+ * Gates first notify until all store have returned a value, similar to Promise.all
+ */
+function combine (...stores) {
+  const notify = stores.pop()
+  if (!Array.isArray(stores) || !stores.length) throw new Error('A list of stores is required')
+  if (typeof notify !== 'function') throw new Error('Derivation function required')
+
+  const loaded = []
+  const values = []
+  let remaining = stores.length
+
+  const subscriptions = []
+  for (let i = 0; i < stores.length; i++) {
+    subscriptions.push(stores[i](handler.bind(null, i)))
+  }
+  return () => {
+    for (const unsub of subscriptions) unsub()
+  }
+  function handler (i, val) {
+    if (!loaded[i]) {
+      loaded[i] = true
+      remaining--
+    }
+    values[i] = val
+    if (!remaining) notify(...values)
+  }
+}
+
+// Shallow compares two values targeting computationally efficient
+// in-memory comparision with minimal recursion.
+// Quick returns true if a difference is detected.
+// if array, compare lengths and elements identities
+// if object, compare props count and reference identities
+// properties of object are expected to be enumerable.
+function notEqual (a, b) {
+  return a !== b ||
+    (Array.isArray(a) && (
+      b.length !== a.length ||
+      !!a.find((o, i) => b[i] !== o))
+    ) ||
+    (typeof a === 'object' &&
+      !!((kA, kBl) => kA.length !== kBl ||
+        kA.find(p => a[p] !== b[p])
+      )(Object.keys(a), Object.keys(b).length)
+    )
+}
+
+function writable (value) {
+  const subs = []
+  return [
+    function WritableSubscribe (notify) {
+      subs.push(notify)
+      notify(value)
+      return () => {
+        const idx = subs.indexOf(notify)
+        if (~idx) subs.splice(idx, 1)
+      }
+    },
+    function WritableSet (val) {
+      if (notEqual(value, val)) {
+        value = val
+        for (const subcriber of subs) subcriber(val)
+      }
+      return val
+    }
+  ]
+}
+
+function get (store) {
+  let value = null
+  store(v => { value = v })()
+  return value
+}
+
 module.exports = {
   KEY_SK,
   KEY_BOX_LIKES_PK,
@@ -126,5 +204,9 @@ module.exports = {
   toBuffer,
   boxPair,
   seal,
-  unseal
+  unseal,
+  get,
+  writable,
+  combine,
+  notEqual
 }
