@@ -132,8 +132,10 @@ module.exports = function getChat (chatId, subscriber) {
         })
         .then(unread => {
           // TODO: write proper tests for the functional stores
-          chat.messages = [...chat.messages, ...unread]
-          if (unread && unread.length) set(chat)
+          if (unread && unread.length) {
+            chat.messages = [...chat.messages, ...unread]
+            set(chat)
+          }
         })
       // return set(chat) // initial value
     })
