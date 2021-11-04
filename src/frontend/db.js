@@ -25,7 +25,7 @@ export function useProfile () {
   return usePico(kernel.store, 'peer', state => state, {})
 }
 
-export function useFriendsList () {
+export function usePeers () {
   return usePico(kernel.store, 'peers', s => Object.values(s).filter(p => p.pk !== kernel.pk), [])
 }
 
