@@ -40,7 +40,7 @@ export default function App () {
           <Route component={Rules} path='/policy' />
           <Route component={ErrorPage} path='/error' />
           <Route component={Pubs} path='/pub' />
-          <Route component={Chat} path='/chat' />
+          <Route component={Chat} path='/chat/:id' />
           <Redirect to='/' />
         </Switch>
 
