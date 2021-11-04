@@ -20,10 +20,14 @@ const TYPE_VIBE = 'vibe' // A.k.a ❤️ Like ❤️
 const TYPE_VIBE_RESP = 'vibe-response' // <3 / </3
 const TYPE_MESSAGE = 'message'
 const TYPE_BYE = 'bye'
+const TYPE_BYE_RESP = 'byebye'
 
 // Other Constants
 const VIBE_REJECTED = Buffer.from('💔')
 const PASS_TURN = Buffer.from('😶')
+const PEACE = 0
+const UNDERSTANDING = 1
+const LOVE = 2
 
 /**
  * Convert Object to buffer
@@ -47,7 +51,7 @@ function decodeBlock (body, offset = 0) {
 }
 
 function bufferReplacer (k, o) {
-  return (typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o
+  return (o && typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o
 }
 
 /**
@@ -109,8 +113,13 @@ module.exports = {
   TYPE_VIBE,
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
+  TYPE_BYE,
+  TYPE_BYE_RESP,
   VIBE_REJECTED,
   PASS_TURN,
+  PEACE,
+  LOVE,
+  UNDERSTANDING,
   encodeBlock,
   decodeBlock,
   fixJsonBuffers,

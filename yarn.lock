@@ -276,9 +276,9 @@
     "@swc/core-win32-x64-msvc" "^1.2.105"
 
 "@telamon/picostore@^1.3.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.4.1.tgz#e2f7fbe33d340cd4cda43b6e52dd15171694fb98"
-  integrity sha512-mEWHKywJ4xnzUHkq5HDKemhF1jH0HUqXrT3I8wkA5cHkwXdlzUvfBknOaJS9HPNsI6FrkNoC1kyCqUX3XVJoZA==
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.4.2.tgz#40d615c12d787894b71f9bf637529bb57d539cc3"
+  integrity sha512-PmfCwNQGVh0OCVPxMiCajo4NKB+BNXhK0TGN91uqYgT7wPbF3RdoSomQjRtriboJ+AIrk1/FEtknOyUY+2fTiw==
   dependencies:
     picorepo "^1.0.0"
 
