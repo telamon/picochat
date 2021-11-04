@@ -9,6 +9,7 @@ const VibeCtrl = require('./slices/vibes')
 const ConversationCtrl = require('./slices/chats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
+const BufferedRegistry = require('./mod/buffered-registry.mod')
 // Util
 const {
   KEY_SK,
@@ -45,6 +46,7 @@ class Kernel {
 
     // Load Mixins
     this.getChat = ChatModule.bind(this)
+    Object.assign(this, BufferedRegistry())
   }
 
   /**
@@ -172,7 +174,7 @@ class Kernel {
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     chatId.copy(key, 1)
     key[0] = 84 // ASCII: 'T'
-    await this.repo.writeReg(key, peer.pk)
+    await this._writeReg(key, peer.pk)
     return chatId
   }
 
@@ -281,7 +283,7 @@ class Kernel {
           chatId.copy(key, 1)
           key[0] = 84 // ASCII: 'T'
           tasks.push(
-            this.repo.readReg(key)
+            this._readReg(key)
               .then(pk => this.profileOf(pk))
               .then(peer => { out.peer = peer })
           )
@@ -392,7 +394,7 @@ class Kernel {
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     chatId.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
-    return await this.repo.writeReg(key, value)
+    return await this._writeReg(key, value)
   }
 
   async _getLocalChatKey (chatId) {
@@ -404,7 +406,7 @@ class Kernel {
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     chatId.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
-    const value = await this.repo.readReg(key)
+    const value = await this._readReg(key)
     if (!value) throw new Error('BoxPairNotFound')
     const box = {
       pk: value.slice(32),
@@ -426,11 +428,11 @@ class Kernel {
   async _setMessageBody (sig, message) {
     const CONVERSATION_PREFIX = 77 // Ascii 'M'
     sig = toBuffer(sig)
-    if (!Buffer.isBuffer(sig) ||sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
+    if (!Buffer.isBuffer(sig) || sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     sig.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
-    return await this.repo.writeReg(key, toBuffer(message))
+    return await this._writeReg(key, toBuffer(message))
   }
 
   async _getMessageBody (sig) {
@@ -440,7 +442,7 @@ class Kernel {
     const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
     sig.copy(key, 1)
     key[0] = CONVERSATION_PREFIX
-    const msg = await this.repo.readReg(key)
+    const msg = await this._readReg(key)
     if (!msg) throw new Error('MessageNotFound')
     return msg.toString()
   }
