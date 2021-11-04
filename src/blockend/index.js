@@ -371,7 +371,6 @@ class Kernel {
 
     return (details = {}) => {
       // if (blocklist.contains(details.prop)) return
-      console.log('connected')
       return rpc.createWire(send => { // on remote open
         // if (details.client)
         rpc.query(send, {})
