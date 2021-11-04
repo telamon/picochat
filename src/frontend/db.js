@@ -57,7 +57,7 @@ export function useVibes () {
  * } = useChat(id) // <-- same id as vibeId
  */
 export function useChat (chatId) {
-  const [value, set] = useState([])
+  const [value, set] = useState({})
   useEffect(() => {
     if (!kernel.ready) return
     return kernel.getChat(chatId, set)
