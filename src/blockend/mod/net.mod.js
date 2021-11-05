@@ -14,10 +14,15 @@ module.exports = function NetworkModule () {
 
       const rpc = new RPC({
         onblocks: async feed => {
-          const mut = await store.dispatch(feed, false)
-          D(this.store.state.peer.name, 'received block', mut)
-          D(feed.inspect(true))
-          return mut.length
+          try {
+            const mut = await store.dispatch(feed, true)
+            D(this.store.state.peer.name, 'received block', mut)
+            D(feed.inspect(true))
+            return mut.length
+          } catch (err) {
+            console.warn('Remote block ignored', err)
+          }
+          return 0
         },
         // Lookups and read hit the permanent store first and then secondaries
         queryHead: async key => (await this.repo.headOf(key)) || (await repo.headOf(key)),
