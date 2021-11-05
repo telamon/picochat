@@ -7,15 +7,31 @@ export default function CountDownTimer ({ start, timeout, onTimeout }) {
   const [timeLeft, setTimeLeft] = useState(timeout)
 
   useEffect(() => {
-    const timerId = setInterval(() => {
+    const initialTimeLeft = timeout - (Date.now() - start)
+    // When countdown is already zero or less,
+    // set timeLeft once and don't start interval
+    if (initialTimeLeft <= 0) {
+      setTimeLeft(initialTimeLeft)
+      return
+    }
+
+    // Set up interval that updates timeLeft
+    const intervalId = setInterval(() => {
       const now = Date.now()
       setTimeLeft(timeout - (now - start))
     }, 500)
 
-    return () => clearInterval(timerId)
-  }, [setTimeLeft, start, timeout])
+    // Set up timeout that triggers onTimeout event
+    const timerId = setTimeout(() => {
+      if (typeof onTimeout === 'function') onTimeout()
+    }, initialTimeLeft)
 
-  if (typeof onTimeout === 'function' && timeLeft <= 0) onTimeout()
+    // clean up on component unmount
+    return () => {
+      clearTimeout(timerId)
+      clearInterval(intervalId)
+    }
+  }, [setTimeLeft, start, timeout])
 
   let classes = 'count-down'
   if (timeLeft < 10 * 1000) classes += ' danger'
