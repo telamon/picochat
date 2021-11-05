@@ -141,6 +141,28 @@ test('Vibe rejected by remote', async t => {
   t.end()
 })
 
+test('First notify after block-creation should contain peer', async t => {
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
+  const p = new Promise((resolve, reject) => {
+    let n = 0
+    const unsub = bob.k.vibes(vibes => {
+      if (!n++) t.equal(vibes.length, 0)
+      else {
+        t.equal(vibes.length, 1)
+        t.ok(vibes[0].peer)
+        unsub()
+        resolve()
+      }
+    })
+  })
+  await bob.k.sendVibe(alice.k.pk)
+  await p
+  t.end()
+})
+
 // TODO: In next chat, fastforward match, and verify availablity of all box keys
 test('After match each peer has a pair and the remote public key', async t => {
   const { alice, bob, chatId } = await makeMatch()

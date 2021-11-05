@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { kernel, usePeers } from './db'
+import 'bulma/css/bulma.css'
+import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import Profile from './components/Profile.jsx'
 import Mypage from './components/MyPage.jsx'
-import 'bulma/css/bulma.css'
-import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import AboutPage from './components/AboutPage.jsx'
 import Rules from './components/RulesPage.jsx'
 import ErrorPage from './components/ErrorPage.jsx'
@@ -32,7 +32,7 @@ export default function App () {
   return (
     <Router>
       <div className='container is-success raw-4'>
-        <Header />
+        <Header loggedIn={loggedIn} />
         <Switch>
           <Route component={Mypage} path='/' exact />
           <Route component={Profile} path='/register' />
@@ -43,8 +43,6 @@ export default function App () {
           <Route component={Chat} path='/chat/:id' />
           <Redirect to='/' />
         </Switch>
-
-        <p>Logged in: <b>{loggedIn ? 'yup' : 'nope'}</b></p>
       </div>
     </Router>
 

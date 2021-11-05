@@ -1,5 +1,5 @@
 import React from 'react'
-import { kernel, useProfile } from '../db'
+import { useProfile } from '../db'
 import Pubs from './Pubs.jsx'
 
 export default function Mypage () {
@@ -8,44 +8,14 @@ export default function Mypage () {
     1: '♂️',
     2: '⚧️'
   }
-  function inspect () {
-    kernel.feed()
-      .then((feed) => {
-        feed.inspect()
-      })
-  }
   const profile = useProfile()
   console.log('my profile', profile)
-  const clearDatabase = () => {
-    if (!window.confirm('Permanently wipe your data, you sure?')) return
-    window.location.reload()
-    kernel.db.clear()
-  }
-  const reloadDatabase = () => {
-    if (!window.confirm('Reload your data, you sure?')) return
-    window.location.reload()
-    kernel.store.reload()
-      .then(() => {
-        console.log('reloaded succses')
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-  const goToChat = () => {
-    console.log('chats')
-  }
   return (
     <>
       <div>
         <br />
-        <h2 className='title'>Here is your profile</h2>
+        <h2 className='title'>Profile</h2>
         <h4 className='subtitle'>It is useful to know this data you can't change or delete </h4>
-        <div className='level-item'>
-          <button className='button is-primary' onClick={clearDatabase}>LogOUT</button>
-          <button className='button is-secondry' onClick={reloadDatabase}>reLOAD</button>
-          <a type='inspect' className='button is-danger' onClick={inspect}>Inspect FEED</a>
-        </div>
         <br />
       </div>
       <div className='columns card-div'>
@@ -57,7 +27,6 @@ export default function Mypage () {
           <p>{profile.age} years old</p>
           <p>Profile text: {profile.tagline}</p>
           <span className='icon-2'>{icons[profile.sex]}</span>
-          <button className='button is-primary' onClick={goToChat}>Conversetions</button>
         </div>
       </div>
       <Pubs />
