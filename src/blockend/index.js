@@ -7,6 +7,7 @@ const { RPC } = require('./rpc')
 const PeerCtrl = require('./slices/peers')
 const VibeCtrl = require('./slices/vibes')
 const ConversationCtrl = require('./slices/chats')
+// const StatsCtrl = require('./slices/stats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
@@ -43,6 +44,7 @@ class Kernel {
     this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
     this.store.register(ConversationCtrl())
+    // this.store.register(StatsCtrl())
 
     // Load Mixins
     this.getChat = ChatModule.bind(this)

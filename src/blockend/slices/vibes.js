@@ -123,7 +123,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
     if (decrypted) {
       // Push decryptable received vibes/responses to "own" registry
-      if (!~state.own.indexOf(chatId)) state.own.push(chatId)
+      if (!state.own.find(c => c.equals(chatId))) state.own.push(chatId)
       match.remoteBox = decrypted
     }
 
