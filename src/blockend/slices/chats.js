@@ -64,6 +64,7 @@ function ConversationCtrl (opts = {}) {
         // need to Lookup in matches registry
         const chatId = parentBlock.parentSig
         const match = root.vibes.matches[chatId.toString('hex')]
+        if (!match) return true // Unknown conversation TODO: cache block for later (partially available chain)
         if (match.state !== 'match') return 'MessagingNotAllowed'
         if (![match.a, match.b].find(k => from.equals(k))) return 'NotYourConversation'
         if (match.updatedAt < now() - MessageTimeout) return 'ConversationTimeout'
