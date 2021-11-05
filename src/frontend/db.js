@@ -58,11 +58,15 @@ export function useVibes () {
  */
 export function useChat (chatId) {
   const [value, set] = useState({})
+  const [messages, setMessages] = useState([])
   useEffect(() => {
     if (!kernel.ready) return
-    return kernel.getChat(chatId, set)
-  }, [kernel.ready, set])
-  return value
+    return kernel.getChat(chatId, chat => {
+      set(chat)
+      setMessages(chat.messages)
+    })
+  }, [kernel.ready, set, setMessages])
+  return { ...value, messages }
 }
 
 /**
