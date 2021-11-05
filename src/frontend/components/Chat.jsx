@@ -8,7 +8,7 @@ export default function Chat () {
   const profile = useProfile()
   const chat = useChat(id)
   const peer = chat.peer
-  console.log('chat', chat)
+  {/*console.log('chat', chat)*/}
   const [text, setText] = useState('')
 
   {/*
@@ -70,7 +70,7 @@ export default function Chat () {
         )
       })}
       <div className='column'>
-        <div key={peer.box}>{peer.name} user name</div>
+        <div>{peer.name} user name</div>
         <input
           className='input'
           style={{ width: '75%' }}
@@ -81,6 +81,7 @@ export default function Chat () {
           onKeyDown={handleKeyDown}
         />
         <button className='button is-info' onClick={send}>SEND</button>
+        <pre>{chat.myTurn ? 'your Turn' : 'is not your Turn'}</pre>
       </div>
     </div>
   )

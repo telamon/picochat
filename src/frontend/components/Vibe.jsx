@@ -3,7 +3,7 @@ import { kernel, useVibes } from '../db.js'
 
 export default function VibeList () {
   const vibes = useVibes()
-  console.log('VIBES', vibes)
+  {/*console.log('VIBES', vibes)*/}
   const respondToVibe = (id, didLike) => {
     kernel.respondVibe(id, didLike)
       .then(() => {
@@ -23,7 +23,7 @@ export default function VibeList () {
             <li key={vibe.id}>
               <strong>
                 You get one Vibe from {vibe.peer.name}
-                 at {date.toLocaleString('en-GB', { hour12: false })} {vibe.state}
+                at {date.toLocaleString('en-GB', { hour12: false })} {vibe.state}
               </strong>
               {vibe.state === 'waiting_local' && (
                 <div className='column'>
