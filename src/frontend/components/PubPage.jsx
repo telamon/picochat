@@ -24,7 +24,6 @@ export default function Pubs () {
     <>
       <div className='hero'>
         <h1 className='bar'>{pubName}</h1>
-        <h3 className='members-list'>Here is memmbers list which is at this bar now</h3>
         <VibeList />
         <div className='peers-list peers-list-wrap'>
           {peers.map(peer => (

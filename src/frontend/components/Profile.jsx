@@ -51,15 +51,36 @@ export default function Profile () {
             <div className='columns  raw-5' onChange={ev => setSex(parseInt(ev.target.value))}>
               <input id='age' type='number' min='18' max='99' placeholder='Age' className='column' value={age} onChange={ev => setAge(ev.target.value)} />
               <div className='column'>
-                <input id='male' type='radio' name='sex' className='column' value='1' checked={sex === 1} />
+                <input
+                  type='radio'
+                  name='sex'
+                  className='column'
+                  value='1'
+                  checked={sex === 1}
+                  onChange={ev => setSex(parseInt(ev.target.value))}
+                />
                 <label htmlFor='male'>♂️</label>
               </div>
               <div className='column'>
-                <input id='female' type='radio' name='sex' className='column' value='0' checked={sex === 0} />
+                <input
+                  type='radio'
+                  name='sex'
+                  className='column'
+                  value='0'
+                  checked={sex === 0}
+                  onChange={ev => setSex(parseInt(ev.target.value))}
+                />
                 <label htmlFor='female'>♀️</label>
               </div>
               <div className='column'>
-                <input id='others' type='radio' name='sex' className='column' value='2' checked={sex === 2} />
+                <input
+                  type='radio'
+                  name='sex'
+                  className='column'
+                  value='2'
+                  checked={sex === 2}
+                  onChange={ev => setSex(parseInt(ev.target.value))}
+                />
                 <label htmlFor='others'>⚧️</label>
               </div>
             </div>
@@ -67,7 +88,13 @@ export default function Profile () {
               <div className='media-content'>
                 <div className='field'>
                   <p className='control'>
-                    <textarea className='is-one-third raw-6' placeholder='Pickup line' column='10' rows='6' value={tagline} onChange={ev => setTagline(ev.target.value)} />
+                    <textarea
+                      className='is-one-third raw-6'
+                      placeholder='Pickup line'
+                      column='10' rows='6'
+                      value={tagline}
+                      onChange={ev => setTagline(ev.target.value)}
+                    />
                   </p>
                 </div>
                 <nav className='level'>

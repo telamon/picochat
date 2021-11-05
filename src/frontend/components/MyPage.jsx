@@ -18,8 +18,19 @@ export default function Mypage () {
   console.log('my profile', profile)
   const clearDatabase = () => {
     if (!window.confirm('Permanently wipe your data, you sure?')) return
-    kernel.db.clear()
     window.location.reload()
+    kernel.db.clear()
+  }
+  const reloadDatabase = () => {
+    if (!window.confirm('Reload your data, you sure?')) return
+    window.location.reload()
+    kernel.store.reload()
+      .then(() => {
+        console.log('reloaded succses')
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
   const goToChat = () => {
     console.log('chats')
@@ -32,13 +43,14 @@ export default function Mypage () {
         <h4 className='subtitle'>It is useful to know this data you can't change or delete </h4>
         <div className='level-item'>
           <button className='button is-primary' onClick={clearDatabase}>LogOUT</button>
+          <button className='button is-secondry' onClick={reloadDatabase}>reLOAD</button>
           <a type='inspect' className='button is-danger' onClick={inspect}>Inspect FEED</a>
         </div>
         <br />
       </div>
       <div className='columns card-div'>
         <div className='column'>
-
+          <span className='icon-3'>{profile.picture}</span>
         </div>
         <div className='column'>
           <h1 className='pk'>@{profile.name}<span>#{profile.pk}</span></h1>

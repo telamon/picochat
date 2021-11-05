@@ -151,9 +151,15 @@ position:absolute;
   padding: 0 20px;
 }
 
-.darker {
+.darker:nth-child(odd) {
+  background: #sea;
+  border-color: #ccc;
+}
+
+.darker:nth-child(even) {
   border-color: #ccc;
   background-color: #ddd;
+  text-align: end;
 }
 
 .chat-container::after {

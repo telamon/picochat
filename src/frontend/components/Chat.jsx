@@ -4,15 +4,23 @@ import { useProfile, useChat } from '../db'
 
 export default function Chat () {
   const { id } = useParams()
-  console.log('useparams ', id)
+  {/*console.log('useparams ', id)*/}
   const profile = useProfile()
   const chat = useChat(id)
   const peer = chat.peer
   console.log('chat', chat)
   const [text, setText] = useState('')
 
+  {/*
   console.log('profile ', profile)
   console.log('peer ', peer)
+*/}
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      send()
+      console.log('message was sended by ENTER key')
+    }
+  }
 
   function send () {
     chat.send(text)
@@ -70,6 +78,7 @@ export default function Chat () {
           placeholder='Enter your text here'
           value={text}
           onChange={ev => setText(ev.target.value)}
+          onKeyDown={handleKeyDown}
         />
         <button className='button is-info' onClick={send}>SEND</button>
       </div>
