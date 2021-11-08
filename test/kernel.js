@@ -303,9 +303,24 @@ test('Conversation: lose-lose', async t => {
   // all other conversations results in 0 points? Need to sleep on this. but exhausted convo is exhausted.
 })
 
+test('Vibe receiver should not have double vibes', async t => {
+  const { alice, bob } = await makeMatch()
+  await new Promise(resolve => {
+    let p = 1
+    alice.k.vibes(vibes => {
+      t.equal(vibes.length, 1, 'Alice has 1 vibe')
+      if (!p--) resolve()
+    })
+    bob.k.vibes(vibes => {
+      t.equal(vibes.length, 1, 'Bob has 1 vibe')
+      if (!p--) resolve()
+    })
+  })
+  t.end()
+})
+
 test('Conversation: win-win', async t => {
   const { alice, bob, chatId } = await makeMatch()
-
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   bChat.send('Hi')
 
@@ -407,28 +422,3 @@ function nextState (sub, n = 1) {
       return v
     })
 }
-
-function get (store) {
-  let value = null
-  store(v => { value = v })()
-  return value
-}
-
-/*
-store.on('vibes', state => {
-  const chats = []
-  for (const a = state.sent) {
-    state.received.find(b => l.chatId.equals(r.chatId)) && chats.push(chatId)
-  }
-
-})
-
-const unsub = kernel.chats(chats => ...)
-useSelector(
-function select (selector: v => v) {
-  let value = undefined
-  return subFn => store.on(input = {
-  })
-}
-
-*/

@@ -2,13 +2,14 @@
 const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
-const { RPC } = require('./rpc')
 // Block state controllers
 const PeerCtrl = require('./slices/peers')
 const VibeCtrl = require('./slices/vibes')
 const ConversationCtrl = require('./slices/chats')
+// const StatsCtrl = require('./slices/stats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
+const Network = require('./mod/net.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
 // Util
 const {
@@ -43,10 +44,12 @@ class Kernel {
     this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
     this.store.register(ConversationCtrl())
+    // this.store.register(StatsCtrl())
 
     // Load Mixins
     this.getChat = ChatModule.bind(this)
     Object.assign(this, BufferedRegistry())
+    Object.assign(this, Network())
   }
 
   /**
@@ -328,54 +331,6 @@ class Kernel {
   async dispatch (patch, loudFail = false) {
     this._checkReady()
     return await this.store.dispatch(patch, loudFail)
-  }
-
-  // ---- Network stuff
-
-  async enter (name) {
-    // TODO: Make disposable scoped store
-    // this.pub.store = new Store(makeDatabase(name))
-    // await this.pub.store.load()
-    const repo = this.repo
-    const store = this.store
-
-    const rpc = new RPC({
-      onblocks: async feed => {
-        const mut = await store.dispatch(feed, false)
-        D(this.store.state.peer.name, 'received block', mut)
-        D(feed.inspect(true))
-        return mut.length
-      },
-      // Lookups and read hit the permanent store first and then secondaries
-      queryHead: async key => (await this.repo.headOf(key)) || (await repo.headOf(key)),
-      queryTail: async key => (await this.repo.tailOf(key)) || (await repo.tailOf(key)),
-      onquery: async params => {
-        const keys = Object.values(store.state.peers)
-          // experimental
-          // .filter(peer => peer.date > new Date().getTime() - 1000 * 60 * 60) // Only peers active last hour
-          .sort((a, b) => a.date - b.date) // Newest first or something
-          .map(peer => peer.pk)
-        const feeds = []
-        for (const key of keys) {
-          const f = await repo.loadHead(key)
-          if (f) feeds.push(f)
-        }
-        return feeds
-      }
-    })
-    this._badCreateBlockHook = block => {
-      D(this.store.state.peer.name, 'sharing new block')
-      D(block.inspect(true))
-      rpc.sendBlock(block)
-    }
-
-    return (details = {}) => {
-      // if (blocklist.contains(details.prop)) return
-      return rpc.createWire(send => { // on remote open
-        // if (details.client)
-        rpc.query(send, {})
-      })
-    }
   }
 
   // -- Conversation key management
