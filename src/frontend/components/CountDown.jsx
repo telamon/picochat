@@ -4,7 +4,7 @@ export default function CountDownTimer ({ start, timeout, onTimeout }) {
   if (typeof start !== 'number') start = new Date(start).getTime()
   if (typeof timeout === 'number') throw new Error('Prop: "timeout" should be a number')
 
-  const [timeLeft, setTimeLeft] = useState(timeout)
+  const [timeLeft, setTimeLeft] = useState(15)
 
   useEffect(() => {
     const initialTimeLeft = timeout - (Date.now() - start)

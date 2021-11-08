@@ -192,4 +192,11 @@ position:absolute;
   color: #999;
 }
 
+.chat-input {
+  position: initial;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+}
+
 //-----------End Chat styling -----------------
