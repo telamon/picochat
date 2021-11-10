@@ -11,6 +11,7 @@ const ConversationCtrl = require('./slices/chats')
 const ChatModule = require('./mod/chat.mod')
 const Network = require('./mod/net.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
+const GarbageCollector = require('./mod/gc.mod')
 // Util
 const {
   KEY_SK,
@@ -33,10 +34,13 @@ const D = debug('picochat:Kernel')
 // debug.enable('pico*')
 
 class Kernel {
-  constructor (db) {
+  constructor (db, opts = {}) {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
+
+    // Process opts
+    this._now = opts.now || (() => Date.now())
 
     // Setup slices
     this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
@@ -50,6 +54,7 @@ class Kernel {
     this.getChat = ChatModule.bind(this)
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network())
+    Object.assign(this, GarbageCollector(this.store))
   }
 
   /**
@@ -201,7 +206,8 @@ class Kernel {
 
     const block = await this.repo.readBlock(chatId)
     const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
-      box: !like ? VIBE_REJECTED : sealedMessage
+      box: !like ? VIBE_REJECTED : sealedMessage,
+      link: this.store.state.peer.sig // Weak-ref to own checkpoint
     })
     if (!convo) throw new Error('Failed creating block')
     if (like) await this._storeLocalChatKey(vibe.chatId, msgBox)
@@ -313,7 +319,6 @@ class Kernel {
         id,
         peer,
         box: null,
-        fetchPair: null,
         state: 'waiting',
         updatedAt: 0,
         createdAt: Infinity,

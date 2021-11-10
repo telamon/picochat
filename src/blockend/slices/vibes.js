@@ -10,6 +10,7 @@ const {
 const debug = require('debug')('picochat:SliceVibes')
 
 const TTL = 5 * 1000 * 60 // Defaults to 5 minutes
+const RESP_TTL = 3 * 1000 * 60 // Defaults to 5 minutes
 
 class VibeCtrl { // TODO: revert back to factory instead of class pattern.
   constructor (vibeTTL = TTL) {
@@ -79,7 +80,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
   }
 
   // Reducer updates state with values from block
-  reducer ({ block, state, parentBlock, root }) {
+  reducer ({ block, state, parentBlock, root, schedule }) {
     const vibe = decodeBlock(block.body, 1)
     const { type } = vibe
     const chatId = type === TYPE_VIBE ? block.sig : block.parentSig
@@ -96,6 +97,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       match.a = block.key
       match.updatedAt = vibe.date
       match.createdAt = vibe.date
+      match.expiresAt = vibe.date + TTL
       match.state = 'wait'
     } else { // type === TYPE_VIBE_RESP
       const match = state.matches[key]
@@ -103,6 +105,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       match.response = block.sig
       match.b = block.key
       match.updatedAt = vibe.date
+      match.expiresAt = vibe.date + RESP_TTL
       match.state = rejected ? 'rejected' : 'match'
     }
 
@@ -128,6 +131,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
     }
 
     this._reduceHasRun = true
+    schedule('chat', match.chatId, match.expiresAt)
 
     // Collect garbage
     // TODO: Rewrite to handle matches & own registries
