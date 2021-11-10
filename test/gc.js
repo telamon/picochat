@@ -19,22 +19,17 @@ test('GC: Profile expires', async t => {
 test('GC: Vibes deleted', async t => {
   const { bob } = await makeMatch()
   let vibes = await nextState(s => bob.k.vibes(s), 0)
-  let peers = Object.values(await nextState(s => bob.k.store.on('peers', s), 0))
   t.equal(vibes.length, 1)
-  t.equal(peers.length, 2)
 
   await bob.k._collectGarbage(Date.now() + 86400000)
   vibes = await nextState(s => bob.k.vibes(s), 0)
-  peers = Object.values(await nextState(s => bob.k.store.on('peers', s), 0))
   t.equal(vibes.length, 0)
 })
 
 test('GC: Chats deleted', async t => {
   const { bob, alice, chatId } = await makeMatch()
   let vibes = await nextState(s => bob.k.vibes(s), 0)
-  let peers = Object.values(await nextState(s => bob.k.store.on('peers', s), 0))
   t.equal(vibes.length, 1)
-  t.equal(peers.length, 2)
 
   let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
   await bChat.send('Marry me!')
@@ -47,6 +42,8 @@ test('GC: Chats deleted', async t => {
   // I'm sorry bro, it's time to forget her...
   await bob.k._collectGarbage(Date.now() + 86400000)
   vibes = await nextState(s => bob.k.vibes(s), 0)
-  peers = Object.values(await nextState(s => bob.k.store.on('peers', s), 0))
   t.equal(vibes.length, 0)
+  bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  t.equal(bChat.state, 'error')
+  t.equal(bChat.errorMessage, 'VibeNotFound')
 })
