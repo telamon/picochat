@@ -13,6 +13,7 @@ import Chat from './components/Chat.jsx'
 
 const promise = kernel.load()
   .then(l => {
+    kernel.startGC()
     console.info('kernel loaded', l)
     window.location.hash = l ? '/' : '/register'
     return l

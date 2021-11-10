@@ -1,8 +1,9 @@
 const { decodeBlock, TYPE_VIBE_RESP } = require('../util')
+const D = require('debug')('picochat:mod:gc')
 const REG_TIMER = 116 // 't'
 module.exports = function GarbageCollectModule (store) {
   const repo = store.repo
-
+  let timerId = null
   function schedule (type, id, date) {
     const key = mkKey(date)
     // console.info('Scheduing removal', type, new Date(date))
@@ -21,8 +22,10 @@ module.exports = function GarbageCollectModule (store) {
 
   return {
     async _collectGarbage (now = Date.now()) {
+      D('Starting collecting garbage...')
       const slices = store._stores.reduce((m, s) => { m[s.name] = s; return m }, {})
       const pending = await tickQuery(repo._db, now)
+      D('Fetched pending from store:', pending.length)
       let mutated = new Set()
       const batch = []
       const evictRange = []
@@ -86,7 +89,20 @@ module.exports = function GarbageCollectModule (store) {
         // right now this mutated state does not get persisted until next version is dispatched.
         for (const sub of slices[name].observers) sub(slices[name].value)
       }
+      D('Stores mutated', mutated, 'feeds evicted', evicted.length)
+      /// D(evicted.map(f => f.inspect(true)))
       return { mutated, evicted }
+    },
+
+    startGC (inteval = 3 * 1000) {
+      if (timerId) return
+      timerId = setInterval(this._collectGarbage.bind(this), inteval)
+    },
+
+    stopGC () {
+      if (!timerId) return
+      clearInterval(timerId)
+      timerId = null
     }
   }
 
