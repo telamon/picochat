@@ -15,7 +15,7 @@ module.exports = function NetworkModule () {
       const rpc = new RPC({
         onblocks: async feed => {
           try {
-            const mut = await store.dispatch(feed, true)
+            const mut = await store.dispatch(feed, false)
             D(this.store.state.peer.name, 'received block', mut)
             D(feed.inspect(true))
             return mut.length

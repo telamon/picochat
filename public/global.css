@@ -135,7 +135,7 @@ position:absolute;
 
 }
 
-//--------- Chat styling --------------------
+{//--------- Chat styling --------------------}
 
 .chat-container {
   border: 2px solid #dedede;
@@ -199,4 +199,43 @@ position:absolute;
   left: 0px;
 }
 
-//-----------End Chat styling -----------------
+{//-----------End Chat styling -----------------//}
+
+
+.count-down-1 {
+  font-size: x-large;
+  display: flex;
+  justify-content: space-around;
+  align-items: baseline;
+  color:lightskyblue;
+}
+
+
+.danger{
+  width: 22vw;
+  color:lightskyblue;
+  text-align:center;
+  transition: 0.7s;
+  font-size: x-large;
+  border: 3px solid lightskyblue;
+  background-color: #f1f1f1;
+  border-radius: 25px;
+
+}
+
+.danger:hover{
+  transform: scale(2.9);
+  color: darkred;
+  border: 3px solid darkred;
+}
+
+.warning {
+  width: 22vw;
+  color: darkred;
+  text-align:center;
+  transition: 0.7s;
+  font-size: x-large;
+  border: 3px solid orange;
+  background-color: yellow;
+  border-radius: 25px;
+}

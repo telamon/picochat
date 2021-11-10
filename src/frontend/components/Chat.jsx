@@ -5,17 +5,11 @@ import CountDownTimer from './CountDown.jsx'
 
 export default function Chat () {
   const { id } = useParams()
-  {/*console.log('useparams ', id)*/}
   const profile = useProfile()
   const chat = useChat(id)
   const peer = chat.peer
-  console.log('chat', chat)
   const [text, setText] = useState('')
 
-  {/*
-  console.log('profile ', profile)
-  console.log('peer ', peer)
-*/}
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       send()
@@ -35,17 +29,17 @@ export default function Chat () {
   }
 
   function pass () {
-    chat.send(text)
+    chat.pass()
       .then(() => {
         console.log('Turn is passed')
         setText('')
       })
       .catch(err => {
-        console.error('Turn is passed fail', err)
+        console.error('Writing turn to other is fail', err)
       })
   }
   function bye () {
-    chat.send(text)
+    chat.bye()
       .then(() => {
         console.log('Conversation is closed by BYE')
         setText('')
@@ -54,13 +48,19 @@ export default function Chat () {
         console.error('Bye function is fail', err)
       })
   }
+
   if (chat.state === 'loading' || !peer) return (<h5>loading</h5>)
   return (
     <div className='is-success chat-div'>
       <h1>{profile.name} here is you can chat now with
         <strong key={peer.pk}>{peer.name}</strong>
       </h1>
-      <code> <CountDownTimer /> time left to end of conversaton!</code>
+      <p className='count-down-1'>
+        Time left to end of conversation <CountDownTimer start={chat.updatedAt || 3000} timeout={30000} />
+      </p>
+      <code>
+        {(chat.health <= 1) ? `Life left: ${chat.health}` : 'Conversation exhausted'}
+      </code>
       {/* <div className='chat-container'>
         <span style={{ width: '100%' }}><strong key={peer.pk}>{peer.picture}</strong></span>
         <p>Hello. How are you today?</p>
@@ -88,6 +88,7 @@ export default function Chat () {
         return (
           <div key={message.sig} className='chat-container darker'>
             <p>{message.content}</p>
+            <p>{message.date}</p>
           </div>
         )
       })}
@@ -107,6 +108,10 @@ export default function Chat () {
         <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>
         <button disabled={!chat.myTurn} className='button is-danger' onClick={bye}>GoodBYE</button>
         <pre>{chat.myTurn ? 'your Turn' : 'is not your Turn'}</pre>
+        <div>
+          <code>chat state is {chat.state}</code>
+          <code>chat health is {chat.health}</code>
+        </div>
       </div>
     </div>
   )
