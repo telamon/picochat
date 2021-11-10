@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useProfile, useChat } from '../db'
 import CountDownTimer from './CountDown.jsx'
+import dayjs from 'dayjs'
 
 export default function Chat () {
   const { id } = useParams()
@@ -38,7 +39,7 @@ export default function Chat () {
         console.error('Writing turn to other is fail', err)
       })
   }
-  function bye () {
+  function bye (PEACE) {
     chat.bye()
       .then(() => {
         console.log('Conversation is closed by BYE')
@@ -49,18 +50,29 @@ export default function Chat () {
       })
   }
 
+  function drawHealth () {
+    let output = ''
+    for (let i = 0; i < 3; i++) {
+      output += i < chat.health ? '❤️' : '🤍'
+    }
+    return output
+  }
+
   if (chat.state === 'loading' || !peer) return (<h5>loading</h5>)
   return (
     <div className='is-success chat-div'>
       <h1>{profile.name} here is you can chat now with
         <strong key={peer.pk}>{peer.name}</strong>
       </h1>
-      <p className='count-down-1'>
+      <span className='count-down-1'>
         Time left to end of conversation <CountDownTimer start={chat.updatedAt || 3000} timeout={30000} />
-      </p>
-      <code>
-        {(chat.health <= 1) ? `Life left: ${chat.health}` : 'Conversation exhausted'}
-      </code>
+      </span>
+      <span>
+        Chat life(s) left {drawHealth(chat.health)}
+      </span>
+      <span>
+        {(chat.health < 1) ? ` Life left: ${chat.health}` : ' Conversation exhausted'}
+      </span>
       {/* <div className='chat-container'>
         <span style={{ width: '100%' }}><strong key={peer.pk}>{peer.picture}</strong></span>
         <p>Hello. How are you today?</p>
@@ -88,12 +100,11 @@ export default function Chat () {
         return (
           <div key={message.sig} className='chat-container darker'>
             <p>{message.content}</p>
-            <p>{message.date}</p>
+            <p>{dayjs(message.date).format('HH:mm:ss')}</p>
           </div>
         )
       })}
       <div className='column chat-input'>
-        <div>{peer.name} user name</div>
         <input
           disabled={!chat.myTurn}
           className='input is-focused'

@@ -239,3 +239,13 @@ position:absolute;
   background-color: yellow;
   border-radius: 25px;
 }
+
+.like-zoom{
+  transition: 0.7s;
+}
+
+.like-zoom:hover{
+  transform: scale(2.9);
+}
+
+

@@ -1,6 +1,7 @@
 import React from 'react'
 import { kernel, usePeers } from '../db'
 import VibeList from './Vibe.jsx'
+import dayjs from 'dayjs'
 
 export default function Pubs () {
   const peers = usePeers()
@@ -34,9 +35,10 @@ export default function Pubs () {
                 </div>
                 <div className='column'>
                   <h1>{peer.name}</h1>
+                  <p>{dayjs(peer.date).format('DD/MM/YYYY HH:mm:ss')} join to PUB</p>
                   <span className='icon-2'>{icons[peer.sex]}</span>
                   <h3 className='smalle-tagline'>{peer.tagline}</h3>
-                  <button className='button is-primary' onClick={() => sendVibe(peer)}>Send Vibe</button>
+                  <button disabled={0} className='button is-primary' onClick={() => sendVibe(peer)}>Send Vibe</button>
                 </div>
               </div>
             </div>
