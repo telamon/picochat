@@ -183,6 +183,17 @@ function get (store) {
   return value
 }
 
+function nextState (sub, n = 1) {
+  let unsub = null
+  return new Promise(resolve => {
+    unsub = sub(m => !n-- ? resolve(m) : null)
+  })
+    .then(v => {
+      unsub()
+      return v
+    })
+}
+
 module.exports = {
   KEY_SK,
   KEY_BOX_LIKES_PK,
@@ -206,6 +217,7 @@ module.exports = {
   seal,
   unseal,
   get,
+  nextState,
   writable,
   combine,
   notEqual

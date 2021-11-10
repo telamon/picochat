@@ -11,6 +11,7 @@ const ConversationCtrl = require('./slices/chats')
 const ChatModule = require('./mod/chat.mod')
 const Network = require('./mod/net.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
+const GarbageCollector = require('./mod/gc.mod')
 // Util
 const {
   KEY_SK,
@@ -33,10 +34,13 @@ const D = debug('picochat:Kernel')
 // debug.enable('pico*')
 
 class Kernel {
-  constructor (db) {
+  constructor (db, opts = {}) {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
+
+    // Process opts
+    this._now = opts.now || (() => Date.now())
 
     // Setup slices
     this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
@@ -50,6 +54,7 @@ class Kernel {
     this.getChat = ChatModule.bind(this)
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network())
+    Object.assign(this, GarbageCollector(this.store))
   }
 
   /**
@@ -201,7 +206,8 @@ class Kernel {
 
     const block = await this.repo.readBlock(chatId)
     const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
-      box: !like ? VIBE_REJECTED : sealedMessage
+      box: !like ? VIBE_REJECTED : sealedMessage,
+      link: this.store.state.peer.sig // Weak-ref to own checkpoint
     })
     if (!convo) throw new Error('Failed creating block')
     if (like) await this._storeLocalChatKey(vibe.chatId, msgBox)
@@ -313,7 +319,6 @@ class Kernel {
         id,
         peer,
         box: null,
-        fetchPair: null,
         state: 'waiting',
         updatedAt: 0,
         createdAt: Infinity,
@@ -331,74 +336,6 @@ class Kernel {
   async dispatch (patch, loudFail = false) {
     this._checkReady()
     return await this.store.dispatch(patch, loudFail)
-  }
-
-  // -- Conversation key management
-  async _storeLocalChatKey (chatId, msgBox) {
-    const CONVERSATION_PREFIX = 67 // Ascii 'C'
-    // const CONVERSATION_PREFIX = 99 // Ascii 'c'
-    const vLength = msgBox.sk.length + msgBox.pk.length
-    if (vLength !== 64) throw new Error(`Expected box keypair to be 32bytes each, did algorithm change?: ${vLength}`)
-    chatId = toBuffer(chatId)
-    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
-
-    const value = Buffer.allocUnsafe(msgBox.sk.length + msgBox.pk.length)
-    msgBox.sk.copy(value)
-    msgBox.pk.copy(value, msgBox.sk.length)
-    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    chatId.copy(key, 1)
-    key[0] = CONVERSATION_PREFIX
-    return await this._writeReg(key, value)
-  }
-
-  async _getLocalChatKey (chatId) {
-    const CONVERSATION_PREFIX = 67 // Ascii 'C'
-    if (typeof chatId === 'string') chatId = Buffer.from(chatId, 'hex') // Attempt normalize to buffer
-    chatId = toBuffer(chatId)
-    if (chatId.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
-
-    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    chatId.copy(key, 1)
-    key[0] = CONVERSATION_PREFIX
-    const value = await this._readReg(key)
-    if (!value) throw new Error('BoxPairNotFound')
-    const box = {
-      pk: value.slice(32),
-      sk: value.slice(0, 32)
-    }
-    return box
-  }
-
-  // -- Encrypted messages can only be decrypted by receiver
-  // hence we need to store a copy of each message locally (might add some local encryption to it later)
-  async _getRemoteChatKey (chatId) {
-    const key = chatId.toString('hex')
-    const vibe = this.store.state.vibes.matches[key]
-    if (!vibe) throw new Error('ConversationNotFound')
-    if (!vibe.remoteBox) throw new Error('BoxPublicKeyNotAvailable')
-    return vibe.remoteBox
-  }
-
-  async _setMessageBody (sig, message) {
-    const CONVERSATION_PREFIX = 77 // Ascii 'M'
-    sig = toBuffer(sig)
-    if (!Buffer.isBuffer(sig) || sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
-    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    sig.copy(key, 1)
-    key[0] = CONVERSATION_PREFIX
-    return await this._writeReg(key, toBuffer(message))
-  }
-
-  async _getMessageBody (sig) {
-    const CONVERSATION_PREFIX = 77 // Ascii 'M'
-    sig = toBuffer(sig)
-    if (!Buffer.isBuffer(sig) || sig.length !== Feed.SIGNATURE_SIZE) throw new Error('Expected chatId to be a block signature')
-    const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-    sig.copy(key, 1)
-    key[0] = CONVERSATION_PREFIX
-    const msg = await this._readReg(key)
-    if (!msg) throw new Error('MessageNotFound')
-    return msg.toString()
   }
 }
 

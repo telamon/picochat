@@ -13,7 +13,7 @@ function ConversationCtrl (opts = {}) {
     health: InitialHealth,
     regenerate: RegenerateAmount
   } = {
-    timeout: 30 * 60 * 1000, // 3 minutes
+    timeout: 3 * 60 * 1000, // 3 minutes
     health: 3, // <3 <3 <3
     regenerate: 0.3,
     ...opts
@@ -23,6 +23,7 @@ function ConversationCtrl (opts = {}) {
   const mkChat = chatId => ({
     id: chatId,
     messages: [],
+    expiresAt: 0,
     updatedAt: 0,
     state: 'active',
     a: null, // Peer id
@@ -81,7 +82,7 @@ function ConversationCtrl (opts = {}) {
       return false // All good, accept block
     },
 
-    reducer ({ block, parentBlock, root, state }) {
+    reducer ({ block, parentBlock, root, state, schedule }) {
       const data = decodeBlock(block.body)
       const { type } = data
       const parentType = decodeBlock(parentBlock.body).type
@@ -111,6 +112,7 @@ function ConversationCtrl (opts = {}) {
       chat.head = block.sig
 
       chat.updatedAt = data.date
+      chat.expiresAt = data.date + MessageTimeout
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
 
       if (TYPE_MESSAGE === type) {
@@ -142,13 +144,14 @@ function ConversationCtrl (opts = {}) {
         else chat.state = 'end'
         if (chat.a.equals(from)) chat.aEnd = data.gesture
         else chat.bEnd = data.gesture
-        //console.log('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
+        // console.log('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
       }
 
       // Bump head of findChatIdBy(parentSig) index
       // console.log('BUMPHEAD', root.peer.name, block.parentSig.hexSlice(0, 10), ' => ', block.sig.hexSlice(0, 10))
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId
+      schedule('chat', chat.id, chat.expiresAt)
       return state
     }
   }
