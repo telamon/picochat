@@ -1,9 +1,11 @@
 import React from 'react'
 import { kernel, useVibes } from '../db.js'
+import dayjs from 'dayjs'
+import CountDownTimer from './CountDown.jsx'
 
 export default function VibeList () {
   const vibes = useVibes()
-  {/*console.log('VIBES', vibes)*/}
+  console.log('VIBES', vibes)
   const respondToVibe = (id, didLike) => {
     kernel.respondVibe(id, didLike)
       .then(() => {
@@ -18,24 +20,20 @@ export default function VibeList () {
     <>
       <ul className='column'>
         {vibes.map(vibe => {
-          const date = new Date(vibe.createdAt)
           return (
             <li key={vibe.id}>
-              <strong>
-                You get one Vibe from {vibe.peer.name}
-                at {date.toLocaleString('en-GB', { hour12: false })} {vibe.state}
-              </strong>
+                You get one Vibe from <strong>{vibe.peer.name}</strong> at {dayjs(vibe.createdAt).format('h:mm:ss a')}
               {vibe.state === 'waiting_local' && (
                 <div className='column'>
-                  <button className='button' onClick={() => respondToVibe(vibe.id, true)}>👍</button>
                   <button className='button' onClick={() => respondToVibe(vibe.id, false)}>👎</button>
+                  <button className='button like-zoom' onClick={() => respondToVibe(vibe.id, true)}>👍</button>
                 </div>
               )}
               {vibe.state === 'match' && (
-                <a href={`#/chat/${vibe.id.toString('hex')}`}>Chat!</a>
+                <a href={`#/chat/${vibe.id.toString('hex')}`}> Begin to CHAT now!</a>
               )}
               {vibe.state === 'waiting_remote' && (
-                <span>⌛</span>
+                <span>⌛<CountDownTimer start={vibe.updatedAt} timeout={30000} /></span>
               )}
               {vibe.state === 'rejected' && (
                 <span>💔</span>

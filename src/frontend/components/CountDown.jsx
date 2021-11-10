@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
 
 export default function CountDownTimer ({ start, timeout, onTimeout }) {
   if (typeof start !== 'number') start = new Date(start).getTime()
-  if (typeof timeout === 'number') throw new Error('Prop: "timeout" should be a number')
+  if (typeof timeout !== 'number') throw new Error('Prop: "timeout" should be a number')
 
   const [timeLeft, setTimeLeft] = useState(timeout)
+  const timer = dayjs(timeLeft)
 
   useEffect(() => {
     const initialTimeLeft = timeout - (Date.now() - start)
@@ -12,7 +14,7 @@ export default function CountDownTimer ({ start, timeout, onTimeout }) {
     // set timeLeft once and don't start interval
     if (initialTimeLeft <= 0) {
       setTimeLeft(initialTimeLeft)
-      return
+      /*return*/
     }
 
     // Set up interval that updates timeLeft
@@ -38,11 +40,12 @@ export default function CountDownTimer ({ start, timeout, onTimeout }) {
   else if (timeLeft < 60 * 1000) classes += ' warning'
 
   return (
-    <span className={classes}>
-      {timeLeft}
+    <p className={classes}>
+
+      {timer.format('h:mm:ss')}
       {/* TODO: use Day.js */}
       {/* 10.5s */}
       {/* 3.4m */}
-    </span>
+    </p>
   )
 }

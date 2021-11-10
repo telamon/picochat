@@ -41,15 +41,30 @@ export default function Profile () {
             <p className='title'>PicoCHAT is KING </p>
             <p className='subtitle'> You can now CHAT </p>
             <div className='column'>
-              <input className='input is-hovered' type='text' placeholder='Username' value={name} onChange={ev => setName(ev.target.value)} />
+              <input
+                className='input is-hovered'
+                type='text'
+                placeholder='Username'
+                value={name}
+                onChange={ev => setName(ev.target.value)}
+              />
             </div>
             <div className='column'>
               {showPicker
                 ? (<span><Picker onEmojiClick={onEmoji} /></span>)
                 : (<span className='icon-3' onClick={() => setShowPicker(true)}>{picture}</span>)}
             </div>
-            <div className='columns  raw-5' onChange={ev => setSex(parseInt(ev.target.value))}>
-              <input id='age' type='number' min='18' max='99' placeholder='Age' className='column' value={age} onChange={ev => setAge(ev.target.value)} />
+            <div className='columns  raw-5'>
+              <input
+                id='age'
+                type='number'
+                min='18'
+                max='99'
+                placeholder='Age'
+                className='column'
+                value={age}
+                onChange={ev => setAge(ev.target.value)}
+              />
               <div className='column'>
                 <input
                   type='radio'
@@ -57,7 +72,7 @@ export default function Profile () {
                   className='column'
                   value='1'
                   checked={sex === 1}
-                  onChange={ev => setSex(parseInt(ev.target.value))}
+                  onChange={ev => setSex(1)}
                 />
                 <label htmlFor='male'>♂️</label>
               </div>
@@ -68,7 +83,7 @@ export default function Profile () {
                   className='column'
                   value='0'
                   checked={sex === 0}
-                  onChange={ev => setSex(parseInt(ev.target.value))}
+                  onChange={ev => setSex(0)}
                 />
                 <label htmlFor='female'>♀️</label>
               </div>
@@ -79,7 +94,7 @@ export default function Profile () {
                   className='column'
                   value='2'
                   checked={sex === 2}
-                  onChange={ev => setSex(parseInt(ev.target.value))}
+                  onChange={ev => setSex(2)}
                 />
                 <label htmlFor='others'>⚧️</label>
               </div>

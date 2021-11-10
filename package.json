@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@telamon/picostore": "^1.3.1",
+    "dayjs": "^1.10.7",
     "debug": "^4.3.2",
     "deferinfer": "^1.0.1",
     "emoji-picker-react": "^3.4.8",
