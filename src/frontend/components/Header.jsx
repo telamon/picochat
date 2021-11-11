@@ -1,5 +1,6 @@
 import React from 'react'
 import { kernel } from '../db'
+import DebugLogging from './DebugLogging.jsx'
 
 export default function Header ({ loggedIn }) {
   async function inspectFeed () {
@@ -36,6 +37,9 @@ export default function Header ({ loggedIn }) {
               </li>
               <li>
                 Logged in: {loggedIn ? 'true' : 'false'}
+              </li>
+              <li>
+                <DebugLogging />
               </li>
             </ul>
           </nav>

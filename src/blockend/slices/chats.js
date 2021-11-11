@@ -1,3 +1,4 @@
+const D = require('debug')('picochat:slice:chat')
 const {
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
@@ -144,11 +145,16 @@ function ConversationCtrl (opts = {}) {
         else chat.state = 'end'
         if (chat.a.equals(from)) chat.aEnd = data.gesture
         else chat.bEnd = data.gesture
-        // console.log('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
+        D('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
+
+        if (chat.state === 'end') {
+          // Add time to profile
+          // Add time to this convo.
+        }
       }
 
+      D('[%s]Conversation(%h) state: %s mLength: %d, head: %h => %h', root.peer.name, chatId, chat.state, chat.mLength, block.parentSig, block.sig)
       // Bump head of findChatIdBy(parentSig) index
-      // console.log('BUMPHEAD', root.peer.name, block.parentSig.hexSlice(0, 10), ' => ', block.sig.hexSlice(0, 10))
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId
       schedule('chat', chat.id, chat.expiresAt)

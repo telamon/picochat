@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+//
 const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
