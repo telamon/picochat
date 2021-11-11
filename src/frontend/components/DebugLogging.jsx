@@ -8,7 +8,8 @@ const patterns = [
   'picochat:mod:*',
   'picochat:mod:net',
   'picochat:mod:gc',
-  'picochat:mod:reg'
+  'picochat:mod:reg',
+  'picochat:slice*'
 ]
 
 export default function DebugLogging () {

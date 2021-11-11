@@ -8,6 +8,7 @@ const {
   crypto_box_SECRETKEYBYTES
 } = require('sodium-universal')
 /* eslint-enable camelcase */
+const createDebug = require('debug')
 
 // Global registry names (used as session variables)
 const KEY_SK = 'reg/sk'
@@ -105,7 +106,6 @@ function boxPair () {
   return { pk, sk }
 }
 
-
 // -------- purely functional pico reactive store pattern - adrenaline/synapse?
 
 /**
@@ -192,6 +192,16 @@ function nextState (sub, n = 1) {
       unsub()
       return v
     })
+}
+
+/* -------------------- */
+createDebug.formatters.h = v => {
+  if (!Buffer.isBuffer(v) || !v?.length) return v
+  return v.slice(0, Math.min(8, v.length)).toString('hex')
+}
+createDebug.formatters.H = v => {
+  if (!Buffer.isBuffer(v) || !v?.length) return v
+  return v.toString('hex')
 }
 
 module.exports = {
