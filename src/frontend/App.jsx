@@ -3,6 +3,7 @@ import { kernel, usePeers } from './db'
 import 'bulma/css/bulma.css'
 import { HashRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import Header from './components/Header.jsx'
+import Footer from './components/Footer.jsx'
 import Profile from './components/Profile.jsx'
 import Mypage from './components/MyPage.jsx'
 import AboutPage from './components/AboutPage.jsx'
@@ -45,7 +46,7 @@ export default function App () {
           <Redirect to='/' />
         </Switch>
       </div>
+      <Footer />
     </Router>
-
   )
 }

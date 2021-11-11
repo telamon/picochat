@@ -5,7 +5,16 @@ const Rules = () => {
   const history = useHistory()
   return (
     <>
-      <h2>Disclaimer</h2>
+      <h2 style={
+        {
+          fontSize: 30,
+          color: 'red',
+          textAlign: 'center',
+          margin: 10
+        }
+      }
+      >Disclaimer
+      </h2>
       <p>At this point in time we have no control over any peer to peer interactions and by design might never have.
         <br />We do not use cookies.
         <br />And we do not store any personal information. PicoChat does not make use of a server nor a central-database. All information that you input is in your own browser.
