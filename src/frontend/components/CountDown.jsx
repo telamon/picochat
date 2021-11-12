@@ -35,6 +35,7 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
   let classes = 'count-down'
   if (timeLeft < 10 * 1000) classes += ' danger'
   else if (timeLeft < 60 * 1000) classes += ' warning'
+  else if (timeLeft <= 0) classes += ' expired'
 
   return (
     <p className={classes}>
