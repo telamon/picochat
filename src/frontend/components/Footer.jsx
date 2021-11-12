@@ -3,9 +3,13 @@ import React from 'react'
 export default function Footer () {
   return (
     <>
-      <div className='hero is-success'>
-        <h1>Footer</h1>
-      </div>
+      <footer className='footer'>
+        <div className='content has-text-centered'>
+          <p>
+            Powered by <a href='https://github.com/telamon/picochat/'>Picochat</a> © Decent Labs 2021
+          </p>
+        </div>
+      </footer>
     </>
   )
 }

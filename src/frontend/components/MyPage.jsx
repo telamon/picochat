@@ -2,6 +2,7 @@ import React from 'react'
 import { useProfile } from '../db'
 import Pubs from './Pubs.jsx'
 import dayjs from 'dayjs'
+import CountDownTimer from './CountDown.jsx'
 
 export default function Mypage () {
   const icons = {
@@ -29,6 +30,7 @@ export default function Mypage () {
           <p>Profile text: {profile.tagline}</p>
           <p className='icon-2'>{icons[profile.sex]}</p>
           <p>Was created at {dayjs(profile.date).format('DD/MM/YYYY HH:mm:ss')}</p>
+          <CountDownTimer expiresAt={profile.expiresAt || 0} />
         </div>
       </div>
       <Pubs />

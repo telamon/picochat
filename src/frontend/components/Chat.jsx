@@ -10,7 +10,6 @@ export default function Chat () {
   const chat = useChat(id)
   const peer = chat.peer
   const [text, setText] = useState('')
-
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       send()
@@ -39,8 +38,9 @@ export default function Chat () {
         console.error('Writing turn to other is fail', err)
       })
   }
-  function bye (PEACE) {
-    chat.bye()
+  function bye () {
+    const gest = 0
+    chat.bye(gest)
       .then(() => {
         console.log('Conversation is closed by BYE')
         setText('')
@@ -48,6 +48,10 @@ export default function Chat () {
       .catch(err => {
         console.error('Bye function is fail', err)
       })
+  }
+
+  if (chat.state === 'finalizing' && chat.myTurn) {
+    bye()
   }
 
   function drawHealth () {
@@ -65,13 +69,13 @@ export default function Chat () {
         <strong key={peer.pk}>{peer.name}</strong>
       </h1>
       <span className='count-down-1'>
-        Time left to end of conversation <CountDownTimer start={chat.updatedAt || 3000} timeout={30000} />
+        Time left to end of conversation <CountDownTimer expiresAt={chat.expiresAt} />
       </span>
       <span>
         Chat life(s) left {drawHealth(chat.health)}
       </span>
       <span>
-        {(chat.health < 1) ? ` Life left: ${chat.health}` : ' Conversation exhausted'}
+        {(chat.health < 1) ? ' Conversation exhausted' : ` Life left: ${chat.health}`}
       </span>
       {/* <div className='chat-container'>
         <span style={{ width: '100%' }}><strong key={peer.pk}>{peer.picture}</strong></span>
@@ -105,19 +109,29 @@ export default function Chat () {
         )
       })}
       <div className='column chat-input'>
-        <input
-          disabled={!chat.myTurn}
-          className='input is-focused'
-          style={{ width: '60%' }}
-          type='text'
-          placeholder='Enter your text here'
-          value={text}
-          onChange={ev => setText(ev.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button disabled={!chat.myTurn} className='button is-info' onClick={send}>SEND</button>
-        <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>
-        <button disabled={!chat.myTurn} className='button is-danger' onClick={bye}>GoodBYE</button>
+        {chat.state === 'active' && (
+          <div>
+            <input
+              disabled={!chat.myTurn}
+              className='input is-focused'
+              style={{ width: '60%' }}
+              type='text'
+              placeholder='Enter your text here'
+              value={text}
+              onChange={ev => setText(ev.target.value)}
+              onKeyDown={handleKeyDown}
+              ref={inputElement => {
+                // constructs a new function on each render
+                if (inputElement) {
+                  inputElement.focus()
+                }
+              }}
+            />
+            <button disabled={!chat.myTurn} className='button is-info' onClick={send}>SEND</button>
+            <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>
+            <button disabled={!chat.myTurn} className='button is-danger' onClick={bye}>GoodBYE</button>
+          </div>
+        )}
         <pre>{chat.myTurn ? 'your Turn' : 'is not your Turn'}</pre>
         <div>
           <code>chat state is {chat.state}</code>

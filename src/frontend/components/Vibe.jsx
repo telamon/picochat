@@ -33,7 +33,7 @@ export default function VibeList () {
                 <a href={`#/chat/${vibe.id.toString('hex')}`}> Begin to CHAT now!</a>
               )}
               {vibe.state === 'waiting_remote' && (
-                <span>⌛<CountDownTimer start={vibe.updatedAt} timeout={30000} /></span>
+                <span>⌛<CountDownTimer expiresAt={vibe.expiresAt || 0} timeout={30000} /></span>
               )}
               {vibe.state === 'rejected' && (
                 <span>💔</span>

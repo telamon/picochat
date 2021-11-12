@@ -28,7 +28,7 @@ module.exports = function getChat (chatId, subscriber) {
     if (!pass && !message.length) throw new Error('EmptyMessage')
     const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
     const branch = await this.repo.loadFeed(head)
-    const content = pass ? PASS_TURN : seal(toBuffer(message), pk)
+    const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
     await this._createBlock(branch, TYPE_MESSAGE, { content })
     // Branch "hopefully" contains new block, if not use return of createBlock() in future
     if (!pass) await this._setMessageBody(branch.last.sig, message)
@@ -60,6 +60,7 @@ module.exports = function getChat (chatId, subscriber) {
     messages: [],
     updatedAt: 0,
     createdAt: 0,
+    expiresAt: 0,
     health: 3, // TODO: initial health prop is in chats reducer
     errorMessage: null,
     send,
@@ -89,6 +90,7 @@ module.exports = function getChat (chatId, subscriber) {
       else if (vibe.state === 'rejected') chat.state = 'inactive'
       chat.updatedAt = Math.max(chat.updatedAt, vibe.updatedAt)
       chat.createdAt = vibe.createdAt
+      chat.expiresAt = Math.max(chat.expiresAt, vibe.expiresAt)
       chat.peer = vibe.peer
 
       if (!lChat && vibe.state === 'match') {
