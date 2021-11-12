@@ -51,6 +51,10 @@ export default function Chat () {
       })
   }
 
+  if (chat.state === 'finalizing' && chat.myTurn) {
+    bye()
+  }
+
   function drawHealth () {
     let output = ''
     for (let i = 0; i < 3; i++) {
@@ -106,19 +110,23 @@ export default function Chat () {
         )
       })}
       <div className='column chat-input'>
-        <input
-          disabled={!chat.myTurn}
-          className='input is-focused'
-          style={{ width: '60%' }}
-          type='text'
-          placeholder='Enter your text here'
-          value={text}
-          onChange={ev => setText(ev.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button disabled={!chat.myTurn} className='button is-info' onClick={send}>SEND</button>
-        <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>
-        <button disabled={!chat.myTurn} className='button is-danger' onClick={bye}>GoodBYE</button>
+        {chat.state === 'active' && (
+          <div>
+            <input
+              disabled={!chat.myTurn}
+              className='input is-focused'
+              style={{ width: '60%' }}
+              type='text'
+              placeholder='Enter your text here'
+              value={text}
+              onChange={ev => setText(ev.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <button disabled={!chat.myTurn} className='button is-info' onClick={send}>SEND</button>
+            <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>
+            <button disabled={!chat.myTurn} className='button is-danger' onClick={bye}>GoodBYE</button>
+          </div>
+        )}
         <pre>{chat.myTurn ? 'your Turn' : 'is not your Turn'}</pre>
         <div>
           <code>chat state is {chat.state}</code>
