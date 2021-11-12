@@ -12,12 +12,13 @@ const ChatModule = require('./mod/chat.mod')
 const Network = require('./mod/net.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
 const GarbageCollector = require('./mod/gc.mod')
+const PeersModule = require('./mod/peers.mod')
+
 // Util
 const {
   KEY_SK,
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK,
-  TYPE_PROFILE,
   TYPE_VIBE,
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
@@ -55,6 +56,15 @@ class Kernel {
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network())
     Object.assign(this, GarbageCollector(this.store))
+    Object.assign(this, PeersModule())
+  }
+
+  /**
+   * Get user's profile from store
+   * @deprecated
+   */
+  get profile () {
+    return this.store.state.peers[this.pk.toString('hex')]
   }
 
   /**
@@ -91,50 +101,6 @@ class Kernel {
     return this._sk?.slice(32)
   }
 
-  /**
-   * Generates a new user identity and creates the first profile block
-   */
-  async register (profile) {
-    // Signing identity
-    const { sk } = Feed.signPair()
-    this._sk = sk
-
-    // A box for love-letters
-    const box = boxPair()
-    this._vibeBox = box
-    this._vibeController.setKeys(this.pk, this._vibeBox)
-
-    await this.updateProfile(profile)
-    await this.repo.writeReg(KEY_SK, sk)
-    await this.repo.writeReg(KEY_BOX_LIKES_PK, box.pk)
-    await this.repo.writeReg(KEY_BOX_LIKES_SK, box.sk)
-  }
-
-  /**
-   * Creates a new profile-block
-   */
-  async updateProfile (profile) {
-    return await this._createBlock(TYPE_PROFILE, {
-      ...profile,
-      box: this._vibeBox.pk
-    })
-  }
-
-  /**
-   * Get user's profile from store
-   */
-  get profile () {
-    return this.store.state.peers[this.pk.toString('hex')]
-  }
-
-  /**
-   * Returns user's personal feed
-   * - *optional* limit {number} limit amount of blocks fetched.
-   */
-  async feed (limit = undefined) {
-    this._checkReady()
-    return this.repo.loadHead(this.pk, limit)
-  }
 
   /**
    * Returns boolean if kernel has a user

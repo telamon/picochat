@@ -34,13 +34,27 @@ function ConversationCtrl (opts = {}) {
     bEnd: -1
   })
 
+  const mkStats = peerId => ({
+    peerId,
+    lastSeen: 0,
+    nMessages: 0,
+    nExhausted: 0,
+    nPassed: 0,
+    nEnded: 0,
+    nStarted: 0,
+    blocks: 0,
+    blockSize: 0,
+    hpRegenerated: 0
+  })
+
   return {
     name: 'chats',
 
     initialValue: {
       chats: {},
       heads: {},
-      own: []
+      own: [],
+      stats: {} // Indexed by peer
     },
 
     filter ({ block, parentBlock, state, root }) {
@@ -116,13 +130,28 @@ function ConversationCtrl (opts = {}) {
       chat.expiresAt = data.date + MessageTimeout
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
 
+      let stats = state.stats[block.key.toString('hex')]
+      if (!stats) {
+        stats = mkStats(block.key)
+        state.stats[block.key.toString('hex')] = stats
+        stats.nStarted++
+        D('Initating new stats', stats)
+      }
+      stats.lastSeen = Math.max(stats.lastSeen, data.date)
+      stats.nMessages++
+      stats.blocks++
+      stats.blockSize += block.body.length
+
       if (TYPE_MESSAGE === type) {
         const turnPassed = PASS_TURN.equals(data.content)
+        turnPassed && stats.nPassed++
         if (turnPassed && --chat.hp < 1) {
           chat.state = 'exhausted'
+          stats.nExhausted++
         } else if (!turnPassed) {
           // Regenerate
           chat.hp = Math.min(RegenerateAmount + chat.hp, InitialHealth)
+          stats.hpRegenerated += RegenerateAmount
         }
 
         chat.own = !![chat.a, chat.b].find(k => peerId.equals(k))
@@ -142,15 +171,18 @@ function ConversationCtrl (opts = {}) {
         if (chat.own && !state.own.find(b => b.equals(chatId))) state.own.push(chatId)
       } else {
         if (TYPE_BYE === type) chat.state = 'finalizing'
-        else chat.state = 'end'
+        else chat.state = 'end' // Assume BYE_RESPONSE
+        // Set gesture
         if (chat.a.equals(from)) chat.aEnd = data.gesture
         else chat.bEnd = data.gesture
         D('ENDING: ', root.peer.name, type, chat.state, chat.aEnd, chat.bEnd)
+      }
 
-        if (chat.state === 'end') {
-          // Add time to profile
-          // Add time to this convo.
-        }
+      if (chat.state === 'end') {
+        const aStat = state.stats[chat.b.toString('hex')]
+        const bStat = state.stats[chat.a.toString('hex')]
+        aStat.nEnded++
+        bStat.nEnded++
       }
 
       D('[%s]Conversation(%h) state: %s mLength: %d, head: %h => %h', root.peer.name, chatId, chat.state, chat.mLength, block.parentSig, block.sig)

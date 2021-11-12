@@ -8,10 +8,10 @@ const {
   UNDERSTANDING,
   seal,
   unseal,
-  toBuffer,
-  combine
+  toBuffer
 } = require('../util')
 
+const { combine, mute } = require('../nuro')
 /* A reactive store whose value is conversation object
  * containing all then necesarry tidbits and bound actions
  * to progress the conversation
@@ -67,20 +67,21 @@ module.exports = function getChat (chatId, subscriber) {
     bye
   }
   const cache = chat
-  const set = subscriber
-  // State
-  const unsubCombined = combine(
-    this.vibes.bind(this),
-    s => this.store.on('chats', s),
-    ($vibes, $chats) => {
-      const vibe = $vibes.find(v => chatId.equals(v.id))
-      const lChat = $chats.chats[chatId.toString('hex')]
+  // const set = subscriber
+  const $chat = mute(
+    combine(
+      s => this.vibes(s),
+      s => this.store.on('chats', s)
+    ),
+    ([vibes, chats], set) => {
+      const vibe = vibes.find(v => chatId.equals(v.id))
+      const lChat = chats.chats[chatId.toString('hex')]
 
       // All conversations must start with a vibe
       if (!vibe) {
         chat.state = 'error'
         chat.errorMessage = 'VibeNotFound'
-        return set(chat)
+        return chat
       }
 
       head = vibe.head
@@ -94,7 +95,7 @@ module.exports = function getChat (chatId, subscriber) {
         // First to vibe is first to write
         chat.myTurn = vibe.initiator === 'local'
       }
-      if (!lChat) return set(chat)
+      if (!lChat) return chat
       head = lChat.head
 
       // Update headers
@@ -105,7 +106,7 @@ module.exports = function getChat (chatId, subscriber) {
       chat.myTurn = !((lChat.mLength % 2) ^ (this.pk.equals(lChat.b) ? 1 : 0))
 
       // Skip message decryption if no new messages available
-      if (chat.messages.length === lChat.messages.length) return set(chat)
+      if (chat.messages.length === lChat.messages.length) return chat
 
       const decryptMessages = async () => {
         if (!localPair) localPair = await this._getLocalChatKey(chatId)
@@ -140,5 +141,5 @@ module.exports = function getChat (chatId, subscriber) {
         })
       // return set(chat) // initial value
     })
-  return unsubCombined
+  return $chat(subscriber)
 }

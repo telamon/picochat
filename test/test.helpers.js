@@ -1,6 +1,6 @@
 const levelup = require('levelup')
 const memdown = require('memdown')
-const { nextState } = require('../src/blockend/util')
+const { nextState } = require('../src/blockend/nuro')
 const Kernel = require('../src/blockend/')
 
 // Alice and Bob sits down at a table
