@@ -20,7 +20,9 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
 
     // Set up interval that updates timeLeft
     const intervalId = setInterval(() => {
-      setTimeLeft(expiresAt - Date.now())
+      const left = expiresAt - Date.now()
+      setTimeLeft(left)
+      if (left <= 0) clearInterval(intervalId)
     }, 150)
 
     // clean up on component unmount
@@ -33,6 +35,7 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
   let classes = 'count-down'
   if (timeLeft < 10 * 1000) classes += ' danger'
   else if (timeLeft < 60 * 1000) classes += ' warning'
+  else if (timeLeft <= 0) classes += ' expired'
 
   return (
     <p className={classes}>
