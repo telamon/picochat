@@ -22,7 +22,12 @@ export function usePico (store, name, selector, initialValue) {
 
 // Helpers hooks for quick register access
 export function useProfile () {
-  return usePico(kernel.store, 'peer', state => state, {})
+  const [value, set] = useState({})
+  useEffect(() => {
+    if (!kernel.ready) return
+    return kernel.getProfile(set)
+  }, [kernel.ready, set])
+  return value
 }
 
 export function usePeers () {
