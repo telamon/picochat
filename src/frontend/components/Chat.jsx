@@ -39,8 +39,9 @@ export default function Chat () {
         console.error('Writing turn to other is fail', err)
       })
   }
-  function bye (PEACE) {
-    chat.bye()
+  function bye () {
+    const gest = 0
+    chat.bye(gest)
       .then(() => {
         console.log('Conversation is closed by BYE')
         setText('')
@@ -71,7 +72,7 @@ export default function Chat () {
         Chat life(s) left {drawHealth(chat.health)}
       </span>
       <span>
-        {(chat.health < 1) ? ` Life left: ${chat.health}` : ' Conversation exhausted'}
+        {(chat.health < 1) ? ' Conversation exhausted' : ` Life left: ${chat.health}`}
       </span>
       {/* <div className='chat-container'>
         <span style={{ width: '100%' }}><strong key={peer.pk}>{peer.picture}</strong></span>

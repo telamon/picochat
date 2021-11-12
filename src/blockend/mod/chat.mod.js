@@ -28,7 +28,7 @@ module.exports = function getChat (chatId, subscriber) {
     if (!pass && !message.length) throw new Error('EmptyMessage')
     const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
     const branch = await this.repo.loadFeed(head)
-    const content = pass ? PASS_TURN : seal(toBuffer(message), pk)
+    const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
     await this._createBlock(branch, TYPE_MESSAGE, { content })
     // Branch "hopefully" contains new block, if not use return of createBlock() in future
     if (!pass) await this._setMessageBody(branch.last.sig, message)
