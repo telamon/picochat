@@ -10,7 +10,6 @@ export default function Chat () {
   const chat = useChat(id)
   const peer = chat.peer
   const [text, setText] = useState('')
-
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       send()
@@ -70,7 +69,7 @@ export default function Chat () {
         <strong key={peer.pk}>{peer.name}</strong>
       </h1>
       <span className='count-down-1'>
-        Time left to end of conversation <CountDownTimer start={chat.updatedAt || 3000} timeout={30000} />
+        Time left to end of conversation <CountDownTimer expiresAt={chat.expiresAt} />
       </span>
       <span>
         Chat life(s) left {drawHealth(chat.health)}
@@ -121,6 +120,12 @@ export default function Chat () {
               value={text}
               onChange={ev => setText(ev.target.value)}
               onKeyDown={handleKeyDown}
+              ref={inputElement => {
+                // constructs a new function on each render
+                if (inputElement) {
+                  inputElement.focus()
+                }
+              }}
             />
             <button disabled={!chat.myTurn} className='button is-info' onClick={send}>SEND</button>
             <button disabled={!chat.myTurn} className='button is-success' onClick={pass}>Pass</button>

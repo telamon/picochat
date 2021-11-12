@@ -1,39 +1,34 @@
 import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+dayjs.extend(duration)
 
-export default function CountDownTimer ({ start, timeout, onTimeout }) {
-  if (typeof start !== 'number') start = new Date(start).getTime()
-  if (typeof timeout !== 'number') throw new Error('Prop: "timeout" should be a number')
+export default function CountDownTimer ({ expiresAt, onTimeout }) {
+  if (typeof expiresAt !== 'number') throw new Error('Prop: "expiresAt" should be a number')
 
-  const [timeLeft, setTimeLeft] = useState(timeout)
-  const timer = dayjs(timeLeft)
-
+  const [timeLeft, setTimeLeft] = useState(expiresAt - Date.now())
   useEffect(() => {
-    const initialTimeLeft = timeout - (Date.now() - start)
+    const initialTimeleft = expiresAt - Date.now()
     // When countdown is already zero or less,
     // set timeLeft once and don't start interval
-    if (initialTimeLeft <= 0) {
-      setTimeLeft(initialTimeLeft)
-      /*return*/
-    }
-
-    // Set up interval that updates timeLeft
-    const intervalId = setInterval(() => {
-      const now = Date.now()
-      setTimeLeft(timeout - (now - start))
-    }, 500)
+    if (initialTimeleft <= 0) return
 
     // Set up timeout that triggers onTimeout event
     const timerId = setTimeout(() => {
       if (typeof onTimeout === 'function') onTimeout()
-    }, initialTimeLeft)
+    }, initialTimeleft)
+
+    // Set up interval that updates timeLeft
+    const intervalId = setInterval(() => {
+      setTimeLeft(expiresAt - Date.now())
+    }, 150)
 
     // clean up on component unmount
     return () => {
       clearTimeout(timerId)
       clearInterval(intervalId)
     }
-  }, [setTimeLeft, start, timeout])
+  }, [setTimeLeft, expiresAt])
 
   let classes = 'count-down'
   if (timeLeft < 10 * 1000) classes += ' danger'
@@ -42,7 +37,11 @@ export default function CountDownTimer ({ start, timeout, onTimeout }) {
   return (
     <p className={classes}>
 
-      {timer.format('h:mm:ss')}
+      {timeLeft > 0
+        ? dayjs.duration(timeLeft).format('HH:mm:ss.SSS')
+        : (
+          <span>0</span>
+          )}
       {/* TODO: use Day.js */}
       {/* 10.5s */}
       {/* 3.4m */}

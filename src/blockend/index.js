@@ -270,6 +270,7 @@ class Kernel {
           ...initVibe(chatId),
           updatedAt: match.updatedAt,
           createdAt: match.createdAt,
+          expiresAt: match.expiresAt,
           box: match.remoteBox,
           initiator: initiator ? 'local' : 'remote',
           localRejected: initiator && match.state === 'rejected',
