@@ -16,7 +16,9 @@ export default function Chat () {
       console.log('message was sended by ENTER key')
     }
   }
-
+  function chatTimeout () {
+    const [gameOver, setGameOver] = useState()
+  }
   function send () {
     chat.send(text)
       .then(() => {
@@ -69,7 +71,7 @@ export default function Chat () {
         <strong key={peer.pk}>{peer.name}</strong>
       </h1>
       <span className='count-down-1'>
-        Time left to end of conversation <CountDownTimer expiresAt={chat.expiresAt} />
+        Time left to end of conversation <CountDownTimer expiresAt={chat.expiresAt} onTimeout={chatTimeout} />
       </span>
       <span>
         Chat life(s) left {drawHealth(chat.health)}
