@@ -7,28 +7,6 @@ const {
   makeMatch
 } = require('./test.helpers')
 
-test('Create profile', async t => {
-  const app = new Kernel(makeDatabase())
-  const loggedIn = await app.load()
-  t.equal(loggedIn, false, 'Not logged in on first run')
-
-  // Create a new profile
-  await app.register({
-    picture: ':]',
-    name: 'Batman',
-    tagline: 'I love driving around at night',
-    age: 42,
-    sex: 1
-  })
-
-  t.equal(app.profile.name, 'Batman', 'Correct username registered')
-  t.equal(app.profile.tagline, 'I love driving around at night')
-  t.equal(app.profile.age, 42)
-  t.equal(app.profile.sex, 1)
-  t.ok(app.profile.pk, 'Public key is exposed')
-  t.end()
-})
-
 test('Enter pub see peers', async t => {
   const PUB = 'Abyss'
   const alice = new Kernel(makeDatabase())

@@ -53,18 +53,10 @@ class Kernel {
 
     // Load Mixins
     this.getChat = ChatModule.bind(this)
+    Object.assign(this, PeersModule())
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network())
     Object.assign(this, GarbageCollector(this.store))
-    Object.assign(this, PeersModule())
-  }
-
-  /**
-   * Get user's profile from store
-   * @deprecated
-   */
-  get profile () {
-    return this.store.state.peers[this.pk.toString('hex')]
   }
 
   /**
@@ -101,6 +93,14 @@ class Kernel {
     return this._sk?.slice(32)
   }
 
+  /**
+   * Returns user's personal feed
+   * - *optional* limit {number} limit amount of blocks fetched.
+   */
+  async feed (limit = undefined) {
+    this._checkReady()
+    return this.repo.loadHead(this.pk, limit)
+  }
 
   /**
    * Returns boolean if kernel has a user
@@ -203,25 +203,6 @@ class Kernel {
     if (!mut.length) throw new Error('CreateBlock failed: rejected by store')
     if (this._badCreateBlockHook) this._badCreateBlockHook(branch.slice(-1))
     return branch
-  }
-
-  async profileOf (key) {
-    /*
-    const tail = await this.repo.tailOf(key)
-    const block = await this.repo.readBlock(tail)
-    if (!block) throw new Error('Profile not found, error due to profileOf is WIP; Need multihead resolve + network query')
-    if (!key.equals(block.key)) throw new Error('Wrong profile encountered')
-    const profile = decodeBlock(block.body)
-    if (profile.type !== TYPE_PROFILE) throw new Error('Tail is not a profile: ' + profile.type)
-    */
-    key = toBuffer(key)
-    if (!key) throw new Error(`PublicKey expected got "${key}"`)
-    const profile = this.store.state.peers[key.toString('hex')]
-    if (!profile) {
-      // debugger
-      throw new Error('ProfileNotFound')
-    }
-    return profile
   }
 
   // the other kind of store
