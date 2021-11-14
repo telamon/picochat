@@ -64,7 +64,8 @@ test('kernel.$peers(id)', async t => {
 test('kernel.$peers streams profile array', async t => {
   const [alice] = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne')
   const peers = await next(alice.k.$peers(), 1)
-  t.equal(peers.length, 4)
+  t.notOk(peers.find(p => p.pk.equals(alice.k.pk)), 'Should not contain self') // under consideration
+  t.equal(peers.length, 3)
 })
 
 test('Successful conversation should add peer time', async t => {
@@ -96,5 +97,8 @@ test('Successful conversation should add peer time', async t => {
   await aChat.bye(2)
 
   const d2 = await next(bob.k.$profile())
+  const af = await alice.k.feed()
+  const bf = await alice.k.feed()
+
   t.equal(d2.expiresAt - d1.expiresAt, 7 * 60 * 1000)
 })

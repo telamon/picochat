@@ -38,6 +38,9 @@ module.exports = function NetworkModule () {
             const f = await repo.loadHead(key)
             if (f) feeds.push(f)
           }
+          const nBlocks = feeds.reduce((s, f) => f.length + s, 0)
+          const nBytes = feeds.reduce((s, f) => f.tail + s, 0)
+          D('onquery: replying with %d-feeds containing %d-blocks, total: %dBytes', feeds.length, nBlocks, nBytes)
           return feeds
         }
       })

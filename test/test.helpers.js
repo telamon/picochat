@@ -7,13 +7,13 @@ const Kernel = require('../src/blockend/')
 async function makeMatch (kOpts = {}) {
   const alice = await spawnPeer('Alice', kOpts)
   const bob = await spawnPeer('BoB', kOpts)
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  const disconnect = bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
   await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
   const chatId = await bob.k.sendVibe(alice.k.pk)
   await nextState(s => alice.k.vibes(s)) // await vibe recv
   await alice.k.respondVibe(chatId)
   await nextState(s => bob.k.vibes(s)) // await vibe resp
-  return { alice, bob, chatId }
+  return { alice, bob, chatId, disconnect }
 }
 
 // Guy walks into a bar

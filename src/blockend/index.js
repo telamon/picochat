@@ -25,10 +25,7 @@ const {
   TYPE_MESSAGE,
   VIBE_REJECTED,
   decodeBlock,
-  encodeBlock,
-  boxPair,
-  seal,
-  toBuffer
+  encodeBlock
 } = require('./util')
 const debug = require('debug')
 const D = debug('picochat:Kernel')
