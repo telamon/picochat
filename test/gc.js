@@ -31,11 +31,11 @@ test('GC: Chats deleted', async t => {
   let vibes = await nextState(s => bob.k.vibes(s), 0)
   t.equal(vibes.length, 1)
 
-  let bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  let bChat = await nextState(bob.k.$chat(chatId), 0)
   await bChat.send('Marry me!')
-  const aChat = await nextState(s => alice.k.getChat(chatId, s))
+  const aChat = await nextState(alice.k.$chat(chatId))
   await aChat.send('leave me alone you creep!')
-  bChat = await nextState(s => bob.k.getChat(chatId, s))
+  bChat = await nextState(bob.k.$chat(chatId))
   await bChat.send('But i love you!')
   // Alice's feed is not timelocked and refuses reply
 
@@ -43,7 +43,7 @@ test('GC: Chats deleted', async t => {
   await bob.k._collectGarbage(Date.now() + 86400000)
   vibes = await nextState(s => bob.k.vibes(s), 0)
   t.equal(vibes.length, 0)
-  bChat = await nextState(s => bob.k.getChat(chatId, s), 0)
+  bChat = await nextState(bob.k.$chat(chatId), 0)
   t.equal(bChat.state, 'error')
   t.equal(bChat.errorMessage, 'VibeNotFound')
 })

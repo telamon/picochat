@@ -52,8 +52,8 @@ class Kernel {
     // this.store.register(StatsCtrl())
 
     // Load Mixins
-    this.getChat = ChatModule.bind(this)
     Object.assign(this, PeersModule())
+    Object.assign(this, ChatModule())
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network())
     Object.assign(this, GarbageCollector(this.store))
