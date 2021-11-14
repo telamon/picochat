@@ -12,25 +12,32 @@ import ErrorPage from './components/ErrorPage.jsx'
 import Pubs from './components/PubPage.jsx'
 import Chat from './components/Chat.jsx'
 
+let loading = true
 const promise = kernel.load()
   .then(l => {
     kernel.startGC()
     console.info('kernel loaded', l)
+    loading = false
     window.location.hash = l ? '/' : '/register'
     return l
   })
   .catch(err => {
     window.location.hash = '/error'
+    loading = false
     console.error('kernel loaded fail', err)
     return false
   })
 
 export default function App () {
-  const peers = usePeers()
-  console.log('Peers Store:', peers)
-
   const [loggedIn, setLoggedIn] = useState(false)
   promise.then(setLoggedIn)
+  if (loading) {
+    return (
+      <main className='kernel-loader'>
+        <h1>Loading...</h1>
+      </main>
+    )
+  }
   return (
     <Router>
       <div className='container is-success raw-4'>

@@ -1,3 +1,4 @@
+const D = require('debug')('picochat:mod:peers')
 const Feed = require('picofeed')
 const {
   toBuffer,
@@ -44,8 +45,9 @@ module.exports = function PeersModule () {
       key = toPublicKey(key)
       const profile = this.store.state.peers[key.toString('hex')]
       if (!profile) {
-        // debugger
-        throw new Error('ProfileNotFound')
+        D('Peer does not exist in registry %h', key)
+        // throw new Error('ProfileNotFound')
+        return ERR_PEER_NOT_FOUND
       }
       return profile
     },
@@ -113,6 +115,7 @@ function reducePeer (store, id, isSelf) { // Yeah we're dropping this terminolog
 
 function computeProfile ([peer, chats]) {
   if (!peer) return ERR_PEER_NOT_FOUND
+  if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
   const stats = chats.stats[peer.pk.toString('hex')]
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
   return {
