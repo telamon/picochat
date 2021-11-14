@@ -5,7 +5,7 @@ dayjs.extend(duration)
 
 export default function CountDownTimer ({ expiresAt, onTimeout }) {
   if (typeof expiresAt !== 'number') throw new Error('Prop: "expiresAt" should be a number')
-
+  console.log(onTimeout)
   const [timeLeft, setTimeLeft] = useState(expiresAt - Date.now())
   useEffect(() => {
     const initialTimeleft = expiresAt - Date.now()
