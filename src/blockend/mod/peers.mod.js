@@ -32,7 +32,6 @@ module.exports = function PeersModule () {
       await this.repo.writeReg(KEY_BOX_LIKES_SK, box.sk)
     },
 
-
     async profileOf (key) {
       /*
     const tail = await this.repo.tailOf(key)
