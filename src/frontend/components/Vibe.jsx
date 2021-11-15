@@ -22,18 +22,32 @@ export default function VibeList () {
         {vibes.map(vibe => {
           return (
             <li key={vibe.id}>
-                You get one Vibe from <strong>{vibe.peer.name}</strong> at {dayjs(vibe.createdAt).format('h:mm:ss a')}
               {vibe.state === 'waiting_local' && (
                 <div className='column'>
-                  <button className='button' onClick={() => respondToVibe(vibe.id, false)}>👎</button>
-                  <button className='button like-zoom' onClick={() => respondToVibe(vibe.id, true)}>👍</button>
+                  <span> You got one Vibe from
+                    <strong>{vibe.peer.name}</strong>
+                    <CountDownTimer expiresAt={vibe.expiresAt} />
+                  </span>
+                  <button
+                    className='button'
+                    onClick={() => respondToVibe(vibe.id, false)}
+                  >👎
+                  </button>
+                  <button
+                    className='button like-zoom'
+                    onClick={() => respondToVibe(vibe.id, true)}
+                  >👍
+                  </button>
                 </div>
               )}
               {vibe.state === 'match' && (
                 <a href={`#/chat/${vibe.id.toString('hex')}`}> Begin to CHAT now!</a>
               )}
               {vibe.state === 'waiting_remote' && (
-                <span>⌛<CountDownTimer expiresAt={vibe.expiresAt || 0} timeout={30000} /></span>
+                <span> You sent Vibe to
+                  <strong>{vibe.peer.name}</strong>
+                  <span>⌛<CountDownTimer expiresAt={vibe.expiresAt || 0} /></span>
+                </span>
               )}
               {vibe.state === 'rejected' && (
                 <span>💔</span>

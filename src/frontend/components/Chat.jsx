@@ -102,14 +102,16 @@ export default function Chat () {
         <p>Nah, I dunno. Play soccer.. or learn more coding perhaps?</p>
         <span className='time-left'>11:05</span>
       </div> */}
-      {chat.messages.map(message => {
-        return (
-          <div key={message.sig} className='chat-container darker'>
-            <p>{message.content}</p>
-            <p>{dayjs(message.date).format('HH:mm:ss')}</p>
-          </div>
-        )
-      })}
+      <div className='messages'>
+        {chat.messages.map(message => {
+          return (
+            <div key={message.sig} className='chat-container darker'>
+              <p>{message.content}</p>
+              <p>{dayjs(message.date).format('HH:mm:ss')}</p>
+            </div>
+          )
+        })}
+      </div>
       <div className='column chat-input'>
         {chat.state === 'active' && (
           <div>
