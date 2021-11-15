@@ -132,10 +132,12 @@ function computeProfile ([peer, chats]) {
   if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
   const stats = chats.stats[peer.pk.toString('hex')]
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
+  const expiresAt = peer.expiresAt + extraTime
   return {
     ...peer,
     stats,
-    expiresAt: peer.expiresAt + extraTime
+    expiresAt,
+    state: expiresAt < Date.now() ? 'expired' : peer.state
   }
 }
 

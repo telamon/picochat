@@ -17,7 +17,7 @@ export default function Mypage () {
       <div>
         <br />
         <h2 className='title'>Profile</h2>
-        <h4 className='subtitle'>It is useful to know this data you can't change or delete </h4>
+        <h4 className='subtitle'>This is your profile block, it's immutable</h4>
         <br />
       </div>
       <div className='columns card-div'>
@@ -27,10 +27,11 @@ export default function Mypage () {
         <div className='column'>
           <h1 className='pk'>@{profile.name}<span>#{profile.pk}</span></h1>
           <p>{profile.age} years old</p>
-          <p>Profile text: {profile.tagline}</p>
+          <p>Pickup line: {profile.tagline}</p>
           <p className='icon-2'>{icons[profile.sex]}</p>
           <p>Was created at {dayjs(profile.date).format('DD/MM/YYYY HH:mm:ss')}</p>
           <CountDownTimer expiresAt={profile.expiresAt || 0} />
+          <p>State: <samp>{profile.state}</samp></p>
         </div>
       </div>
       <Pubs />

@@ -104,7 +104,8 @@ module.exports = function ChatModule () {
 
           // Update headers
           chat.state = lChat.state
-          chat.updatedAt = lChat.updatedAt
+          if (chat.state === 'active' && chat.expiresAt < Date.now()) chat.state = 'expired'
+
           chat.mLength = lChat.mLength
           chat.health = Math.floor(lChat.hp)
           chat.myTurn = !((lChat.mLength % 2) ^ (this.pk.equals(lChat.b) ? 1 : 0))

@@ -5,7 +5,6 @@ import { enterPub } from '../db.js'
 
 export default function Pubs () {
   const history = useHistory()
-  console.log(pubsList)
   function Pub (pub) {
     const icons = {
       beer: '🍺',
@@ -34,7 +33,7 @@ export default function Pubs () {
 
   return (
     <div>
-      <h2>Here is Bar's</h2>
+      <p>ABANDON ALL HOPE YE WHO ENTERS (click the box blow)</p>
       <div>{pubsList.map(Pub)}</div>
     </div>
   )

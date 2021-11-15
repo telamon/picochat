@@ -48,7 +48,7 @@ export default function Header () {
                 <a href='/#/register'>Register</a>
               </li>
             )}
-            {peer.state !== 'loading' && (
+            {peer.state === 'active' && (
               <>
                 <li><strong>{peer.name}</strong></li>
                 <li>
@@ -56,6 +56,11 @@ export default function Header () {
                   <samp><CountDown expiresAt={peer.expiresAt} onTimeout={gameOver} /></samp>
                 </li>
               </>
+            )}
+            {peer.state === 'expired' && (
+              <li onClick={clearDatabase}>
+                GAME OVER
+              </li>
             )}
           </ul>
         </nav>
