@@ -2,42 +2,34 @@ import { useState, useEffect } from 'react'
 import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
+import { get } from '../blockend/nuro'
 const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
 export const kernel = new Kernel(DB)
 
-// PicoHook
-export function usePico (store, name, selector, initialValue) {
-  selector = selector || (state => state)
-  const [value, set] = useState(initialValue)
+// Pico::Neuro To be renamed
+function useNeuro ($n) {
+  const [value, set] = useState(get($n))
   useEffect(() => {
-    if (!kernel.ready) return
-    set(selector(store.state[name]))
-    // ensure unsub on unmount
-    return store.on(name, state => set(selector(state)))
-  }, [store, name, set, kernel.ready])
+    return $n(set)
+  }, [kernel.ready, set])
   return value
 }
 
 // Helpers hooks for quick register access
 export function useProfile () {
-  const [value, set] = useState({})
-  useEffect(() => {
-    if (!kernel.ready) return
-    return kernel.getProfile(set)
-  }, [kernel.ready, set])
-  return value
+  return useNeuro(kernel.$profile())
 }
 
 export function usePeers () {
-  return usePico(kernel.store, 'peers', s => Object.values(s).filter(p => p.pk !== kernel.pk), [])
+  return useNeuro(kernel.$peers())
 }
 
 export function useVibes () {
+  // return useNeuro(s => kernel.vibes(s))
   const [value, set] = useState([])
   useEffect(() => {
-    if (!kernel.ready) return
     return kernel.vibes(set)
   }, [kernel.ready, set])
   return value
@@ -66,7 +58,7 @@ export function useChat (chatId) {
   const [messages, setMessages] = useState([])
   useEffect(() => {
     if (!kernel.ready) return
-    return kernel.getChat(chatId, chat => {
+    return kernel.$chat(chatId)(chat => {
       set(chat)
       setMessages(chat.messages)
     })

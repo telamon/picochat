@@ -1,16 +1,58 @@
-// -------- purely functional pico reactive store pattern - adrenaline/synapse?
 /***
+ * Pico::Neuron
+ *
+ * A pure functional approach to the reactive-store pattern
+ * delivering indiscriminate minimalism.
+ * Easily bridged into any other framework of choice.
+ *
+ * A neuron is a function following this specific contract:
+ * 1. Last argument must be a subscribe callback receiving a single value.
+ * 2. Current value must be synchroneously published during subscribe
+ * 3. Must return an unsubscribe method taking no arguments.
+ *
+ * Example:
+ * const unsubscribe = neuron(value => console.log(value), ...optionalArguments)
 
  *
-  // Neurode sum
-  const $sum = memory(mutate(
-    combine(initial(3), initial(7)),
-    ([a, b]) => ((console.log('A, B', a, b), a + b))
-  ))
+ * Given such a function you can build logical pathways using the functional transformers in this
+ * module.
+ *
+ * // A dummy neuron holding a single immutable value
+ * const $name = init('Tony') // prefix variables holding neurons with a $-sign
+ * $name(console.log)() // logs 'Tony' and unsubscribes
+ *
+ * // Mutate value
+ * const $greet = mute($name, name => `Yo ${name)!`)
+ * $greet(console.log)() // logs 'Yo Tony!' and unsubscribes
+ *
+ * // Writable neuron with an inital value
+ * const [$age, setAge] = writable('who cares')
+ *
+ * // Combine two neurons (Array mode)
+ * const $na = combine($name, $age)
+ * $na(([name, age]) => console.log('Name:', name, 'Age:', age))
+ *
+ * // Combine two neurons (ObjMode strips $-prefixes)
+ * const $profile = combine({ $name, $age })
+ * $profile(console.log)() // logs: `{ name: 'Tony', age: 300 }`
+ *
+
+// No this example does not work, v is immutable, request will always be fired.
+const addr = mute(init(), (v, set) => (!v &&
+  fetch('https://api64.ipify.org?format=json')
+    .then(res => set(res.json()))
+    .catch(console.error.bind(null, 'Failed lookup')) ||
+  v
+)
+  // Neuro sum
   // Assume sum is a costly op, and we have other stores waiting.
+  const $sum = memo(mute(
+    combine(init(3), init(7)),
+    ([a, b]) => (a + b)
+  ))
   const $powerTwo = mutate($sum, x => x ** 2)
   const $timesTen = mutate($sum, x => x * 10)
-  debugger
+
   if (get($sum) !== 10) throw new Error('Brain Error')
 */
 
@@ -20,7 +62,10 @@ function mute (neuron, compute) {
   return function NeuronMutate (syn) {
     const set = forwardDirty(syn)
     // Method by default return undefined
-    return neuron(v => (((v = compute(v, set)), typeof v !== 'undefined' && set(v))))
+    return neuron(v => ((
+      (v = compute(v, set)),
+      typeof v !== 'undefined' && set(v))
+    ))
   }
 }
 
@@ -78,10 +123,17 @@ function dirty (neuron) {
 // then passes subscription to optional neuron
 function init (value, neuron) {
   return function NeuronValue (syn) {
-    console.log('Initial produced', value)
     syn(value)
     return typeof neuron === 'function' ? neuron(syn) : function NOOP () {}
   }
+}
+
+// Have issues with some old async reactive stores
+// that violate the contract of immediate invocation.
+function isSync (neuron) {
+  let ii = false
+  neuron(() => { ii = true })()
+  return ii
 }
 // A neuron is a function that when called returns a synapse.
 // A synapse is a function that takes a subscribe function, and returns an unsubscribe function.
@@ -178,8 +230,8 @@ function get (neuron) {
   return value
 }
 
-// Async get
-function nextState (sub, n = 1) {
+// iterative sync get
+function next (sub, n = 1) {
   let unsub = null
   return new Promise(resolve => {
     unsub = sub(m => !n-- ? resolve(m) : null)
@@ -192,11 +244,13 @@ function nextState (sub, n = 1) {
 
 module.exports = {
   get,
-  nextState,
+  nextState: next,
+  next,
   writable,
   notEqual,
   memo,
   mute,
   init,
-  combine
+  combine,
+  isSync
 }

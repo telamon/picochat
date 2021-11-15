@@ -10,11 +10,11 @@ const {
 
 function ConversationCtrl (opts = {}) {
   const {
-    timeout: MessageTimeout,
+    ttl: MessageTimeout,
     health: InitialHealth,
     regenerate: RegenerateAmount
   } = {
-    timeout: 3 * 60 * 1000, // 3 minutes
+    ttl: 3 * 60 * 1000, // 3 minutes
     health: 3, // <3 <3 <3
     regenerate: 0.3,
     ...opts
@@ -23,6 +23,7 @@ function ConversationCtrl (opts = {}) {
   const now = () => new Date().getTime()
   const mkChat = chatId => ({
     id: chatId,
+    head: null,
     messages: [],
     expiresAt: 0,
     updatedAt: 0,
@@ -189,6 +190,7 @@ function ConversationCtrl (opts = {}) {
       // Bump head of findChatIdBy(parentSig) index
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId
+      chat.head = block.sig
       schedule('chat', chat.id, chat.expiresAt)
       return state
     }

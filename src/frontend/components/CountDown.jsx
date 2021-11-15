@@ -6,6 +6,7 @@ dayjs.extend(duration)
 export default function CountDownTimer ({ expiresAt, onTimeout }) {
   if (typeof expiresAt !== 'number') throw new Error('Prop: "expiresAt" should be a number')
   const [timeLeft, setTimeLeft] = useState(expiresAt - Date.now())
+
   useEffect(() => {
     const initialTimeleft = expiresAt - Date.now()
     // When countdown is already zero or less,
@@ -38,15 +39,11 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
 
   return (
     <p className={classes}>
-
       {timeLeft > 0
-        ? dayjs.duration(timeLeft).format('HH:mm:ss.SSS')
+        ? dayjs.duration(timeLeft).format('HH:mm:ss')
         : (
           <span>0</span>
           )}
-      {/* TODO: use Day.js */}
-      {/* 10.5s */}
-      {/* 3.4m */}
     </p>
   )
 }

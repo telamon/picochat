@@ -15,9 +15,10 @@ module.exports = function NetworkModule () {
       const rpc = new RPC({
         onblocks: async feed => {
           try {
-            const mut = await store.dispatch(feed, false)
-            D(this.store.state.peer.name, 'received block', mut)
+            D(this.store.state.peer.name, 'received block')
             D(feed.inspect(true))
+            const mut = await store.dispatch(feed, false)
+            D('Stores mutated', mut)
             return mut.length
           } catch (err) {
             console.warn('Remote block ignored', err)
@@ -38,6 +39,9 @@ module.exports = function NetworkModule () {
             const f = await repo.loadHead(key)
             if (f) feeds.push(f)
           }
+          const nBlocks = feeds.reduce((s, f) => f.length + s, 0)
+          const nBytes = feeds.reduce((s, f) => f.tail + s, 0)
+          D('onquery: replying with %d-feeds containing %d-blocks, total: %dBytes', feeds.length, nBlocks, nBytes)
           return feeds
         }
       })

@@ -7,7 +7,7 @@ const {
   decodeBlock,
   unseal
 } = require('../util')
-const debug = require('debug')('picochat:SliceVibes')
+const D = require('debug')('picochat:slices:vibes')
 
 const TTL = 5 * 1000 * 60 // Defaults to 5 minutes
 const RESP_TTL = 3 * 1000 * 60 // Defaults to 5 minutes
@@ -91,6 +91,8 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
     state.seen[block.key.toString('hex')] = chatId
 
     if (type === TYPE_VIBE) {
+      D('%s %o %h', root.peer.name, !!state.matches[key], block.key)
+      if (state.matches[key]) debugger
       if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
       const match = state.matches[key] = mkMatch()
       match.chatId = chatId

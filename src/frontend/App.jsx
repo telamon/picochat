@@ -13,11 +13,11 @@ import Pubs from './components/PubPage.jsx'
 import Chat from './components/Chat.jsx'
 
 const promise = kernel.load()
-  .then(l => {
+  .then(hasProfile => {
     kernel.startGC()
-    console.info('kernel loaded', l)
-    window.location.hash = l ? '/' : '/register'
-    return l
+    console.info('kernel loaded', hasProfile)
+    if (!hasProfile) window.location.hash = '/register'
+    return hasProfile
   })
   .catch(err => {
     window.location.hash = '/error'
@@ -26,11 +26,16 @@ const promise = kernel.load()
   })
 
 export default function App () {
-  const peers = usePeers()
-  console.log('Peers Store:', peers)
-
+  const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
-  promise.then(setLoggedIn)
+  promise.then(l => { setLoggedIn(l); setLoading(false) })
+  if (loading) {
+    return (
+      <main className='kernel-loader'>
+        <h1>Loading...</h1>
+      </main>
+    )
+  }
   return (
     <Router>
       <div className='container is-success raw-4'>
