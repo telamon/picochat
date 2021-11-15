@@ -96,6 +96,12 @@ module.exports = function VibesModule () {
           else if (!initiator && !match.b) out.state = 'waiting_local'
           else if (initiator && !match.b) out.state = 'waiting_remote'
           else out.state = 'mental_error'
+
+          if (
+            ~['waiting_remote', 'waiting_local'].indexOf(out.state) &&
+            out.expiresAt < Date.now()
+          ) out.state = 'expired'
+
           // The 3 lines above can be replaced with: state = !initiator ? 'waiting_local' : 'waiting_remote'
           // given that there are no mental errors...
 
