@@ -364,3 +364,14 @@ test('Conversation: win-win', async t => {
   t.equal(bChat.myTurn, false)
   t.end()
 })
+
+test('Conversation: messages should not be interpreted as hexStrings', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+  let bChat = await nextState(bob.k.$chat(chatId), 0)
+  bChat.send('0123')
+
+  const aChat = await nextState(alice.k.$chat(chatId))
+  t.equal(aChat.messages[0].content, '0123')
+  bChat = await nextState(bob.k.$chat(chatId), 0)
+  t.equal(bChat.messages[0].content, '0123')
+})

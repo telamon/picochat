@@ -33,7 +33,7 @@ module.exports = function ChatModule () {
         const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
         await this._createBlock(branch, TYPE_MESSAGE, { content })
         // Branch "hopefully" contains new block, if not use return of createBlock() in future
-        if (!pass) await this._setMessageBody(branch.last.sig, message)
+        if (!pass) await this._setMessageBody(branch.last.sig, Buffer.from(message))
       }
       const send = async message => _send(message)
       const pass = async () => {
