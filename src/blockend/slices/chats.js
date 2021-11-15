@@ -10,11 +10,13 @@ const {
 
 function ConversationCtrl (opts = {}) {
   const {
-    ttl: MessageTimeout,
+    ttl: ChatTimeout,
+    blockReward: BlockReward,
     health: InitialHealth,
     regenerate: RegenerateAmount
   } = {
     ttl: 3 * 60 * 1000, // 3 minutes
+    blockReward: 60 * 1000, // Each successfull block adds 1 minute
     health: 3, // <3 <3 <3
     regenerate: 0.3,
     ...opts
@@ -84,14 +86,14 @@ function ConversationCtrl (opts = {}) {
         if (!match) return true // Unknown conversation TODO: cache block for later (partially available chain)
         if (match.state !== 'match') return 'MessagingNotAllowed'
         if (![match.a, match.b].find(k => from.equals(k))) return 'NotYourConversation'
-        if (match.updatedAt < now() - MessageTimeout) return 'ConversationTimeout'
+        if (match.expireAt < now()) return 'ConversationTimeout'
       } else { // TYPE_MESSAGE || TYPE_BYE
         const chatId = state.heads[block.parentSig.toString('hex')]
         if (!chatId) return 'ConversationNotFound'
         const chat = state.chats[chatId.toString('hex')]
         const nextAuthor = chat.mLength % 2 ? chat.b : chat.a
         if (!from.equals(nextAuthor)) return 'NotYourConversation'
-        if (chat.updatedAt < now() - MessageTimeout) return 'ConversationTimeout'
+        if (chat.expiresAt < now()) return 'ConversationTimeout'
         if (type !== TYPE_BYE_RESP && chat.state !== 'active') return 'ConversationEnded'
         else if (type === TYPE_BYE_RESP && chat.state !== 'finalizing') return 'InvalidState'
       }
@@ -128,8 +130,8 @@ function ConversationCtrl (opts = {}) {
       chat.head = block.sig
 
       chat.updatedAt = data.date
-      chat.expiresAt = data.date + MessageTimeout
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
+      chat.expiresAt = chat.createdAt + ChatTimeout + (chat.mLength * BlockReward)
 
       let stats = state.stats[block.key.toString('hex')]
       if (!stats) {

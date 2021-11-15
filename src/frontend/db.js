@@ -11,9 +11,7 @@ export const kernel = new Kernel(DB)
 // Pico::Neuro To be renamed
 function useNeuro ($n) {
   const [value, set] = useState(get($n))
-  useEffect(() => {
-    return $n(set)
-  }, [kernel.ready, set])
+  useEffect(() => $n(set), [set])
   return value
 }
 
@@ -33,6 +31,40 @@ export function useVibes () {
     return kernel.vibes(set)
   }, [kernel.ready, set])
   return value
+}
+
+// Boot up
+let tryBoot = null
+let lastError = null
+export function useBoot () {
+  const [loading, setLoading] = useState(true)
+  const [hasProfile, setHasProfile] = useState(kernel.ready)
+  const [error, setError] = useState(lastError)
+  if (!tryBoot) {
+    tryBoot = kernel.load()
+      .then(hasProfile => {
+        kernel.startGC()
+        console.info('kernel is live', hasProfile)
+
+        return hasProfile
+      })
+      .catch(err => {
+        console.error('kernel boot failure', err)
+        lastError = err
+        setError(err)
+        return false
+      })
+      .then(l => { // Auto-redirect if needed
+        if (lastError) window.location.hash = '/error?message=' + lastError.message
+        else if (!kernel.ready) window.location.hash = '/register'
+      })
+  }
+  tryBoot.then(l => {
+    setHasProfile(l)
+    setLoading(false)
+    console.log('Setting loading to false')
+  })
+  return { loading, error, hasProfile, kernel }
 }
 
 /*

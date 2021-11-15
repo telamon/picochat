@@ -11,6 +11,7 @@ const {
 const { mute, combine } = require('../nuro')
 
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
+const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
 
 module.exports = function PeersModule () {
   return {
@@ -95,7 +96,19 @@ module.exports = function PeersModule () {
      * Local peer/-profile
      */
     $profile () {
-      return reducePeer(this.store, this.pk, true)
+      if (this.ready) return reducePeer(this.store, this.pk, true)
+      else {
+        // Hotswap subscripition when kernel.register() finished
+        return sub => {
+          let temp = this.store.on('peer', peer => {
+            if (peer.pk) {
+              temp()
+              temp = reducePeer(this.store, this.pk, true)(sub)
+            } else sub(PEER_PLACEHOLDER)
+          })
+          return () => temp()
+        }
+      }
     }
   }
 }
