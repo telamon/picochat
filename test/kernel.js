@@ -298,7 +298,7 @@ test('Vibe receiver should not have double vibes', async t => {
   t.end()
 })
 
-test.only('Conversation: win-win', async t => {
+test('Conversation: win-win', async t => {
   const { alice, bob, chatId } = await makeMatch()
   let bChat = await nextState(bob.k.$chat(chatId), 0)
   bChat.send('Hi')

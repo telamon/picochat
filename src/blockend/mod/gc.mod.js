@@ -87,11 +87,7 @@ module.exports = function GarbageCollectModule (store) {
 
       // notify all affected stores
       mutated = Array.from(mutated)
-      for (const name of mutated) {
-        // TODO: expose external state mutation in PicoStore?
-        // right now this mutated state does not get persisted until next version is dispatched.
-        for (const sub of slices[name].observers) sub(slices[name].value)
-      }
+      store._notifyObservers(mutated)
       D('Stores mutated', mutated, 'feeds evicted', evicted.length)
       /// D(evicted.map(f => f.inspect(true)))
       unlock()
