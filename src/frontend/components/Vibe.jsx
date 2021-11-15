@@ -41,7 +41,10 @@ export default function VibeList () {
                 </div>
               )}
               {vibe.state === 'match' && (
-                <a href={`#/chat/${vibe.id.toString('hex')}`}> Begin to CHAT now!</a>
+                <a href={`#/chat/${vibe.id.toString('hex')}`}>
+                  ❤️ You matched with {vibe.peer.name}
+                  <CountDownTimer expiresAt={vibe.expiresAt} />
+                </a>
               )}
               {vibe.state === 'waiting_remote' && (
                 <span> You sent Vibe to
