@@ -86,8 +86,9 @@ module.exports = function PeersModule () {
       // Higher level profiles neuron
       const $profiles = mute(
         combine($peers, $chats),
-        ([peers, chats]) =>
-          peers.map(peer => computeProfile([peer, chats]))
+        ([peers, chats]) => peers
+          .map(peer => computeProfile([peer, chats]))
+          .filter(p => p.state !== 'expired')
       )
       return $profiles
     },

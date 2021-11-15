@@ -24,7 +24,7 @@ export default function VibeList () {
             <li key={vibe.id}>
               {vibe.state === 'waiting_local' && (
                 <div className='column'>
-                  <span> You got one Vibe from
+                  <span>⌛ You got one Vibe from
                     <strong>{vibe.peer.name}</strong>
                     <CountDownTimer expiresAt={vibe.expiresAt} />
                   </span>
@@ -42,18 +42,18 @@ export default function VibeList () {
               )}
               {vibe.state === 'match' && (
                 <a href={`#/chat/${vibe.id.toString('hex')}`}>
-                  ❤️ You matched with {vibe.peer.name}
+                  ❤️ {vibe.peer.name} accepted
                   <CountDownTimer expiresAt={vibe.expiresAt} />
                 </a>
               )}
               {vibe.state === 'waiting_remote' && (
-                <span> You sent Vibe to
+                <span>⌛Waiting for
                   <strong>{vibe.peer.name}</strong>
-                  <span>⌛<CountDownTimer expiresAt={vibe.expiresAt || 0} /></span>
+                  <span><CountDownTimer expiresAt={vibe.expiresAt || 0} /></span>
                 </span>
               )}
               {vibe.state === 'rejected' && (
-                <span>💔</span>
+                <span>💔<strong>{vibe.peer.name}</strong> rejected</span>
               )}
             </li>
           )
