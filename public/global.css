@@ -245,7 +245,7 @@ position:absolute;
 }
 
 .like-zoom:hover{
-  transform: scale(2.9);
+  transform: scale(0.9);
 }
 
 

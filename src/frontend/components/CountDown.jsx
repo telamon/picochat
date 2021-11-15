@@ -23,7 +23,7 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
       const left = expiresAt - Date.now()
       setTimeLeft(left)
       if (left <= 0) clearInterval(intervalId)
-    }, 500)
+    }, 150)
 
     // clean up on component unmount
     return () => {

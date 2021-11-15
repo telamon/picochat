@@ -31,11 +31,11 @@ export default function Pubs () {
             <div className='peers-list-wrap-2' key={peer.pk}>
               <div className='column peers-list-2'>
                 <div className='column peers-icon'>
-                  <span className='icon-3'>{peer.picture}</span>
+                  <span title='yeasers old!' className='icon-3'>{peer.picture}</span>
                 </div>
                 <div className='column'>
                   <h1>{peer.name}</h1>
-                  <p>{dayjs(peer.date).format('DD/MM/YYYY HH:mm:ss')} join to PUB</p>
+                  <span title='Game Over when expires!'>{dayjs(peer.expiresAt).format('HH:mm:ss')} </span>
                   <span className='icon-2'>{icons[peer.sex]}</span>
                   <h3 className='smalle-tagline'>{peer.tagline}</h3>
                   <button disabled={0} className='button is-primary' onClick={() => sendVibe(peer)}>Send Vibe</button>
