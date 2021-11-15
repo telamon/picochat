@@ -22,6 +22,9 @@ module.exports = function GarbageCollectModule (store) {
 
   return {
     async _collectGarbage (now = Date.now()) {
+      D('Attempting to aquire lock, queue %d', store._queue.length)
+      const unlock = await store._waitLock()
+
       D('Starting collecting garbage...')
       const slices = store._stores.reduce((m, s) => { m[s.name] = s; return m }, {})
       const pending = await tickQuery(repo._db, now)
@@ -31,7 +34,7 @@ module.exports = function GarbageCollectModule (store) {
       const evictRange = []
       for (const p of pending) {
         const { type, id } = unpackValue(p.value)
-        if (!type) throw new Error('GC OP')
+        if (!type) throw new Error('GC OP missing')
         await sweep({ // TOO PHAT CONTEXT
           now,
           id,
@@ -91,6 +94,7 @@ module.exports = function GarbageCollectModule (store) {
       }
       D('Stores mutated', mutated, 'feeds evicted', evicted.length)
       /// D(evicted.map(f => f.inspect(true)))
+      unlock()
       return { mutated, evicted }
     },
 

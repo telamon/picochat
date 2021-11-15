@@ -10,11 +10,11 @@ const {
 
 function ConversationCtrl (opts = {}) {
   const {
-    timeout: MessageTimeout,
+    ttl: MessageTimeout,
     health: InitialHealth,
     regenerate: RegenerateAmount
   } = {
-    timeout: 3 * 60 * 1000, // 3 minutes
+    ttl: 3 * 60 * 1000, // 3 minutes
     health: 3, // <3 <3 <3
     regenerate: 0.3,
     ...opts

@@ -298,7 +298,7 @@ test('Vibe receiver should not have double vibes', async t => {
   t.end()
 })
 
-test('Conversation: win-win', async t => {
+test.only('Conversation: win-win', async t => {
   const { alice, bob, chatId } = await makeMatch()
   let bChat = await nextState(bob.k.$chat(chatId), 0)
   bChat.send('Hi')
@@ -346,16 +346,21 @@ test('Conversation: win-win', async t => {
 
   aChat = await nextState(alice.k.$chat(chatId))
   await aChat.bye(2) // Alice hangs up
+  aChat = await nextState(alice.k.$chat(chatId), 0)
+  t.equal(aChat.myTurn, false)
 
-  bChat = await nextState(bob.k.$chat(chatId), 1)
+  bChat = await nextState(bob.k.$chat(chatId))
   t.equal(bChat.state, 'finalizing')
+  t.equal(bChat.myTurn, true)
   await bChat.bye(2) // Bob hangs up
 
   // Both are at state end
   aChat = await nextState(alice.k.$chat(chatId))
   t.equal(aChat.state, 'end')
+  t.equal(aChat.myTurn, false)
 
   bChat = await nextState(bob.k.$chat(chatId), 0)
   t.equal(bChat.state, 'end')
+  t.equal(bChat.myTurn, false)
   t.end()
 })

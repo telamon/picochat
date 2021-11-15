@@ -109,6 +109,7 @@ module.exports = function ChatModule () {
           chat.mLength = lChat.mLength
           chat.health = Math.floor(lChat.hp)
           chat.myTurn = !((lChat.mLength % 2) ^ (this.pk.equals(lChat.b) ? 1 : 0))
+          if (chat.state === 'end') chat.myTurn = false
 
           // Skip message decryption if no new messages available
           if (chat.messages.length === lChat.messages.length) return chat

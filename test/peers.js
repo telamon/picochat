@@ -97,8 +97,5 @@ test('Successful conversation should add peer time', async t => {
   await aChat.bye(2)
 
   const d2 = await next(bob.k.$profile())
-  const af = await alice.k.feed()
-  const bf = await alice.k.feed()
-
   t.equal(d2.expiresAt - d1.expiresAt, 7 * 60 * 1000)
 })
