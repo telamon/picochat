@@ -74,6 +74,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
       // VibeResponses only allowed onto a Vibe
       if (parentType !== TYPE_VIBE) return `InvalidParent: ${parentType}`
+      // TODO: return 'Expired' if match.expiresAt < now()
     }
 
     return false // All good, accept block
@@ -92,7 +93,6 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
 
     if (type === TYPE_VIBE) {
       D('%s %o %h', root.peer.name, !!state.matches[key], block.key)
-      if (state.matches[key]) debugger
       if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
       const match = state.matches[key] = mkMatch()
       match.chatId = chatId
@@ -107,7 +107,7 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       match.response = block.sig
       match.b = block.key
       match.updatedAt = vibe.date
-      match.expiresAt = vibe.date + RESP_TTL
+      match.expiresAt = match.createdAt + RESP_TTL
       match.state = rejected ? 'rejected' : 'match'
     }
 

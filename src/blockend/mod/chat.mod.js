@@ -90,9 +90,9 @@ module.exports = function ChatModule () {
           chat.head = head = vibe.head
           if (vibe.state === 'match') chat.state = 'active'
           else if (vibe.state === 'rejected') chat.state = 'inactive'
-          chat.updatedAt = Math.max(lChat?.updatedAt || 0, vibe.updatedAt)
-          chat.createdAt = vibe.createdAt
-          chat.expiresAt = Math.max(lChat?.expiresAt || 0, vibe.expiresAt)
+          chat.createdAt = lChat ? lChat.createdAt : vibe.createdAt
+          chat.updatedAt = lChat ? lChat.updatedAt : vibe.updatedAt
+          chat.expiresAt = lChat ? lChat.expiresAt : vibe.expiresAt
           chat.peer = vibe.peer
 
           if (!lChat && vibe.state === 'match') {
