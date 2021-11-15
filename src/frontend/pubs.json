@@ -1,19 +1,17 @@
-[{
-      "id": 1,
-      "name": "HardRock",
-      "pubLogo": "./images/001.png",
-      "drinks": ["beer", "wine", "cider"]
-    },
-    {
-      "id": 2,
-      "name": "WildWest",
-      "pubLogo": "./images/002.png",
-      "drinks": ["beer", "wine", "cider"]
-    },
-    {
-      "id": 3,
-      "name": "Freedom",
-      "pubLogo": "./images/003.png",
-      "drinks": ["beer"]
-    }
-  ]
+[
+  {
+    "id": 1,
+    "name": "HardCode",
+    "drinks": ["beer", "cider"]
+  },
+  {
+    "id": 2,
+    "name": "Kosmoclub",
+    "drinks": ["wine", "cider"]
+  },
+  {
+    "id": 3,
+    "name": "Cafe Libra",
+    "drinks": ["beer"]
+  }
+]

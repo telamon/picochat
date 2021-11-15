@@ -86,7 +86,7 @@ function ConversationCtrl (opts = {}) {
         if (!match) return true // Unknown conversation TODO: cache block for later (partially available chain)
         if (match.state !== 'match') return 'MessagingNotAllowed'
         if (![match.a, match.b].find(k => from.equals(k))) return 'NotYourConversation'
-        if (match.expireAt < now()) return 'ConversationTimeout'
+        if (match.expiresAt < now()) return 'ConversationTimeout'
       } else { // TYPE_MESSAGE || TYPE_BYE
         const chatId = state.heads[block.parentSig.toString('hex')]
         if (!chatId) return 'ConversationNotFound'

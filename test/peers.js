@@ -100,15 +100,17 @@ test('Successful conversation should add peer time', async t => {
   t.equal(d2.expiresAt - d1.expiresAt, 7 * 60 * 1000)
 })
 
-test.only('Successful message should add chat time', async t => {
-  const { alice, bob, chatId } = await makeMatch()
+test('Successful message should add chat time', async t => {
+  const { bob, chatId } = await makeMatch()
   let bChat = await next(bob.k.$chat(chatId), 0)
+  const initialCAt = bChat.createdAt
   const start = bChat.expiresAt
   t.notEqual(start, 0, 'Starting time should not be 0')
 
   await bChat.send('Hello') // Adds 1 minute
 
   bChat = await next(bob.k.$chat(chatId), 0) // wait for next state
+  t.equal(initialCAt, bChat.createdAt, 'CreatedAt should not have been modified')
   t.notEqual(bChat.expiresAt, start, 'Should have been updated')
-  t.equal(bChat.expiresAt, start + (60 * 1000), 'one minute added')
+  t.equal(bChat.expiresAt - start, 60 * 1000, 'one minute added')
 })
