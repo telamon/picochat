@@ -12,7 +12,6 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
     // When countdown is already zero or less,
     // set timeLeft once and don't start interval
     if (initialTimeleft <= 0) return
-
     // Set up timeout that triggers onTimeout event
     const timerId = setTimeout(() => {
       if (typeof onTimeout === 'function') onTimeout()
@@ -38,12 +37,12 @@ export default function CountDownTimer ({ expiresAt, onTimeout }) {
   else if (timeLeft <= 0) classes += ' expired'
 
   return (
-    <p className={classes}>
+    <span className={classes}>
       {timeLeft > 0
         ? dayjs.duration(timeLeft).format('HH:mm:ss')
         : (
           <span>0</span>
           )}
-    </p>
+    </span>
   )
 }

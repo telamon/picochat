@@ -3,8 +3,7 @@ const {
   TYPE_BYE,
   TYPE_BYE_RESP,
   PASS_TURN,
-  PEACE,
-  LOVE,
+  PEACE, LOVE,
   UNDERSTANDING,
   seal,
   unseal,
@@ -91,9 +90,9 @@ module.exports = function ChatModule () {
           chat.head = head = vibe.head
           if (vibe.state === 'match') chat.state = 'active'
           else if (vibe.state === 'rejected') chat.state = 'inactive'
-          chat.updatedAt = Math.max(chat.updatedAt, vibe.updatedAt)
+          chat.updatedAt = Math.max(lChat?.updatedAt || 0, vibe.updatedAt)
           chat.createdAt = vibe.createdAt
-          chat.expiresAt = Math.max(chat.expiresAt, vibe.expiresAt)
+          chat.expiresAt = Math.max(lChat?.expiresAt || 0, vibe.expiresAt)
           chat.peer = vibe.peer
 
           if (!lChat && vibe.state === 'match') {

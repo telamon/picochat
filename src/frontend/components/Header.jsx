@@ -1,8 +1,10 @@
 import React from 'react'
-import { kernel } from '../db'
+import { kernel, useProfile } from '../db'
+import CountDown from './CountDown.jsx'
 import DebugLogging from './DebugLogging.jsx'
 
-export default function Header ({ loggedIn }) {
+export default function Header () {
+  const peer = useProfile()
   async function inspectFeed () {
     const feed = await kernel.feed()
     feed.inspect()
@@ -19,32 +21,45 @@ export default function Header ({ loggedIn }) {
     window.location.reload()
   }
 
+  function gameOver () {
+    window.alert('GAME OVER!\n You ran out of time, press the destroy button to restart and play again')
+  }
+
   return (
-    <>
-      <div className='hero is-success'>
-        <div className='centered'>
-          <nav className='breadcrumb centered' aria-label='breadcrumbs'>
-            <ul>
-              <a href='#/' className='brand-logo'>LOGO</a>
-              <li><a href='#/'>PicoCHAT</a></li>
-              <li><a href='#/policy'>Rules</a></li>
-              <li><a href='#/about'>About</a></li>
-              <li><a href='#/pub'>Pubs</a></li>
+    <div className='hero is-success'>
+      <div className='centered'>
+        <nav className='breadcrumb centered' aria-label='breadcrumbs'>
+          <ul>
+            <a href='#/' className='brand-logo'>LOGO</a>
+            <li><a href='#/'>PicoCHAT</a></li>
+            <li><a href='#/policy'>Rules</a></li>
+            <li><a href='#/about'>About</a></li>
+            <li><a href='#/pub'>Pubs</a></li>
+            <li>
+              <button className='button is-small' onClick={inspectFeed}>inspect</button>
+              <button className='button is-small' onClick={reloadStores}>reload</button>
+              <button className='button is-small is-danger' onClick={clearDatabase}>destroy</button>
+            </li>
+            <li>
+              <DebugLogging />
+            </li>
+            {peer.state === 'loading' && (
               <li>
-                <button className='button is-small' onClick={inspectFeed}>inspect</button>
-                <button className='button is-small' onClick={reloadStores}>reload</button>
-                <button className='button is-small is-danger' onClick={clearDatabase}>destroy</button>
+                <a href='/#/register'>Register</a>
               </li>
-              <li>
-                Logged in: {loggedIn ? 'true' : 'false'}
-              </li>
-              <li>
-                <DebugLogging />
-              </li>
-            </ul>
-          </nav>
-        </div>
+            )}
+            {peer.state !== 'loading' && (
+              <>
+                <li><strong>{peer.name}</strong></li>
+                <li>
+                  GameOver in &nbsp;&nbsp;
+                  <samp><CountDown expiresAt={peer.expiresAt} onTimeout={gameOver} /></samp>
+                </li>
+              </>
+            )}
+          </ul>
+        </nav>
       </div>
-    </>
+    </div>
   )
 }
