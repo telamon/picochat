@@ -9,8 +9,8 @@ const debug = require('debug')('pico-rpc')
 
 // Messages over kernel-wire
 const K_BLOCKS = 1 // Synonymous with K_REQUEST_MERGE / publish
+const K_BLOCKS_ACK = 6 // blocking feed transfer/stream, expecting K_OK as response.
 const K_REQUEST_BLOCK = 2
-const K_REQUEST_BATTLE = 3
 const K_REQUEST_HEAD = 4
 const K_REQUEST_TAIL = 5
 // Responses
@@ -26,6 +26,7 @@ const K_QUERY = 203
 function kTypeToString (type) {
   switch (type) {
     case K_BLOCKS: return 'K_BLOCKS'
+    case K_BLOCKS_ACK: return 'K_BLOCKS_ACK'
     case K_REQUEST_BLOCK: return 'K_REQUEST_BLOCK'
     case K_REQUEST_HEAD: return 'K_REQUEST_HEAD'
     case K_REQUEST_TAIL: return 'K_REQUEST_TAIL'
@@ -41,7 +42,8 @@ function kTypeToString (type) {
 
 class RPC {
   constructor (handlers) {
-    this.hub = new Hub(this._controller.bind(this))
+    this._controller = this._controller.bind(this)
+    this.hub = new Hub(this._controller)
     this.handlers = handlers
   }
 
@@ -49,7 +51,7 @@ class RPC {
   query (target, params = {}) {
     const send = target || this.hub.broadcast.bind(this.hub)
     debug('Sent K_QUERY', params)
-    send(encodeMsg(K_QUERY, params), this._controller.bind(this))
+    send(encodeMsg(K_QUERY, params), this._controller)
     /*
     return defer(done =>
       send(encodeMsg(K_QUERY, params), res => {
@@ -65,7 +67,7 @@ class RPC {
   sendBlock (blocks, target = null) {
     const send = target || this.hub.broadcast.bind(this.hub)
     debug('Sent K_BLOCKS', blocks.length)
-    send(encodeMsg(K_BLOCKS, blocks), this._controller.bind(this))
+    send(encodeMsg(K_BLOCKS, blocks), this._controller)
   }
 
   get createWire () { return this.hub.createWire.bind(this.hub) }
@@ -78,18 +80,44 @@ class RPC {
       switch (type) {
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
-          for (const feed of feeds) {
-            replyTo(encodeMsg(K_BLOCKS, feed))
+          let port = replyTo
+          let stop = false
+          for (let i = 0; !stop && i < feeds.length; i++) {
+            const feed = feeds[i]
+            const isLast = feeds.length - 1 === i
+            if (!isLast) {
+              port = await new Promise((resolve, reject) => {
+                const receiver = (res, nextPort) => {
+                  const { type } = decodeMsg(res)
+                  stop = type !== K_OK
+                  if (stop) reject(new Error(`expected K_OK but got: ${type} - ${kTypeToString(type)}`))
+                  else resolve(nextPort)
+                }
+                receiver.kek = true
+                port(encodeMsg(K_BLOCKS_ACK, feed), receiver)
+              })
+            } else {
+              port(encodeMsg(K_BLOCKS, feed), this._controller)
+            }
           }
+          /*
+          debugger
+          for (const feed of feeds) {
+            replyTo(encodeMsg(K_BLOCKS, feed), this._controller)
+          }
+          */
         } break
-
+        case K_BLOCKS_ACK:
         case K_BLOCKS: {
           // debug(data.inspect(true))
           const forward = await this.handlers.onblocks(data)
+          if (type === K_BLOCKS_ACK) replyTo(encodeMsg(K_OK), this._controller)
           // TODO: broadcast(msg, replyTo, filter..) here is broken.
           // the replyTo handle we have in this context is the wrapped decoder function
           // not the node ref.. Footgun activated! YAY!  this.hub._nodes.indexOf(replyTo) => -1
-          if (forward) this.hub.broadcast(msg, this._controller.bind(this), replyTo) // GOSSIP
+          if (forward) nextTick(() =>
+            this.hub.broadcast(encodeMsg(K_BLOCKS, data), this._controller, replyTo) // GOSSIP
+          )
         } break
 
         default:
@@ -101,10 +129,11 @@ class RPC {
     }
   }
 }
-
+function nextTick (cb) { setTimeout(cb, 1) }
 function encodeMsg (type, obj) {
   let buffer = null
   switch (type) {
+    case K_BLOCKS_ACK:
     case K_BLOCKS:
       // TODO: Extend picofeed with official binary pickle support.
       obj = Feed.from(obj)
@@ -152,6 +181,7 @@ function decodeMsg (buffer) {
   const type = buffer[0]
   let data = null
   switch (type) {
+    case K_BLOCKS_ACK:
     case K_BLOCKS:
       // TODO: Feed.from(buffer) in picofeed
       data = new Feed()

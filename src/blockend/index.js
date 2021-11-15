@@ -28,7 +28,7 @@ const {
   encodeBlock
 } = require('./util')
 const debug = require('debug')
-const D = debug('picochat:Kernel')
+const D = debug('picochat:kernel')
 
 // debug.enable('pico*')
 
@@ -172,9 +172,9 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
     const pContent = decodeBlock(pBlock.body)
     if (pContent.type !== TYPE_VIBE) return false
     if (!VIBE_REJECTED.equals(content.box)) {
-      D(`Match detected: ${block.key.slice(0, 4).toString('hex')} <3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+      D('Match detected: %h <3 %h', block.key, pBlock.key)
     } else {
-      D(`Rejection detected: ${block.key.slice(0, 4).toString('hex')} </3 ${pBlock.key.slice(0, 4).toString('hex')}`)
+      D('Rejection detected: %h </3 %h', block.key, pBlock.key)
     }
     return true // All good, merge permitted
   }

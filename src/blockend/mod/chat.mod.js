@@ -65,6 +65,7 @@ module.exports = function ChatModule () {
         expiresAt: 0,
         health: 3, // TODO: initial health prop is in chats reducer
         errorMessage: null,
+        head: null,
         send,
         pass,
         bye
@@ -87,7 +88,7 @@ module.exports = function ChatModule () {
             return chat
           }
 
-          head = vibe.head
+          chat.head = head = vibe.head
           if (vibe.state === 'match') chat.state = 'active'
           else if (vibe.state === 'rejected') chat.state = 'inactive'
           chat.updatedAt = Math.max(chat.updatedAt, vibe.updatedAt)
@@ -100,7 +101,7 @@ module.exports = function ChatModule () {
             chat.myTurn = vibe.initiator === 'local'
           }
           if (!lChat) return chat
-          head = lChat.head
+          chat.head = head = lChat.head
 
           // Update headers
           chat.state = lChat.state

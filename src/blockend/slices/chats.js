@@ -23,6 +23,7 @@ function ConversationCtrl (opts = {}) {
   const now = () => new Date().getTime()
   const mkChat = chatId => ({
     id: chatId,
+    head: null,
     messages: [],
     expiresAt: 0,
     updatedAt: 0,
@@ -189,6 +190,7 @@ function ConversationCtrl (opts = {}) {
       // Bump head of findChatIdBy(parentSig) index
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId
+      chat.head = block.sig
       schedule('chat', chat.id, chat.expiresAt)
       return state
     }
