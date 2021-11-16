@@ -72,17 +72,15 @@ function mute (neuron, compute) {
 // One to many neuron (opposite of combine)
 function memo (neuron) {
   let value
-  const synapses = []
+  const synapses = new Set()
   let disconnect = null
   return function NeuronMemory (syn) {
-    synapses.push(syn)
+    synapses.add(syn)
     // console.log('instant memo', !!disconnect, value)
     if (disconnect) syn(value)
     else disconnect = neuron(speadForward)
     return () => {
-      const idx = synapses.indexOf(syn)
-      if (~idx) return
-      synapses.splice(idx, 1)
+      synapses.delete(syn)
       if (synapses.length) return
       disconnect()
       disconnect = null
@@ -203,15 +201,12 @@ function notEqual (a, b) {
 }
 
 function writable (value) {
-  const subs = []
+  const subs = new Set()
   return [
     function WritableSubscribe (notify) {
-      subs.push(notify)
+      subs.add(notify)
       notify(value)
-      return () => {
-        const idx = subs.indexOf(notify)
-        if (~idx) subs.splice(idx, 1)
-      }
+      return () => sub.delete(notify)
     },
     function WritableSet (val) {
       if (notEqual(value, val)) {
