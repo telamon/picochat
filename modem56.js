@@ -31,7 +31,7 @@ class Modem56 {
   }
 
   join (topic, spawnWire) {
-    if (this._topic) throw new Error('Only single topic for now')
+    if (this._topic) this.leave()
     if (typeof topic === 'string') {
       topic = crypto.createHash('sha256')
         .update(topic)
@@ -55,10 +55,9 @@ class Modem56 {
   }
 
   leave () {
-    this.swarm.off('connection', this._onconnection)
     this.swarm.leave(this._topic)
-    // this.hub.destroy()
-    for (const sink of [...this._hub._nodes]) this._hub.disconnect(sink)
+    this.swarm.off('connection', this._onconnection)
+    this._topic = null
   }
 }
 
