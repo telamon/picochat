@@ -11,13 +11,15 @@ import Rules from './components/RulesPage.jsx'
 import ErrorPage from './components/ErrorPage.jsx'
 import Pubs from './components/PubPage.jsx'
 import Chat from './components/Chat.jsx'
+import Spinner from './components/Spinner.jsx'
 
 export default function App () {
   const { loading } = useBoot()
 
   if (loading) {
     return (
-      <main className='kernel-loader'>
+      <main className='kernel-loader has-text-centered'>
+        <Spinner />
         <h1>Loading...</h1>
       </main>
     )

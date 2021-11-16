@@ -33,7 +33,7 @@ export default function Pubs () {
 
   return (
     <div>
-      <p>ABANDON ALL HOPE YE WHO ENTERS (click the box blow)</p>
+      <p className='has-text-centered'>Choose a bar to enter beblow</p>
       <div>{pubsList.map(Pub)}</div>
     </div>
   )

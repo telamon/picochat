@@ -129,7 +129,10 @@ class RPC {
     }
   }
 }
+
+// TODO: introduces racing condition that causes some tests to fail.
 function nextTick (cb) { setTimeout(cb, 1) }
+
 function encodeMsg (type, obj) {
   let buffer = null
   switch (type) {

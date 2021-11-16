@@ -3,6 +3,7 @@ import { kernel, usePeers } from '../db'
 import VibeList from './Vibe.jsx'
 import dayjs from 'dayjs'
 import CountDownTimer from './CountDown.jsx'
+import Spinner from './Spinner.jsx'
 
 export default function Pubs () {
   const peers = usePeers()
@@ -28,7 +29,10 @@ export default function Pubs () {
         <h1 className='bar'>{pubName}</h1>
         <VibeList />
         {peers.length === 0 && (
-          <span>Looking for peers...</span>
+          <div className='has-text-centered'>
+            <Spinner />
+            Looking for peers...
+          </div>
         )}
         {!!peers.length && (
           <div className='peers-list peers-list-wrap'>
