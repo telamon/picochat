@@ -63,7 +63,7 @@ test('kernel.$peers(id)', async t => {
 
 test('kernel.$peers streams profile array', async t => {
   const [alice] = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne')
-  const peers = await next(alice.k.$peers(), 2)
+  const peers = await next(alice.k.$peers(), 1)
   t.notOk(peers.find(p => p.pk.equals(alice.k.pk)), 'Should not contain self') // under consideration
   t.equal(peers.length, 3)
 })

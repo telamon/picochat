@@ -26,7 +26,6 @@ module.exports = function GarbageCollectModule (store) {
       const unlock = await store._waitLock()
 
       D('Starting collecting garbage...')
-      const slices = store._stores.reduce((m, s) => { m[s.name] = s; return m }, {})
       const pending = await tickQuery(repo._db, now)
       D('Fetched pending from store:', pending.length)
       let mutated = new Set()
