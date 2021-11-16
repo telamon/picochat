@@ -148,7 +148,9 @@ function toPublicKey (key) {
       (Buffer.isBuffer(key) && key.length === 32) ||
       (typeof key !== 'string' && key.length === 64)
     )
-  ) throw new Error(`PublicKey expected got "${key}"`)
+  ) {
+    throw new Error(`PublicKey expected got "${key}"`)
+  }
   return toBuffer(key)
 }
 
