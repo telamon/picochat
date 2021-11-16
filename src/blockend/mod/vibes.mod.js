@@ -22,6 +22,15 @@ module.exports = function VibesModule () {
     async sendVibe (peerId) {
       peerId = toBuffer(peerId)
       if (this.pk.equals(peerId)) throw new Error('SelfVibeNotAllowed')
+      // Don't sendVibes to peers waiting for your response.
+      const { matches, own } = this.store.state.vibes
+      for (const ckey of own) {
+        const match = matches[ckey.toString('hex')]
+        // Send response to received vibes
+        if (match.state === 'wait' && peerId.equals(match.a)) {
+          return this.respondVibe(match.chatId)
+        }
+      }
       const msgBox = boxPair()
       const peer = await this.profileOf(peerId)
       const sealedMessage = seal(msgBox.pk, peer.box)
@@ -63,6 +72,7 @@ module.exports = function VibesModule () {
       })
       if (!convo) throw new Error('Failed creating block')
       if (like) await this._storeLocalChatKey(vibe.chatId, msgBox)
+      return chatId
     },
 
     // Lower-level alternative without

@@ -1,4 +1,3 @@
-// const Scheduler = require('pico-scheduler')
 const {
   TYPE_VIBE,
   TYPE_VIBE_RESP,
@@ -16,7 +15,6 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
   constructor (vibeTTL = TTL) {
     this._sk = null
     this._pk = null
-    // this._sched = new Scheduler()
     this._reduceHasRun = false
     this.ttl = vibeTTL
     this.reducer = this.reducer.bind(this)
@@ -64,8 +62,11 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
       const key = block.key.toString('hex')
       // Reject block if vibe timestamp located in the future.
       if (data.date > new Date().getTime()) return 'Vibe from the future'
-      const prev = state.seen[key]
-      if (prev && prev.date + this.ttl > data.date) return 'Vibe flood'
+      const chatId = state.seen[key]
+      if (chatId) {
+        const m = state.matches[chatId.toString('hex')]
+        if (m.expiresAt >= Date.now()) return 'Only 1 active vibe allowed'
+      }
     }
 
     // Assert VibeResponses
