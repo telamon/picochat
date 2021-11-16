@@ -5,7 +5,7 @@
 const Hub = require('piconet')
 const Feed = require('picofeed')
 const { defer } = require('deferinfer')
-const debug = require('debug')('pico-rpc')
+const D = require('debug')('pico-rpc')
 
 // Messages over kernel-wire
 const K_BLOCKS = 1 // Synonymous with K_REQUEST_MERGE / publish
@@ -50,7 +50,7 @@ class RPC {
   // TO BE DEFINED
   query (target, params = {}) {
     const send = target || this.hub.broadcast.bind(this.hub)
-    debug('Sent K_QUERY', params)
+    D('Sent K_QUERY', params)
     send(encodeMsg(K_QUERY, params), this._controller)
     /*
     return defer(done =>
@@ -66,7 +66,7 @@ class RPC {
 
   sendBlock (blocks, target = null) {
     const send = target || this.hub.broadcast.bind(this.hub)
-    debug('Sent K_BLOCKS', blocks.length)
+    D('Sent K_BLOCKS', blocks.length)
     send(encodeMsg(K_BLOCKS, blocks), this._controller)
   }
 
@@ -76,7 +76,7 @@ class RPC {
     try {
       if (!Buffer.isBuffer(msg)) debugger
       const { type, data } = decodeMsg(msg)
-      debug(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString() : '[NO DATA]')
+      D(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString() : '[NO DATA]')
       switch (type) {
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
@@ -109,15 +109,18 @@ class RPC {
         } break
         case K_BLOCKS_ACK:
         case K_BLOCKS: {
-          // debug(data.inspect(true))
+          // D(data.inspect(true))
           const forward = await this.handlers.onblocks(data)
           if (type === K_BLOCKS_ACK) replyTo(encodeMsg(K_OK), this._controller)
           // TODO: broadcast(msg, replyTo, filter..) here is broken.
           // the replyTo handle we have in this context is the wrapped decoder function
           // not the node ref.. Footgun activated! YAY!  this.hub._nodes.indexOf(replyTo) => -1
-          if (forward) nextTick(() =>
-            this.hub.broadcast(encodeMsg(K_BLOCKS, data), this._controller, replyTo) // GOSSIP
-          )
+          D('FORWARD BLOCK: ', forward)
+          if (forward) {
+            nextTick(() =>
+              this.hub.broadcast(encodeMsg(K_BLOCKS, data), this._controller, replyTo) // GOSSIP
+            )
+          }
         } break
 
         default:
@@ -131,7 +134,10 @@ class RPC {
 }
 
 // TODO: introduces racing condition that causes some tests to fail.
-function nextTick (cb) { setTimeout(cb, 1) }
+function nextTick (cb) {
+  cb()
+  // setTimeout(cb, 2)
+}
 
 function encodeMsg (type, obj) {
   let buffer = null

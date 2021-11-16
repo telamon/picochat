@@ -151,3 +151,6 @@ function toPublicKey (key) {
   ) throw new Error(`PublicKey expected got "${key}"`)
   return toBuffer(key)
 }
+
+module.exports.PEER_PLACEHOLDER = PEER_PLACEHOLDER
+module.exports.ERR_PEER_NOT_FOUND = ERR_PEER_NOT_FOUND

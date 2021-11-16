@@ -73,7 +73,7 @@ module.exports = function ChatModule () {
       // const set = subscriber
       const $chat = mute(
         combine(
-          s => this.vibes(s),
+          this._vibes(),
           s => this.store.on('chats', s)
         ),
         ([vibes, chats], set) => {

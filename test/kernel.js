@@ -37,111 +37,6 @@ test('Enter pub see peers', async t => {
   t.end()
 })
 
-test('Send vibe to peer', async t => {
-  // Spawn actors
-  const alice = await spawnPeer('Alice')
-  const bob = await spawnPeer('BoB')
-
-  // Connect them
-  bob.spawnWire({ client: true })(alice.spawnWire())
-
-  // Await profiles to be exchanged
-  const state = await nextState(s => bob.k.store.on('peers', s))
-  const aliceProfile = Object.values(state).find(p => p.name === 'Alice')
-  t.ok(Buffer.isBuffer(aliceProfile.pk))
-  t.ok(Buffer.isBuffer(aliceProfile.box))
-
-  // Bob approaches Alice causing a new chatId to be generated
-  const chatId = await bob.k.sendVibe(aliceProfile.pk)
-
-  // Alice should have received a vibe (inspect lowlevel registers)
-  let vibes = await nextState(s => alice.k.store.on('vibes', s))
-  t.equal(vibes.own.length, 1)
-  const match = vibes.matches[vibes.own[0].toString('hex')]
-
-  t.ok(bob.k.pk.equals(match.a))
-  t.ok(Buffer.isBuffer(match.remoteBox))
-
-  // Bob should see the sent vibe
-  vibes = await nextState(s => bob.k.vibes(s), 0)
-  t.equal(vibes.length, 1)
-  let vibe = vibes[0]
-  t.ok(vibe)
-  t.ok(chatId.equals(vibe.id))
-  t.equal(vibe.state, 'waiting_remote')
-  t.equal(vibe.peer.name, 'Alice')
-
-  // Alice should see she has a potential match
-  alice.k.vibes(vibes => {
-    t.equal(vibes.length, 1)
-    vibe = vibes[0]
-  })()
-
-  vibes = await nextState(s => alice.k.vibes(s), 0)
-  t.equal(vibes.length, 1)
-  vibe = vibes[0]
-  t.ok(vibe)
-  t.ok(chatId.equals(vibe.id))
-
-  t.equal(vibe.state, 'waiting_local')
-  t.equal(vibe.peer.name, 'BoB')
-
-  // Alice sends response
-  await alice.k.respondVibe(vibe.id, true)
-  await nextState(s => bob.k.store.on('vibes', s)) // Wait for response to transfer
-
-  vibe = (await nextState(s => alice.k.vibes(s), 0))[0]
-  t.ok(vibe)
-  t.equal(vibe.state, 'match') // <3
-
-  // Bob receives alice response
-  vibe = (await nextState(s => bob.k.vibes(s), 0))[0]
-  t.ok(vibe)
-  t.equal(vibe.state, 'match') // <3
-  t.end()
-})
-
-test('Vibe rejected by remote', async t => {
-  // Spawn actors
-  const alice = await spawnPeer('Alice')
-  const bob = await spawnPeer('BoB')
-
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
-
-  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
-
-  const chatId = await bob.k.sendVibe(alice.k.pk)
-  await nextState(s => alice.k.vibes(s)) // await vibe recv
-
-  await alice.k.respondVibe(chatId, false)
-
-  const vibe = (await nextState(s => bob.k.vibes(s)))[0] // await vibe resp
-  t.equal(vibe.state, 'rejected')
-  t.end()
-})
-
-test('First notify after block-creation should contain peer', async t => {
-  const alice = await spawnPeer('Alice')
-  const bob = await spawnPeer('BoB')
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
-  await nextState(s => bob.k.store.on('peers', s)) // await profile exchange
-  const p = new Promise((resolve, reject) => {
-    let n = 0
-    const unsub = bob.k.vibes(vibes => {
-      if (!n++) t.equal(vibes.length, 0)
-      else {
-        t.equal(vibes.length, 1)
-        t.ok(vibes[0].peer)
-        unsub()
-        resolve()
-      }
-    })
-  })
-  await bob.k.sendVibe(alice.k.pk)
-  await p
-  t.end()
-})
-
 // TODO: In next chat, fastforward match, and verify availablity of all box keys
 test('After match each peer has a pair and the remote public key', async t => {
   const { alice, bob, chatId } = await makeMatch()
@@ -280,22 +175,6 @@ test('Conversation: lose-lose', async t => {
   // I wonder what happens if we just say exhausted conversations cannot add more blocks.
   // It's a failed head so to speak; vibe blocks only attachable on profile and 'bye'.
   // all other conversations results in 0 points? Need to sleep on this. but exhausted convo is exhausted.
-})
-
-test('Vibe receiver should not have double vibes', async t => {
-  const { alice, bob } = await makeMatch()
-  await new Promise(resolve => {
-    let p = 1
-    alice.k.vibes(vibes => {
-      t.equal(vibes.length, 1, 'Alice has 1 vibe')
-      if (!p--) resolve()
-    })
-    bob.k.vibes(vibes => {
-      t.equal(vibes.length, 1, 'Bob has 1 vibe')
-      if (!p--) resolve()
-    })
-  })
-  t.end()
 })
 
 test('Conversation: win-win', async t => {
