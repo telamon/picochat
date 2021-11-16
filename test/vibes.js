@@ -1,10 +1,8 @@
 const test = require('tape')
-const Kernel = require('../src/blockend')
-const { next, get } = require('../src/blockend/nuro')
+const { next } = require('../src/blockend/nuro')
 const {
   spawnPeer,
   spawnSwarm,
-  makeDatabase,
   makeMatch
 } = require('./test.helpers')
 

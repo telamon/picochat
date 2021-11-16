@@ -59,9 +59,9 @@ function monkeyPatchStoreMutex (name, kernel) {
   const waitLock = kernel.store._waitLock.bind(kernel.store)
   // const stacks = []
   kernel.store._waitLock = async function () {
-    let stack = null
+    // let stack = null
     const queue = this._queue
-    try { throw new Error('mutex') } catch (err) { stack = err.stack }
+    // try { throw new Error('mutex') } catch (err) { stack = err.stack }
     D('Mutex REQUESTED', name, queue.length) //, stack)
     const unlock = await waitLock()
     D('Mutex ACQUIRED', name, queue.length)

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
-import { get } from '../blockend/nuro'
+import { get, mute } from '../blockend/nuro'
 const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
@@ -26,6 +26,10 @@ export function usePeers () {
 
 export function useVibes () {
   return useNeuro(kernel.$vibes())
+}
+
+export function useGameOver () {
+  return mute(useProfile(), p => p.state === 'expired')
 }
 
 // Boot up
