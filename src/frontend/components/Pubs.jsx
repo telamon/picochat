@@ -5,6 +5,7 @@ import { enterPub } from '../db.js'
 
 export default function Pubs () {
   const history = useHistory()
+  console.log('pub list', pubsList)
   function Pub (pub) {
     const icons = {
       beer: '🍺',
@@ -14,7 +15,7 @@ export default function Pubs () {
     function click () {
       enterPub(pub.name).then(() => {
         console.log('Pub entered', pub.name)
-        history.push('/pub')
+        history.push(`/pub/${pub.name}`)
       }).catch(err => {
         console.error('Failed entering pub', err)
       })
