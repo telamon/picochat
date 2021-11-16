@@ -25,12 +25,7 @@ export function usePeers () {
 }
 
 export function useVibes () {
-  // return useNeuro(s => kernel.vibes(s))
-  const [value, set] = useState([])
-  useEffect(() => {
-    return kernel.vibes(set)
-  }, [kernel.ready, set])
-  return value
+  return useNeuro(kernel.$vibes())
 }
 
 // Boot up
