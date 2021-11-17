@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useProfile, useChat } from '../db'
 import CountDownTimer from './CountDown.jsx'
@@ -10,6 +10,14 @@ export default function Chat () {
   const chat = useChat(id)
   const peer = chat.peer
   const [text, setText] = useState('')
+  const messageElement = useRef(null)
+  if (messageElement.current) {
+    const el = messageElement.current
+    setTimeout(() => {
+      el.scrollTo({ top: el.scrollHeight, left: 0, behavior: 'smooth' })
+      console.log(el.scrollTop, el.scrollHeight)
+    }, 150)
+  }
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       send()
@@ -102,10 +110,11 @@ export default function Chat () {
         <p>Nah, I dunno. Play soccer.. or learn more coding perhaps?</p>
         <span className='time-left'>11:05</span>
       </div> */}
-      <div className='messages'>
+      <div ref={messageElement} className='messages'>
         {chat.messages.map(message => {
+          const classes = 'chat-container darker ' + message.type
           return (
-            <div key={message.sig} className='chat-container darker'>
+            <div key={message.sig} className={classes}>
               <p>{message.content}</p>
               <p>{dayjs(message.date).format('HH:mm:ss')}</p>
             </div>

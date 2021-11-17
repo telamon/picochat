@@ -1,11 +1,22 @@
 import React from 'react'
-import { kernel, usePeers } from '../db'
+import { kernel, usePeers, enterPub } from '../db'
 import VibeList from './Vibe.jsx'
 import dayjs from 'dayjs'
 import CountDownTimer from './CountDown.jsx'
 import Spinner from './Spinner.jsx'
+import { useParams } from 'react-router-dom'
 
 export default function Pubs () {
+  const { name } = useParams()
+  console.log(name)
+  if (name) {
+    enterPub(name).then(() => {
+      console.log('Pub entered', name)
+    }).catch(err => {
+      console.error('Failed entering pub', err)
+    })
+  }
+
   const peers = usePeers()
   const icons = {
     0: '♀️',

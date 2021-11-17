@@ -114,7 +114,7 @@ let modem = null // hardware is expensive, we can only afford a single modem for
 export async function enterPub (name) {
   if (!Modem56) throw new Error('Modem not available, did you load it?')
   if (!modem) modem = new Modem56()
-  else modem.leave()
+  // else modem.leave()
 
   const spawnWire = await kernel.enter(name) // TODO, kernel.leave()
   modem.join(name, spawnWire)

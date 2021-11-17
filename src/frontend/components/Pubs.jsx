@@ -13,9 +13,9 @@ export default function Pubs () {
       cider: '🍸'
     }
     function click () {
+      history.push(`/pub/${pub.name}`)
       enterPub(pub.name).then(() => {
         console.log('Pub entered', pub.name)
-        history.push(`/pub/${pub.name}`)
       }).catch(err => {
         console.error('Failed entering pub', err)
       })

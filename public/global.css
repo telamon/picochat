@@ -151,12 +151,12 @@ position:absolute;
   padding: 0 20px;
 }
 
-.darker:nth-child(odd) {
+.darker.received {
   background: #sea;
   border-color: #ccc;
 }
 
-.darker:nth-child(even) {
+.darker.sent {
   border-color: #ccc;
   background-color: #ddd;
   text-align: end;
@@ -251,5 +251,5 @@ position:absolute;
 
 .messages {
   height: 40vh;
-
+  overflow-y: scroll;
 }

@@ -34,7 +34,7 @@ export default function App () {
           <Route component={AboutPage} path='/about' />
           <Route component={Rules} path='/policy' />
           <Route component={ErrorPage} path='/error' />
-          <Route component={Pubs} path='/pub' />
+          <Route component={Pubs} path='/pub/:name' />
           <Route component={Chat} path='/chat/:id' />
           <Redirect to='/' />
         </Switch>
