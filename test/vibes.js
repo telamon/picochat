@@ -135,3 +135,40 @@ test('Vibe receiver should not have double vibes', async t => {
   t.equal(bVibes.length, 1, 'Bob has 1 vibe')
   t.end()
 })
+
+test('Sending vibe to someone who`s waiting for reply should result in match', async t => {
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  await next(bob.k.$peers()) // await profile exchange
+  const bCID = await bob.k.sendVibe(alice.k.pk)
+  let aVibes = await next(alice.k.$vibes(), 2)
+  let bVibes = await next(bob.k.$vibes())
+  t.equal(aVibes.length, 1)
+  t.equal(aVibes.length, bVibes.length)
+  const aCID = await alice.k.sendVibe(bob.k.pk)
+  t.ok(bCID.equals(aCID))
+  bVibes = await next(bob.k.$vibes(), 2)
+  aVibes = await next(alice.k.$vibes())
+  t.equal(aVibes.length, 1)
+  t.equal(aVibes.length, bVibes.length)
+  t.equal(bVibes[0].state, 'match')
+})
+
+test('Store rejects sendVibe if previous has not timed out', async t => {
+  const alice = await spawnPeer('Alice')
+  const bob = await spawnPeer('BoB')
+  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  await next(bob.k.$peers()) // await profile exchange
+  await bob.k.sendVibe(alice.k.pk)
+  let bVibes = await next(bob.k.$vibes())
+  // Bob is to urgent
+  try {
+    await bob.k.sendVibe(alice.k.pk)
+    t.fail('Should have thrown')
+  } catch (error) {
+    t.ok(error, error.message)
+  }
+  bVibes = await next(bob.k.$vibes())
+  t.equal(bVibes.length, 1)
+})

@@ -18,7 +18,7 @@ module.exports = function BufferedRegistry () {
     async _readReg (key) {
       const value = await this.repo.readReg(key)
       if (value) return value
-      if (pending[key.toString()]) return pending[key.toString()]
+      if (pending[key.toString()]) return pending[key.toString()].promise
       let set = null
       let timerId = null
       const promise = new Promise((resolve, reject) => {

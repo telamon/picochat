@@ -29,7 +29,11 @@ export function useVibes () {
 }
 
 export function useGameOver () {
-  return mute(useProfile(), p => p.state === 'expired')
+  return useNeuro(
+    mute(
+      kernel.$profile(), p => p.state === 'expired'
+    )
+  )
 }
 
 // Boot up
