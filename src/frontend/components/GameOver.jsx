@@ -1,13 +1,12 @@
 import React from 'react'
 import { useHistory } from 'react-router-dom'
 import { useProfile } from '../db'
-import Spinner from './Spinner.jsx'
 
 export default function GameOver () {
   const history = useHistory()
   const profile = useProfile()
-
   console.log(profile)
+
   return (
     <>
       <div style={{ textAlign: 'center' }} className='is-flex-direction-column'>

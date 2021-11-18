@@ -2,9 +2,12 @@ import React from 'react'
 import { kernel, useProfile } from '../db'
 import CountDown from './CountDown.jsx'
 import DebugLogging from './DebugLogging.jsx'
+import { useHistory } from 'react-router-dom'
 
 export default function Header () {
   const peer = useProfile()
+  const history = useHistory()
+
   async function inspectFeed () {
     const feed = await kernel.feed()
     feed.inspect()
@@ -23,8 +26,8 @@ export default function Header () {
 
   function gameOver () {
     window.alert('GAME OVER!\n You ran out of time, press the destroy button to restart and play again')
+    history.push('/game_over')
   }
-
   return (
     <div className='hero is-success'>
       <div className='centered'>

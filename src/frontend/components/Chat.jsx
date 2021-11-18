@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useHistory } from 'react-router-dom'
 import { useProfile, useChat } from '../db'
 import CountDownTimer from './CountDown.jsx'
 import dayjs from 'dayjs'
@@ -11,6 +11,8 @@ export default function Chat () {
   const peer = chat.peer
   const [text, setText] = useState('')
   const messageElement = useRef(null)
+  const history = useHistory()
+
   if (messageElement.current) {
     const el = messageElement.current
     setTimeout(() => {
@@ -25,6 +27,9 @@ export default function Chat () {
   }
   function chatTimeout () {
     const [gameOver, setGameOver] = useState()
+  }
+  if (profile.state === 'expired_') {
+    history.push('/game_over')
   }
   function send () {
     chat.send(text)
