@@ -134,10 +134,12 @@ function computeProfile ([peer, chats]) {
   const stats = chats.stats[peer.pk.toString('hex')]
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
   const expiresAt = peer.expiresAt + extraTime
+  const score = Math.floor((expiresAt - peer.date) / 60000)
   return {
     ...peer,
     stats,
     expiresAt,
+    score,
     state: expiresAt < Date.now() ? 'expired' : peer.state
   }
 }

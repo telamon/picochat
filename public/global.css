@@ -1,6 +1,13 @@
 /* body { background-image: linear-gradient(to top, rgb(0, 255, 255), rgb(0, 0,
 155) 50%, rgb(25, 22, 28) 100%) } */
 
+:root {
+  --tint1: hsla(105, 32%, 75%, 1);
+  --tint2: hsla(163, 22%, 59%, 1);
+  --tint3: hsla(275, 9%, 37%, 1);
+  --tint4: hsla(328, 23%, 16%, 1);
+  --tint5: hsla(0, 0%, 0%, 1);
+}
 
 .rows {
   display: inline-flex;

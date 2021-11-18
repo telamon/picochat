@@ -15,7 +15,6 @@ export default function Chat () {
     const el = messageElement.current
     setTimeout(() => {
       el.scrollTo({ top: el.scrollHeight, left: 0, behavior: 'smooth' })
-      console.log(el.scrollTop, el.scrollHeight)
     }, 150)
   }
   const handleKeyDown = (event) => {

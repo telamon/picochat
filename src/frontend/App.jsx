@@ -12,6 +12,7 @@ import ErrorPage from './components/ErrorPage.jsx'
 import Pubs from './components/PubPage.jsx'
 import Chat from './components/Chat.jsx'
 import Spinner from './components/Spinner.jsx'
+import GameOver from './components/GameOver.jsx'
 
 export default function App () {
   const { loading } = useBoot()
@@ -36,6 +37,7 @@ export default function App () {
           <Route component={ErrorPage} path='/error' />
           <Route component={Pubs} path='/pub/:name' />
           <Route component={Chat} path='/chat/:id' />
+          <Route component={GameOver} path='/game_over' />
           <Redirect to='/' />
         </Switch>
       </div>

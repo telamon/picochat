@@ -29,5 +29,5 @@ export default function Spinner ({ variant = 0 }) {
     spinner,
     spinnerHeart
   ][variant]
-  return (<div dangerouslySetInnerHTML={{ __html: selected }} />)
+  return (<span dangerouslySetInnerHTML={{ __html: selected }} />)
 }
