@@ -1,8 +1,7 @@
 const hyperswarm = require('hyperswarm-web')
 const ProtoStream = require('hypercore-protocol')
 const crypto = require('crypto')
-const PicoHub = require('piconet')
-const { hyperWire } = PicoHub
+const { hyperWire } = require('piconet')
 
 /*
  *  It's **beep** time!

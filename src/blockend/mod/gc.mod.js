@@ -1,6 +1,7 @@
 const { decodeBlock, TYPE_VIBE_RESP } = require('../util')
 const D = require('debug')('picochat:mod:gc')
 const REG_TIMER = 116 // 't'
+
 module.exports = function GarbageCollectModule (store) {
   const repo = store.repo
   let timerId = null

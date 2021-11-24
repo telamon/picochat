@@ -32,7 +32,7 @@ test('Enter pub see peers', async t => {
     })
   })
   const b = spawnWireB()
-  spawnWireA({ client: true })(b)
+  spawnWireA({ client: true }).open(b)
   await observer
   t.end()
 })

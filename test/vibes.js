@@ -23,7 +23,7 @@ test('Send vibe to peer', async t => {
   const bob = await spawnPeer('BoB')
 
   // Connect them
-  bob.spawnWire({ client: true })(alice.spawnWire())
+  bob.spawnWire({ client: true }).open(alice.spawnWire())
 
   // Await profiles to be exchanged
   const state = await next(s => bob.k.store.on('peers', s))
@@ -86,7 +86,7 @@ test('Vibe rejected by remote', async t => {
   const alice = await spawnPeer('Alice')
   const bob = await spawnPeer('BoB')
 
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
 
   await next(bob.k.$peers()) // await profile exchange
 
@@ -103,7 +103,7 @@ test('Vibe rejected by remote', async t => {
 test('First notify after block-creation should contain peer', async t => {
   const alice = await spawnPeer('Alice')
   const bob = await spawnPeer('BoB')
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
   await next(bob.k.$peers()) // await profile exchange
   // Subscribe on vibes-list ahead
   let n = 0
@@ -139,7 +139,7 @@ test('Vibe receiver should not have double vibes', async t => {
 test('Sending vibe to someone who`s waiting for reply should result in match', async t => {
   const alice = await spawnPeer('Alice')
   const bob = await spawnPeer('BoB')
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
   await next(bob.k.$peers()) // await profile exchange
   const bCID = await bob.k.sendVibe(alice.k.pk)
   let aVibes = await next(alice.k.$vibes(), 2)
@@ -158,7 +158,7 @@ test('Sending vibe to someone who`s waiting for reply should result in match', a
 test('Store rejects sendVibe if previous has not timed out', async t => {
   const alice = await spawnPeer('Alice')
   const bob = await spawnPeer('BoB')
-  bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
   await next(bob.k.$peers()) // await profile exchange
   await bob.k.sendVibe(alice.k.pk)
   let bVibes = await next(bob.k.$vibes())

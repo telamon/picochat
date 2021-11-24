@@ -62,7 +62,7 @@
     "levelup": "^5.1.1",
     "pico-scheduler": "^1.0.0",
     "picofeed": "^3.3.2",
-    "piconet": "^1.0.1",
+    "piconet": "^2.0.0",
     "picorepo": "^1.0.0",
     "protocol-buffers-encodings": "^1.1.1",
     "react-router-dom": "^5.3.0"

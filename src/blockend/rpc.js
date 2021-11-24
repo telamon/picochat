@@ -4,15 +4,15 @@
  */
 const Hub = require('piconet')
 const Feed = require('picofeed')
-const { defer } = require('deferinfer')
 const D = require('debug')('pico-rpc')
-
+const { bufferReplacer } = require('./util')
 // Messages over kernel-wire
 const K_BLOCKS = 1 // Synonymous with K_REQUEST_MERGE / publish
 const K_BLOCKS_ACK = 6 // blocking feed transfer/stream, expecting K_OK as response.
 const K_REQUEST_BLOCK = 2
 const K_REQUEST_HEAD = 4
 const K_REQUEST_TAIL = 5
+const K_NODE_ID = 40
 // Responses
 const K_OK = 80
 const K_ERR = 81
@@ -36,48 +36,65 @@ function kTypeToString (type) {
     case K_JSON: return 'K_JSON'
     case K_ERR_MSG: return 'K_ERR_MSG'
     case K_QUERY: return 'K_QUERY'
+    case K_NODE_ID: return 'K_NODE_ID'
     default: return `UNKNOWN_TYPE:${type}`
   }
 }
 
 class RPC {
-  constructor (handlers) {
+  constructor (nodeId, handlers) {
     this._controller = this._controller.bind(this)
-    this.hub = new Hub(this._controller)
+    this.hub = new Hub(this._controller, this._ondisconnect.bind(this))
     this.handlers = handlers
+    this.nodeIds = {}
+    this.nodeId = nodeId
+  }
+
+  _ondisconnect (node, err) {
+    if (err && err.message !== 'DuplicatePeer') console.warn('NodeDisconnected', node.id, err)
+    D('NodeDisconnected', node.id, err?.message)
+    if (!node.id) return
+    this.nodeIds[node.id] = 0
   }
 
   // TO BE DEFINED
-  query (target, params = {}) {
-    const send = target || this.hub.broadcast.bind(this.hub)
+  async query (node, params = {}) {
+    const send = node.postMessage
     D('Sent K_QUERY', params)
-    send(encodeMsg(K_QUERY, params), this._controller)
-    /*
-    return defer(done =>
-      send(encodeMsg(K_QUERY, params), res => {
-        debugger
-        const { type, data } = decodeMsg(res)
-        if (type === K_ERR) done(new Error('K_ERR'))
-        else done(null, data)
-      })
-    )
-    */
+    const [msg, reply] = await send(encodeMsg(K_QUERY, params), true)
+    this._controller(node, msg, reply) // redirect to controller
   }
 
+  // TODO: rewrite to use survey || await direct ack
   sendBlock (blocks, target = null) {
     const send = target || this.hub.broadcast.bind(this.hub)
     D('Sent K_BLOCKS', blocks.length)
-    send(encodeMsg(K_BLOCKS, blocks), this._controller)
+    send(encodeMsg(K_BLOCKS, blocks))
   }
 
-  get createWire () { return this.hub.createWire.bind(this.hub) }
+  createWire () {
+    const plug = this.hub.createWire((sink, close) => {
+      sink(encodeMsg(K_NODE_ID, this.nodeId))
+      // if (alreadyConnected) target.close || this.hub.disconnect(target)
+    })
+    return plug
+  }
 
-  async _controller (msg, replyTo) {
+  async _controller (node, msg, replyTo) {
     try {
-      if (!Buffer.isBuffer(msg)) debugger
       const { type, data } = decodeMsg(msg)
       D(`Received ${kTypeToString(type)}`, msg.length > 1 ? msg.slice(1, Math.min(msg.length, 12)).toString() : '[NO DATA]')
       switch (type) {
+        case K_NODE_ID:
+          if (this.nodeIds[data]) {
+            this.nodeIds[data]++ // attempt counter
+            return node.close(new Error('DuplicatePeer')) // dedupe peers
+          }
+          this.nodeIds[data] = 1
+          node.id = data
+          D('NodeConnected %s', node.id)
+          this.handlers.onhandshake(node)
+          break
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
           let port = replyTo
@@ -85,44 +102,41 @@ class RPC {
           for (let i = 0; !stop && i < feeds.length; i++) {
             const feed = feeds[i]
             const isLast = feeds.length - 1 === i
-            if (!isLast) {
-              port = await new Promise((resolve, reject) => {
-                const receiver = (res, nextPort) => {
-                  const { type } = decodeMsg(res)
-                  stop = type !== K_OK
-                  if (stop) reject(new Error(`expected K_OK but got: ${type} - ${kTypeToString(type)}`))
-                  else resolve(nextPort)
-                }
-                receiver.kek = true
-                port(encodeMsg(K_BLOCKS_ACK, feed), receiver)
-              })
+            if (isLast) {
+              const scope = await port(encodeMsg(K_BLOCKS_ACK, feed), true)
+              if (!scope) return
+              const [res, next] = scope
+              const { type } = decodeMsg(res)
+              stop = type !== K_OK
+              if (stop) console.warn(`BulkTransfer aborted, expected K_OK but got: ${type} - ${kTypeToString(type)}`)
+              else port = next
             } else {
-              port(encodeMsg(K_BLOCKS, feed), this._controller)
+              port(encodeMsg(K_BLOCKS, feed))
             }
           }
-          /*
-          debugger
-          for (const feed of feeds) {
-            replyTo(encodeMsg(K_BLOCKS, feed), this._controller)
-          }
-          */
         } break
         case K_BLOCKS_ACK:
         case K_BLOCKS: {
-          // D(data.inspect(true))
-          const forward = await this.handlers.onblocks(data)
-          if (type === K_BLOCKS_ACK) replyTo(encodeMsg(K_OK), this._controller)
-          // TODO: broadcast(msg, replyTo, filter..) here is broken.
-          // the replyTo handle we have in this context is the wrapped decoder function
-          // not the node ref.. Footgun activated! YAY!  this.hub._nodes.indexOf(replyTo) => -1
-          D('FORWARD BLOCK: ', forward)
-          if (forward) {
-            nextTick(() =>
-              this.hub.broadcast(encodeMsg(K_BLOCKS, data), this._controller, replyTo) // GOSSIP
-            )
+          let next = replyTo
+          let blocks = data
+          while (blocks) {
+            const forward = await this.handlers.onblocks(blocks)
+            D('Forwarding %d blocks ', forward)
+            if (forward) this.hub._broadcast(node, encodeMsg(K_BLOCKS, blocks)) // GOSSIP
+            blocks = null
+            if (!next) continue
+            const scope = await next(encodeMsg(K_OK), true)
+              .catch(console.warn.bind(null, 'Iterator failed'))
+            if (!scope) continue
+            const [res, repl] = scope
+            if (res) {
+              const [t, data] = decodeMsg(res)
+              if (t !== K_BLOCKS && t !== K_BLOCKS_ACK) continue
+              blocks = data
+            }
+            next = repl
           }
         } break
-
         default:
           debugger
           throw new Error(`UnknownMessageType: ${type} - ${kTypeToString(type)}`)
@@ -131,12 +145,6 @@ class RPC {
       console.error('RPC:internal error', err)
     }
   }
-}
-
-// TODO: introduces racing condition that causes some tests to fail.
-function nextTick (cb) {
-  cb()
-  // setTimeout(cb, 2)
 }
 
 function encodeMsg (type, obj) {
@@ -170,13 +178,18 @@ function encodeMsg (type, obj) {
       buffer = Buffer.alloc(1)
       break
 
-    // Serialize node-owner messages
+    // Serialize json messages
     case K_QUERY:
     case K_JSON: {
       const data = Buffer.from(JSON.stringify(obj))
       buffer = Buffer.alloc(data.length + 1)
       data.copy(buffer, 1)
     } break
+
+    case K_NODE_ID:
+      buffer = Buffer.alloc(8 + 1)
+      obj.copy(buffer, 1)
+      break
 
     default:
       throw new Error('UnknownMessageType: ' + type)
@@ -201,13 +214,13 @@ function decodeMsg (buffer) {
     // deserialize 64byte signatures
     case K_SIG:
     case K_REQUEST_BLOCK:
-      data = buffer.slice(1)
+      data = buffer.slice(1) // TODO: limit 64
       break
 
     // deserialize 32byte keys
     case K_REQUEST_HEAD:
     case K_REQUEST_TAIL:
-      data = buffer.slice(1)
+      data = buffer.slice(1) // TODO: limit 32
       break
 
     // deserialize signals
@@ -215,10 +228,14 @@ function decodeMsg (buffer) {
     case K_ERR:
       break
 
-    // deserialize node-owner messages
+    // deserialize json messages
     case K_QUERY:
     case K_JSON:
-      data = JSON.parse(buffer.slice(1))
+      data = JSON.parse(buffer.slice(1), bufferReplacer)
+      break
+
+    case K_NODE_ID:
+      data = buffer.slice(1).toString('hex') // TODO: limit 8
       break
 
     default:
@@ -226,163 +243,6 @@ function decodeMsg (buffer) {
       throw new Error('UnknownMessageType: ' + type)
   }
   return { type, data }
-}
-
-function kWire (connect, target, allowSuperset) {
-  const send = connect((msg, replyTo) => {
-    if (typeof target !== 'function') return
-    if (msg[0] >= 200 && !allowSuperset) {
-      console.warn('Unauthorized message dropped, type:', msg[0])
-      return // drop message
-    }
-    target(decodeMsg(msg), replyTo)
-  })
-
-  const io = {
-    merge (block) { // synonymous with publish.
-      // There's no guarantee that feedback here is needed nor feasible
-      // the merge command might as well have been broadcasted to the network
-      return defer(done =>
-        send(encodeMsg(K_BLOCKS, block), res => {
-          const { type } = decodeMsg(res)
-          done(type === K_ERR && new Error('K_ERR')) // TODO: maybe give feedback of merged/-count
-        })
-      )
-    },
-
-    fetchBlock (id) {
-      return defer(done => {
-        send(encodeMsg(K_REQUEST_BLOCK, id), res => {
-          const { type, data } = decodeMsg(res)
-          if (type === K_BLOCKS) done(null, data.first)
-          else done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-        })
-      })
-    },
-
-    /**
-     * Returns battle history assembled from head
-     */
-    fetchBattle (key) {
-      return defer(done => {
-        send(encodeMsg(K_REQUEST_BATTLE, key), res => {
-          const { type, data } = decodeMsg(res)
-          switch (type) {
-            case K_BLOCKS:
-            case K_OK:
-              done(null, data)
-              break
-            default:
-              done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-          }
-        })
-      })
-    },
-
-    /**
-     * Returns pointer to head of chain
-     */
-    fetchHead (key) {
-      return defer(done => {
-        send(encodeMsg(K_REQUEST_HEAD, key), res => {
-          const { type, data } = decodeMsg(res)
-          switch (type) {
-            case K_SIG:
-            case K_OK:
-              done(null, data)
-              break
-            default:
-              done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-          }
-        })
-      })
-    },
-
-    /**
-     * Returns pointer to tail of chain (genesis block)
-     */
-    fetchTail (key) {
-      return defer(done => {
-        send(encodeMsg(K_REQUEST_TAIL, key), res => {
-          const { type, data } = decodeMsg(res)
-          switch (type) {
-            case K_SIG:
-            case K_OK:
-              done(null, data)
-              break
-            default:
-              done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-          }
-        })
-      })
-    }
-  }
-
-  const nodeAdmin = {
-    /*
-     * Fetches list of active challenges
-     * returns JSON array containing high-level details
-     */
-    fetchOpenChallenges () {
-      return defer(done => {
-        send(encodeMsg(K_SUPER_CHALLENGES), res => {
-          const { type, data } = decodeMsg(res)
-          switch (type) {
-            case K_JSON:
-              done(null, data)
-              break
-            case K_ERR:
-            case K_ERR_MSG:
-              done(new Error(data))
-              break
-            default:
-              done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-          }
-        })
-      })
-    },
-
-    /*
-     * param signature of challenge we wish to look up responses for.
-     * returns JSON array containing high-level response details
-     */
-    fetchChallengeResponses (challengeSignature) {
-      return defer(done => {
-        send(encodeMsg(K_SUPER_CRESPONSES, challengeSignature), res => {
-          const { type, data } = decodeMsg(res)
-          switch (type) {
-            case K_JSON:
-              done(null, data)
-              break
-            case K_ERR:
-            case K_ERR_MSG:
-              done(new Error(data))
-              break
-            default:
-              done(new Error('UnexpectedResponse:' + kTypeToString(type)))
-          }
-        })
-      })
-    },
-
-    /*
-     * Allows super to broadcast feed/blocks directly out of node.
-     * Should be removed in future, just used as a workaround for alpha retransmissions
-     */
-    gossip (block) { // synonymous with publish.
-      // There's no guarantee that feedback here is needed nor feasible
-      // the merge command might as well have been broadcasted to the network
-      return defer(done =>
-        send(encodeMsg(K_SUPER_GOSSIP, block), res => {
-          const { type } = decodeMsg(res)
-          done(type === K_ERR && new Error('K_ERR'))
-        })
-      )
-    }
-  }
-
-  if (allowSuperset) Object.assign(io, nodeAdmin)
-  return io
 }
 
 module.exports = {

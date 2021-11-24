@@ -1,18 +1,33 @@
 const D = require('debug')('picochat:mod:net')
 const { RPC } = require('../rpc')
-
-module.exports = function NetworkModule () {
-  let spawnWire = null
+// const { randomBytes } = require('crypto')
+const randomBytes = n => Buffer.from(
+  Array.from(new Array(n))
+    // Not very random, used to generate a node-id
+    .map(_ => Math.floor(Math.random() * 256))
+)
+module.exports = function NetworkModule (k) {
+  const ctx = {
+    // Workaround for WebRTC missing peer-dedupelicaiton.
+    nodeId: randomBytes(8),
+    store: k.store,
+    spawnWire: null,
+    rpc: null,
+    name: null
+  }
+  k._net = ctx // Expose current connection context for test/debugging
   return {
     async enter (name) {
-      if (spawnWire) return spawnWire
+      if (ctx.spawnWire) return ctx.spawnWire
+      D('Net connecting to swarm %s as nodeId: %H', name, ctx.nodeId)
+      ctx.name = name
       // TODO: Make disposable scoped store
       // this.pub.store = new Store(makeDatabase(name))
       // await this.pub.store.load()
-      const repo = this.repo
-      const store = this.store
+      const store = ctx.store
+      const repo = store.repo
 
-      const rpc = new RPC({
+      const rpc = new RPC(ctx.nodeId, {
         onblocks: async feed => {
           try {
             D(this.store.state.peer.name, 'received block')
@@ -26,8 +41,8 @@ module.exports = function NetworkModule () {
           return 0
         },
         // Lookups and read hit the permanent store first and then secondaries
-        queryHead: async key => (await this.repo.headOf(key)) || (await repo.headOf(key)),
-        queryTail: async key => (await this.repo.tailOf(key)) || (await repo.tailOf(key)),
+        queryHead: async key => await repo.headOf(key),
+        queryTail: async key => await repo.tailOf(key),
         onquery: async params => {
           const keys = Object.values(store.state.peers)
           // experimental
@@ -43,23 +58,29 @@ module.exports = function NetworkModule () {
           const nBytes = feeds.reduce((s, f) => f.tail + s, 0)
           D('onquery: replying with %d-feeds containing %d-blocks, total: %dBytes', feeds.length, nBlocks, nBytes)
           return feeds
+        },
+        onhandshake (node) {
+          D('PeerConnected', node.id)
+          rpc.query(node, {})
+            .catch(err => console.warn('Query Failed', err))
         }
       })
+      ctx.rpc = rpc
+
       this._badCreateBlockHook = block => {
         D(this.store.state.peer.name, 'sharing new block')
         D(block.inspect(true))
         rpc.sendBlock(block)
       }
 
-      spawnWire = (details = {}) => {
+      ctx.spawnWire = (details = {}) => {
         // if (blocklist.contains(details.prop)) return
-        return rpc.createWire(send => { // on remote open
-          // if (details.client)
-          D('Peer connected', details)
-          rpc.query(send, {})
-        })
+        // if (details.client)
+        const plug = rpc.createWire()
+        D('Wire spawned', details)
+        return plug
       }
-      return spawnWire
+      return ctx.spawnWire
     }
   }
 }

@@ -3581,10 +3581,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.2.3:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.0.tgz#f1f061de8f6a4bf022892e2d128234fb98302972"
   integrity sha512-lY1Q/PiJGC2zOv/z391WOTD+Z02bCgsFfvxoXXf6h7kv9o+WmsmzYqrAwY63sNgOxE4xEdq0WyUnXfKeBrSvYw==
 
-piconet@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/piconet/-/piconet-1.0.2.tgz#50675f898033aa850932186f55672b2099f787fe"
-  integrity sha512-RfhrruJJP1xCF1WSUjH9eEi7ksHi+8tRH5vJ0BFSsSkr2K5qoFJcjAMRv9XKjsUlZrVeF8kZLgcPF9dE6m3SPw==
+piconet@^2.0.0:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/piconet/-/piconet-2.2.2.tgz#ca3245dce4fa0e44b266274e04e6e3d09e6ba147"
+  integrity sha512-wk3aE/BJZSmr2seusG0T7wif8K0s/35wKLKcdFgmVjr1l7czYiHR2LZL+judDLx0Vj1dvBh3IVsgvY8DeByksQ==
 
 picorepo@^1.0.0:
   version "1.0.0"

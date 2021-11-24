@@ -54,7 +54,7 @@ class Kernel {
     Object.assign(this, VibesModule())
     Object.assign(this, ChatModule())
     Object.assign(this, BufferedRegistry())
-    Object.assign(this, Network())
+    Object.assign(this, Network(this))
     Object.assign(this, GarbageCollector(this.store))
   }
 

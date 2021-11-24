@@ -137,5 +137,6 @@ module.exports = {
   toBuffer,
   boxPair,
   seal,
-  unseal
+  unseal,
+  bufferReplacer
 }

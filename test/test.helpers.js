@@ -8,7 +8,7 @@ const D = require('debug')('picochat:test')
 async function makeMatch (kOpts = {}) {
   const alice = await spawnPeer('Alice', kOpts)
   const bob = await spawnPeer('BoB', kOpts)
-  const disconnect = bob.spawnWire({ client: true })(alice.spawnWire()) // connect peers
+  const disconnect = bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
   await next(s => bob.k.store.on('peers', s)) // await profile exchange
   const chatId = await bob.k.sendVibe(alice.k.pk)
   await next(s => alice.k.store.on('vibes', s)) // await vibe recv
@@ -30,6 +30,7 @@ async function spawnPeer (name, kOpts = {}) {
     picture: ':|'
   })
   const spawnWire = await app.enter('Abyss')
+
   return {
     k: app,
     spawnWire
@@ -43,7 +44,7 @@ async function spawnSwarm (...actors) {
     const b = await spawnPeer(name)
     if (peers.length) {
       const a = peers[peers.length - 1]
-      b.spawnWire({ client: true })(a.spawnWire())
+      b.spawnWire({ client: true }).open(a.spawnWire())
     }
     peers.push(b)
   }

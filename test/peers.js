@@ -54,7 +54,7 @@ test('kernel.$peers(id)', async t => {
   t.equal(profile.errorMessage, 'PeerNotFound')
 
   // They meet up
-  bob.spawnWire({ client: true })(alice.spawnWire())
+  bob.spawnWire({ client: true }).open(alice.spawnWire())
 
   profile = await aPromiseOfAlice
   t.equal(profile.state, 'active')
