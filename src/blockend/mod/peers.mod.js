@@ -101,13 +101,14 @@ module.exports = function PeersModule () {
       else {
         // Hotswap subscripition when kernel.register() finished
         return sub => {
-          let temp = this.store.on('peer', peer => {
+          let unsub = null
+          unsub = this.store.on('peer', peer => {
             if (peer.pk) {
-              temp()
-              temp = reducePeer(this.store, this.pk, true)(sub)
+              if (unsub) unsub()
+              unsub = reducePeer(this.store, this.pk, true)(sub)
             } else sub(PEER_PLACEHOLDER)
           })
-          return () => temp()
+          return () => unsub()
         }
       }
     }
@@ -131,10 +132,17 @@ function reducePeer (store, id, isSelf) { // Yeah we're dropping this terminolog
 function computeProfile ([peer, chats]) {
   if (!peer) return ERR_PEER_NOT_FOUND
   if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
-  const stats = chats.stats[peer.pk.toString('hex')]
+  const stats = chats.stats[peer.pk.toString('hex')] || {
+    nEnded: 0,
+    nStarted: 0,
+    nMessages: 0,
+    nPassed: 0,
+    nExhausted: 0
+  }
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
   const expiresAt = peer.expiresAt + extraTime
-  const score = Math.floor((expiresAt - peer.date) / 60000)
+  let score = Math.floor((expiresAt - peer.date) / 60000)
+  score += stats.nMessages * 2
   return {
     ...peer,
     stats,

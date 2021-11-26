@@ -20,7 +20,7 @@ export default function GameOver () {
           })}
           {Array.from(new Array(profile.stats.nExhausted)).map((a, score) => {
             return (
-              <span key={score} className='is-size-3'>🎲</span>
+              <span key={score} className='is-size-3'>💀</span>
             )
           })}
           {Array.from(new Array(profile.stats.nMessages)).map((a, score) => {

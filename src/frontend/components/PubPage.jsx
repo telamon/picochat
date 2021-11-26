@@ -1,14 +1,13 @@
 import React from 'react'
-import { kernel, usePeers, enterPub } from '../db'
+import { kernel, usePeers, enterPub, useVibes } from '../db'
 import VibeList from './Vibe.jsx'
-import dayjs from 'dayjs'
 import CountDownTimer from './CountDown.jsx'
 import Spinner from './Spinner.jsx'
 import { useParams } from 'react-router-dom'
 
 export default function Pubs () {
+  const vibes = useVibes()
   const { name } = useParams()
-  console.log(name)
   if (name) {
     enterPub(name).then(() => {
       console.log('Pub entered', name)
@@ -58,7 +57,12 @@ export default function Pubs () {
                     <h1>{peer.name}</h1>
                     <span title='Game Over when expires!'><CountDownTimer expiresAt={peer.expiresAt || 0} /></span>
                     <h3 className='smalle-tagline'>{peer.tagline}</h3>
-                    <button disabled={0} className='button is-primary' onClick={() => sendVibe(peer)}>Send Vibe</button>
+                    <button
+                      disabled={vibes.find(vibe => vibe.peer.pk?.equals(peer.pk))}
+                      className='button is-primary'
+                      onClick={() => sendVibe(peer)}>
+                      Send Vibe
+                    </button>
                   </div>
                 </div>
               </div>
