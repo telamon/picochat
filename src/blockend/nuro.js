@@ -58,9 +58,9 @@ const addr = mute(init(), (v, set) => (!v &&
 
 // Return values from compute method has to be 'null' in order
 // to be set
-function mute (neuron, compute) {
+function mute (neuron, compute, deepCompare = false) {
   return function NeuronMutate (syn) {
-    const set = forwardDirty(syn)
+    const set = forwardDirty(syn, deepCompare)
     // Method by default return undefined
     return neuron(v => ((
       (v = compute(v, set)),
@@ -92,16 +92,18 @@ function memo (neuron) {
   }
 }
 
-function forwardDirty (synapse) {
+function forwardDirty (synapse, deepCompare = false) {
   let value
   let first = true
   return function SynapseDirtyFilter (v) {
-    if (first || notEqual(v, value)) {
+    const dirty = first || (deepCompare ? notEqualDeep(v, value) : notEqual(v, value))
+    // console.info(`nuro:mute(${deepCompare}) => `, dirty, v, value)
+    if (dirty) {
       first = false
+      value = v
       synapse(v)
       return v
     }
-    value = v
   }
 }
 
@@ -194,8 +196,23 @@ function notEqual (a, b) {
       !!a.find((o, i) => b[i] !== o))
     ) ||
     (typeof a === 'object' &&
+      a !== null &&
       !!((kA, kBl) => kA.length !== kBl ||
         kA.find(p => a[p] !== b[p])
+      )(Object.keys(a), Object.keys(b).length)
+    )
+}
+
+function notEqualDeep (a, b) {
+  return a !== b ||
+    (Array.isArray(a) && (
+      b.length !== a.length ||
+      !!a.find((o, i) => notEqualDeep(b[i], o)))
+    ) ||
+    (typeof a === 'object' &&
+      a !== null &&
+      !!((kA, kBl) => kA.length !== kBl ||
+        kA.find(p => notEqualDeep(a[p], b[p]))
       )(Object.keys(a), Object.keys(b).length)
     )
 }

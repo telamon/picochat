@@ -101,10 +101,9 @@ module.exports = function PeersModule () {
       else {
         // Hotswap subscripition when kernel.register() finished
         return sub => {
-          let unsub = null
-          unsub = this.store.on('peer', peer => {
+          let unsub = this.store.on('peer', peer => {
             if (peer.pk) {
-              if (unsub) unsub()
+              unsub()
               unsub = reducePeer(this.store, this.pk, true)(sub)
             } else sub(PEER_PLACEHOLDER)
           })

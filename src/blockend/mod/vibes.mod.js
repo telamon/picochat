@@ -98,7 +98,8 @@ module.exports = function VibesModule () {
       const joinPeers = (vibes, set) => {
         const tasks = []
         // INNER JOIN profile of 'other' on vibe
-        for (const vibe of vibes) {
+        for (let i = 0; i < vibes.length; i++) {
+          const vibe = vibes[i]
           if (vibe.initiator === 'local') {
             // Attempt to remember who we sent what to.
             const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
@@ -107,12 +108,12 @@ module.exports = function VibesModule () {
             tasks.push(
               this._readReg(key)
                 .then(pk => this.profileOf(pk))
-                .then(peer => { vibe.peer = peer })
+                .then(peer => { vibes[i] = { ...vibes[i], peer } })
             )
           } else {
             tasks.push(
               this.profileOf(vibe.a)
-                .then(p => { vibe.peer = p })
+                .then(peer => { vibes[i] = { ...vibes[i], peer } })
             )
           }
         }
@@ -120,7 +121,7 @@ module.exports = function VibesModule () {
         Promise.all(tasks)
           .then(() => {
             D('emit $vibes async')
-            set(vibes)
+            set([...vibes]) // final workaround since we don't have neuro-tests
           })
           .catch(err => {
             console.error('Error occured resolving vibe.peer:', err)
@@ -129,7 +130,7 @@ module.exports = function VibesModule () {
         D('emit $vibes')
         return vibes
       }
-      return mute(this._vibes(), joinPeers)
+      return mute(this._vibes(), joinPeers, true)
     }
   }
 }

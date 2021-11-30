@@ -7,7 +7,6 @@ const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
 export const kernel = new Kernel(DB)
-
 // Pico::Neuro To be renamed
 function useNeuro ($n) {
   const [value, set] = useState(get($n))
@@ -25,7 +24,9 @@ export function usePeers () {
 }
 
 export function useVibes () {
-  return useNeuro(kernel.$vibes())
+  return useNeuro(
+    kernel.$vibes()
+  )
 }
 
 export function useGameOver () {

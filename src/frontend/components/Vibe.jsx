@@ -4,14 +4,14 @@ import CountDownTimer from './CountDown.jsx'
 
 export default function VibeList () {
   const vibes = useVibes()
-  console.log('VIBES', vibes)
+  console.log('Vibe.jsx, vibes:', vibes)
   const respondToVibe = (id, didLike) => {
     kernel.respondVibe(id, didLike)
       .then(() => {
-        console.log('like was sendnd', id)
+        console.log('vibe sent', id)
       })
       .catch(err => {
-        console.log('like cant send', err)
+        console.log('failed creating vibe', err)
       })
   }
 
@@ -19,6 +19,7 @@ export default function VibeList () {
     <>
       <ul className='column'>
         {vibes.map(vibe => {
+          console.log('Vibe.jsx vibe.peer', vibe.peer)
           return (
             <li key={vibe.id}>
               {vibe.state === 'waiting_local' && (

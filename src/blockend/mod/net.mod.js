@@ -61,7 +61,7 @@ module.exports = function NetworkModule (k) {
           for (const key of keys) {
             const f = await repo.loadHead(key)
             // Tradeoff performance to reduce traffic
-            if (!feeds.find(a => a.merge(f))) feeds.push(f)
+            if (f && !feeds.find(a => a.merge(f))) feeds.push(f)
           }
           const nBlocks = feeds.reduce((s, f) => f.length + s, 0)
           const nBytes = feeds.reduce((s, f) => f.tail + s, 0)
