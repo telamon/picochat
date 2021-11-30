@@ -89,7 +89,7 @@ test('The Problem', async t => {
  * hsh:   >--({})-[ => ]-->
  *
  */
-test.only('arr()', t => {
+test.skip('arr()', async t => {
   let _array = [0, 1]
   const [array, setArray] = write(_array)
   const $n = arr(
@@ -111,4 +111,4 @@ test.only('arr()', t => {
     ([chat, messages]) => ({ ...chat, messages)
   )
   */
-}
+})
