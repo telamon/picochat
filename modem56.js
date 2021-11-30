@@ -40,6 +40,7 @@ class Modem56 {
     this._spawnWire = spawnWire
     this._topic = topic
     this.swarm.on('connection', this._onconnection)
+    this.swarm.on('error', err => console.error('[Modem56] swarm error: ', err.message))
     return () => this.leave()
   }
 
@@ -48,6 +49,8 @@ class Modem56 {
     const { client } = details
     const hyperProtocolStream = new ProtoStream(client)
     socket.pipe(hyperProtocolStream).pipe(socket)
+    hyperProtocolStream.on('error', err => console.error('[Modem56] hyper-proto error: ', err.message))
+    socket.on('error', err => console.error('[Modem56] socket error: ', err.message))
     const encryptionKey = this._topic
     const plug = this._spawnWire(details)
     hyperWire(plug, hyperProtocolStream, encryptionKey)

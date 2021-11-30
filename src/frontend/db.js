@@ -96,9 +96,11 @@ export function useChat (chatId) {
     if (!kernel.ready) return
     return kernel.$chat(chatId)(chat => {
       set(chat)
+      // console.log('Neuro--~>--react', chat.messages)
       setMessages(chat.messages)
     })
   }, [kernel.ready, set, setMessages])
+  // console.log('Rerender messages', messages)
   return { ...value, messages }
 }
 

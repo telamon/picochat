@@ -95,10 +95,12 @@ function memo (neuron) {
 function forwardDirty (synapse, deepCompare = false) {
   let value
   let first = true
-  return function SynapseDirtyFilter (v) {
-    const dirty = first || (deepCompare ? notEqualDeep(v, value) : notEqual(v, value))
+  return function SynapseDirtyFilter (v, force = false) {
+    const dirty = !force && deepCompare
+      ? notEqualDeep(v, value)
+      : notEqual(v, value)
     // console.info(`nuro:mute(${deepCompare}) => `, dirty, v, value)
-    if (dirty) {
+    if (first || force || dirty) {
       first = false
       value = v
       synapse(v)
@@ -190,31 +192,39 @@ function combine (...neurons) {
 // if object, compare props count and reference identities
 // properties of object are expected to be enumerable.
 function notEqual (a, b) {
-  return a !== b ||
-    (Array.isArray(a) && (
-      b.length !== a.length ||
-      !!a.find((o, i) => b[i] !== o))
-    ) ||
-    (typeof a === 'object' &&
-      a !== null &&
-      !!((kA, kBl) => kA.length !== kBl ||
-        kA.find(p => a[p] !== b[p])
-      )(Object.keys(a), Object.keys(b).length)
-    )
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return b.length !== a.length ||
+      !!a.find((o, i) => b[i] !== o)
+  }
+  if (
+    typeof a === 'object' &&
+    typeof b === 'object' &&
+    a !== null &&
+    b !== null
+  ) {
+    return !!((kA, kBl) => kA.length !== kBl ||
+      kA.find(p => a[p] !== b[p])
+    )(Object.keys(a), Object.keys(b).length)
+  }
+  return a !== b
 }
 
 function notEqualDeep (a, b) {
-  return a !== b ||
-    (Array.isArray(a) && (
-      b.length !== a.length ||
-      !!a.find((o, i) => notEqualDeep(b[i], o)))
-    ) ||
-    (typeof a === 'object' &&
-      a !== null &&
-      !!((kA, kBl) => kA.length !== kBl ||
-        kA.find(p => notEqualDeep(a[p], b[p]))
-      )(Object.keys(a), Object.keys(b).length)
-    )
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return b.length !== a.length ||
+      !!a.find((o, i) => notEqualDeep(b[i], o))
+  }
+  if (
+    typeof a === 'object' &&
+    typeof b === 'object' &&
+    a !== null &&
+    b !== null
+  ) {
+    return !!((kA, kBl) => kA.length !== kBl ||
+      kA.find(p => notEqualDeep(a[p], b[p]))
+    )(Object.keys(a), Object.keys(b).length)
+  }
+  return a !== b
 }
 
 function writable (value) {
@@ -260,6 +270,7 @@ module.exports = {
   next,
   writable,
   notEqual,
+  notEqualDeep,
   memo,
   mute,
   init,

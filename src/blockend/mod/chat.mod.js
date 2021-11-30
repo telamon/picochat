@@ -45,6 +45,9 @@ module.exports = function ChatModule () {
         if (!~[PEACE, LOVE, UNDERSTANDING].indexOf(gesture)) throw new Error('InvalidGesture')
         if (!~['active', 'finalizing'].indexOf(cache.state)) throw new Error('InvalidState')
         const branch = await this.repo.loadFeed(head)
+        console.log('bye() invoked current chainState:')
+        if (!branch) return console.error('branch dissapeared, expected head sig:', head.toString('hex'))
+        branch.inspect()
         await this._createBlock(branch, cache.state === 'active' ? TYPE_BYE : TYPE_BYE_RESP,
           {
             gesture
@@ -127,7 +130,7 @@ module.exports = function ChatModule () {
                   msg.content = await this._getMessageBody(msg.sig)
                 }
               } else msg.content = PASS_TURN.toString()
-              unread.push(msg)
+              unread.push([i, msg])
             }
             return unread
           }
@@ -139,13 +142,14 @@ module.exports = function ChatModule () {
               console.error(err)
             })
             .then(unread => {
-              // TODO: write proper tests for the functional stores
-              if (unread && unread.length) {
-                chat.messages = [...chat.messages, ...unread]
-                set(chat)
+              if (!unread) return
+              for (const [i, msg] of unread) {
+                chat.messages[i] = msg
               }
+              set(chat, true)
             })
-          // return set(chat) // initial value
+          // freaking react work-around
+          return { state: 'loading', myTurn: false, messages: [] }
         })
       return $chat
     }

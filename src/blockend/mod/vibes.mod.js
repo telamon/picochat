@@ -7,7 +7,7 @@ const {
   seal,
   boxPair
 } = require('../util')
-const { mute } = require('../nuro')
+const { mute, combine } = require('../nuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
 const D = require('debug')('picochat:mod:vibes')
 
@@ -66,6 +66,7 @@ module.exports = function VibesModule () {
       const sealedMessage = seal(msgBox.pk, peer.box)
 
       const block = await this.repo.readBlock(chatId)
+      if (!block) throw new Error('Block no longer exists')
       const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
         box: !like ? VIBE_REJECTED : sealedMessage,
         link: this.store.state.peer.sig // Weak-ref to own checkpoint
@@ -76,15 +77,20 @@ module.exports = function VibesModule () {
     },
 
     // Lower-level alternative without
-    // Vibe.peer joined in
+    // Vibe.peer joined in which requires readReg lookup
     _vibes () {
-      return mute(s => this.store.on('vibes', s),
-        ({ sent, received, own, matches }, set) => {
+      return mute(
+        combine(
+          s => this.store.on('chats', s),
+          s => this.store.on('vibes', s)
+        ),
+        ([chats, { sent, received, own, matches }], set) => {
           const vibes = []
           for (const chatId of own) {
             const match = matches[chatId.toString('hex')]
+            const chat = chats.chats[chatId.toString('hex')]
             const initiator = this.pk.equals(match.a)
-            const vibe = computeVibe(chatId, match, initiator)
+            const vibe = computeVibe(chatId, match, initiator, chat)
             if (vibe.state === 'expired') continue // let GC handle the rest
             vibes.push(vibe)
           }
@@ -100,6 +106,7 @@ module.exports = function VibesModule () {
         // INNER JOIN profile of 'other' on vibe
         for (let i = 0; i < vibes.length; i++) {
           const vibe = vibes[i]
+          if (vibe.peer.state !== 'loading') continue
           if (vibe.initiator === 'local') {
             // Attempt to remember who we sent what to.
             const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
@@ -108,20 +115,25 @@ module.exports = function VibesModule () {
             tasks.push(
               this._readReg(key)
                 .then(pk => this.profileOf(pk))
-                .then(peer => { vibes[i] = { ...vibes[i], peer } })
+                .then(peer => ({ i, peer }))
             )
           } else {
             tasks.push(
               this.profileOf(vibe.a)
-                .then(peer => { vibes[i] = { ...vibes[i], peer } })
+                .then(peer => ({ i, peer }))
             )
           }
         }
+        if (!tasks.length) return vibes
         // When all tasks finish invoke subscriber
         Promise.all(tasks)
-          .then(() => {
+          .then(patches => {
             D('emit $vibes async')
-            set([...vibes]) // final workaround since we don't have neuro-tests
+            set(vibes.map((vibe, n) => {
+              const p = patches.find(p => p.i === n)
+              if (!p) return vibe
+              else return { ...vibe, peer: p.peer }
+            }))
           })
           .catch(err => {
             console.error('Error occured resolving vibe.peer:', err)
@@ -130,17 +142,17 @@ module.exports = function VibesModule () {
         D('emit $vibes')
         return vibes
       }
-      return mute(this._vibes(), joinPeers, true)
+      return mute(this._vibes(), joinPeers, false)
     }
   }
 }
 
-function computeVibe (chatId, match, initiator) {
+function computeVibe (chatId, match, initiator, chat) {
   const out = {
     ...initVibe(chatId),
     updatedAt: match.updatedAt,
     createdAt: match.createdAt,
-    expiresAt: match.expiresAt,
+    expiresAt: chat?.expiresAt || match.expiresAt,
     box: match.remoteBox,
     initiator: initiator ? 'local' : 'remote',
     localRejected: initiator && match.state === 'rejected',

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 import { useProfile, useChat } from '../db'
 import CountDownTimer from './CountDown.jsx'
@@ -12,7 +12,6 @@ export default function Chat () {
   const [text, setText] = useState('')
   const messageElement = useRef(null)
   const history = useHistory()
-
   if (messageElement.current) {
     const el = messageElement.current
     setTimeout(() => {
@@ -22,7 +21,6 @@ export default function Chat () {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       send()
-      console.log('message was sended by ENTER key')
     }
   }
   function chatTimeout () {
@@ -34,39 +32,40 @@ export default function Chat () {
   function send () {
     chat.send(text)
       .then(() => {
-        console.log('message was sended')
+        console.log('message sent')
         setText('')
       })
       .catch(err => {
-        console.error('sending fail', err)
+        console.error('chat.send() failed:', err)
       })
   }
 
   function pass () {
     chat.pass()
       .then(() => {
-        console.log('Turn is passed')
+        console.log('turn passed')
         setText('')
       })
       .catch(err => {
-        console.error('Writing turn to other is fail', err)
+        console.error('chat.pass() failed:', err)
       })
   }
   function bye () {
-    const gest = 0
-    chat.bye(gest)
+    const gesture = 0
+    return chat.bye(gesture)
       .then(() => {
-        console.log('Conversation is closed by BYE')
+        console.log('Ending conversation')
         setText('')
       })
       .catch(err => {
-        console.error('Bye function is fail', err)
+        console.error('chat.bye() failed:', err)
       })
   }
-
-  if (chat.state === 'finalizing' && chat.myTurn) {
-    bye()
-  }
+  useEffect(() => {
+    if (chat.state === 'finalizing' && chat.myTurn) {
+      bye()
+    }
+  }, [chat.state, chat.myTurn])
 
   function drawHealth () {
     let output = ''
@@ -118,7 +117,7 @@ export default function Chat () {
         {chat.messages.map(message => {
           const classes = 'chat-container darker ' + message.type
           return (
-            <div key={message.sig} className={classes}>
+            <div key={message.sig.toString('hex')} className={classes}>
               <p>{message.content}</p>
               <p>{dayjs(message.date).format('HH:mm:ss')}</p>
             </div>
