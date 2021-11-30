@@ -1,6 +1,5 @@
 import React from 'react'
 import { kernel, useVibes } from '../db.js'
-import dayjs from 'dayjs'
 import CountDownTimer from './CountDown.jsx'
 
 export default function VibeList () {
