@@ -65,7 +65,7 @@ function ConversationCtrl (opts = {}) {
       const { type } = data
       if (!~[TYPE_MESSAGE, TYPE_BYE, TYPE_BYE_RESP].indexOf(type)) return true
       const parentType = parentBlock && decodeBlock(parentBlock.body).type
-
+      D('[%s] FilterOP: %s %h <-- %s %h', root.peer.name, parentType, parentBlock.sig, type, block.sig)
       if (
         // message onto message or vibe_resp
         (type === TYPE_MESSAGE && parentType !== TYPE_MESSAGE && parentType !== TYPE_VIBE_RESP) ||
@@ -106,7 +106,6 @@ function ConversationCtrl (opts = {}) {
       const parentType = decodeBlock(parentBlock.body).type
       const peerId = root.peer.pk
       const from = block.key
-
       let chatId = null
 
       if (parentType === TYPE_VIBE_RESP) chatId = parentBlock.parentSig
@@ -133,12 +132,12 @@ function ConversationCtrl (opts = {}) {
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
       chat.expiresAt = chat.createdAt + ChatTimeout + (chat.mLength * BlockReward)
 
-      let stats = state.stats[block.key.toString('hex')]
+      const authorId = block.key.toString('hex')
+      let stats = state.stats[authorId]
       if (!stats) {
-        stats = mkStats(block.key)
-        state.stats[block.key.toString('hex')] = stats
+        stats = state.stats[authorId] = mkStats(block.key)
         stats.nStarted++
-        D('Initating new stats', stats)
+        D('[%s] Initating new stats for %h', root.peer.name, block.key)
       }
       stats.lastSeen = Math.max(stats.lastSeen, data.date)
       stats.nMessages++
@@ -188,7 +187,7 @@ function ConversationCtrl (opts = {}) {
         bStat.nEnded++
       }
 
-      D('[%s]Conversation(%h) state: %s mLength: %d, head: %h => %h', root.peer.name, chatId, chat.state, chat.mLength, block.parentSig, block.sig)
+      D('[%s] Conversation(%h) state: %s mLength: %d, head: %h => %h', root.peer.name, chatId, chat.state, chat.mLength, block.parentSig, block.sig)
       // Bump head of findChatIdBy(parentSig) index
       delete state.heads[block.parentSig.toString('hex')]
       state.heads[block.sig.toString('hex')] = chatId

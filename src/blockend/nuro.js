@@ -78,7 +78,7 @@ function memo (neuron) {
     synapses.add(syn)
     // console.log('instant memo', !!disconnect, value)
     if (disconnect) syn(value)
-    else disconnect = neuron(speadForward)
+    else disconnect = neuron(spreadForward)
     return () => {
       synapses.delete(syn)
       if (synapses.length) return
@@ -86,7 +86,7 @@ function memo (neuron) {
       disconnect = null
     }
   }
-  function speadForward (v) {
+  function spreadForward (v) {
     value = v
     for (const syn of synapses) syn(v)
   }
@@ -206,7 +206,7 @@ function writable (value) {
     function WritableSubscribe (notify) {
       subs.add(notify)
       notify(value)
-      return () => sub.delete(notify)
+      return () => { subs.delete(notify) }
     },
     function WritableSet (val) {
       if (notEqual(value, val)) {

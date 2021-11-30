@@ -5,6 +5,19 @@ const {
   spawnPeer,
   makeMatch
 } = require('./test.helpers')
+const { RPC } = require('../src/blockend/rpc')
+const { unpromise } = require('piconet')
+
+require('piconet').V = 0
+/*process.on('uncaughtException', err => {
+  console.warn('TRAP UNCAUGHT', err)
+})*/
+/* require('promises-debugger')({
+  dimNodeModules: true,
+  dimInternalModules: false,
+  dimNotInProjectRoot: true,
+  removeInternalModules: true
+})*/
 
 test('Conversation recovers from disconnect', async t => {
   const { alice, bob, chatId, disconnect } = await makeMatch()
@@ -20,8 +33,7 @@ test('Conversation recovers from disconnect', async t => {
   await bChat.send('Will you marry me?')
 
   aChat = await next(alice.k.$chat(chatId), 1)
-
-  disconnect() // twist of fate
+  await disconnect() // twist of fate
 
   await aChat.send('OMG!!!... OmG OMG OMG OMG.  YES!!!!!')
 
@@ -64,16 +76,17 @@ test('Conversation recovers from disconnect', async t => {
 
 test('Prevent duplicate peer connections', async t => {
   const { alice, bob, disconnect } = await makeMatch()
-  const aHub = alice.k._net.rpc.hub
-  t.equal(aHub._nodes.size, 1, 'Alice has 1 connection')
+  let ac = await next(alice.k.$connections(), 0)
+  t.equal(ac.length, 1, 'Alice has 1 connection')
   // WebRTC dosen't support peer-deduping.
   alice.spawnWire({ client: true }).open(bob.spawnWire())
   bob.spawnWire({ client: true }).open(alice.spawnWire())
-  t.equal(aHub._nodes.size, 1, 'redundant connections were dropped')
-
+  ac = await next(alice.k.$connections(), 2)
+  t.equal(ac.length, 1, 'redundant connections were dropped')
   disconnect()
-
-  t.equal(aHub._nodes.size, 0, 'all connections dropped')
+  ac = await next(alice.k.$connections(), 1)
+  t.equal(ac.length, 0, 'all connections dropped')
   alice.spawnWire({ client: true }).open(bob.spawnWire())
-  t.equal(aHub._nodes.size, 1, 'Bob and alice reconnected')
+  ac = await next(alice.k.$connections(), 1)
+  t.equal(ac.length, 1, 'Bob and alice reconnected')
 })
