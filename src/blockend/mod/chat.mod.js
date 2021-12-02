@@ -10,7 +10,7 @@ const {
   toBuffer
 } = require('../util')
 
-const { combine, mute } = require('../nuro')
+const { combine, mute, init, gate } = require('../nuro')
 /* A reactive store whose value is conversation object
  * containing all then necesarry tidbits and bound actions
  * to progress the conversation
@@ -58,14 +58,14 @@ module.exports = function ChatModule () {
       const chat = {
         id: chatId,
         state: 'loading',
-        myTurn: true,
+        myTurn: null,
         peer: null,
         mLength: 0,
         messages: [],
         updatedAt: 0,
         createdAt: 0,
         expiresAt: 0,
-        health: 3, // TODO: initial health prop is in chats reducer
+        health: -1,
         errorMessage: null,
         head: null,
         send,
@@ -73,13 +73,12 @@ module.exports = function ChatModule () {
         bye
       }
       const cache = chat
-      // const set = subscriber
-      const $chat = mute(
+      return gate(init(chat, mute(
         combine(
           this._vibes(),
           s => this.store.on('chats', s)
         ),
-        ([vibes, chats], set) => {
+        async ([vibes, chats]) => {
           const vibe = vibes.find(v => chatId.equals(v.id))
           const lChat = chats.chats[chatId.toString('hex')]
 
@@ -102,6 +101,7 @@ module.exports = function ChatModule () {
             // First to vibe is first to write
             chat.myTurn = vibe.initiator === 'local'
           }
+          chat.health = 3
           if (!lChat) return chat
           chat.head = head = lChat.head
 
@@ -116,12 +116,13 @@ module.exports = function ChatModule () {
 
           // Skip message decryption if no new messages available
           if (chat.messages.length === lChat.messages.length) return chat
-
-          const decryptMessages = async () => {
+          // Decrypt messages
+          try {
             if (!localPair) localPair = await this._getLocalChatKey(chatId)
-            const unread = []
+            chat.messages = [...chat.messages] // copy message array
+            // loop through unread messages
             for (let i = chat.messages.length; i < lChat.messages.length; i++) {
-              const msg = { ...lChat.messages[i] } // Make a copy
+              const msg = { ...lChat.messages[i] } // copy lowlevel message
               head = msg.sig
               if (!msg.pass) {
                 if (msg.type === 'received') {
@@ -130,28 +131,12 @@ module.exports = function ChatModule () {
                   msg.content = await this._getMessageBody(msg.sig)
                 }
               } else msg.content = PASS_TURN.toString()
-              unread.push([i, msg])
+              chat.messages[i] = msg
             }
-            return unread
-          }
-
-          decryptMessages()
-            .catch(err => {
-              chat.state = 'error'
-              chat.errorMessage = err.message
-              console.error(err)
-            })
-            .then(unread => {
-              if (!unread) return
-              for (const [i, msg] of unread) {
-                chat.messages[i] = msg
-              }
-              set(chat, true)
-            })
-          // freaking react work-around
-          return { state: 'loading', myTurn: false, messages: [] }
+          } catch (err) { console.error('Message decryption failed', err) }
+          return chat
         })
-      return $chat
+      ))
     }
   }
 }

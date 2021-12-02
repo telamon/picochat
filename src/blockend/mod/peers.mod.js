@@ -8,13 +8,17 @@ const {
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK
 } = require('../util')
-const { mute, combine } = require('../nuro')
+const { mute, combine, init, gate } = require('../nuro')
 
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
 
 module.exports = function PeersModule () {
+  let setHasProfile = null
+  const hasProfile = new Promise(resolve => { setHasProfile = resolve })
   return {
+    __setHasProfile: setHasProfile, // Used by kernel.load()
+    hasProfile,
     /**
      * Generates a new user identity and creates the first profile block
      */
@@ -32,6 +36,7 @@ module.exports = function PeersModule () {
       await this.repo.writeReg(KEY_SK, sk)
       await this.repo.writeReg(KEY_BOX_LIKES_PK, box.pk)
       await this.repo.writeReg(KEY_BOX_LIKES_SK, box.sk)
+      setHasProfile(true)
     },
 
     async profileOf (key) {
@@ -68,7 +73,20 @@ module.exports = function PeersModule () {
      */
     $peer (id) {
       id = toPublicKey(id)
-      return reducePeer(this.store, id, this.pk && this.pk.equals(id))
+      if (this.pk.equals(id)) return this.$profile()
+
+      const $peer = mute(
+        s => this.store.on('peers', s),
+        peers => peers[id.toString('hex')] || ERR_PEER_NOT_FOUND
+      )
+      const $chats = s => this.store.on('chats', s)
+
+      return gate(init(PEER_PLACEHOLDER,
+        mute(
+          combine($peer, $chats),
+          computeProfile
+        )
+      ))
     },
 
     /**
@@ -84,12 +102,14 @@ module.exports = function PeersModule () {
       const $chats = this.store.on.bind(this.store, 'chats')
 
       // Higher level profiles neuron
-      const $profiles = mute(
-        combine($peers, $chats),
-        ([peers, chats]) => peers
-          .map(peer => computeProfile([peer, chats]))
-          .filter(p => p.state !== 'expired')
-      )
+      const $profiles = gate(init([],
+        mute(
+          combine($peers, $chats),
+          ([peers, chats]) => peers
+            .map(peer => computeProfile([peer, chats]))
+            .filter(p => p.state !== 'expired')
+        )
+      ))
       return $profiles
     },
 
@@ -97,39 +117,29 @@ module.exports = function PeersModule () {
      * Local peer/-profile
      */
     $profile () {
-      if (this.ready) return reducePeer(this.store, this.pk, true)
-      else {
-        // Hotswap subscripition when kernel.register() finished
-        return sub => {
-          let unsub = this.store.on('peer', peer => {
-            if (peer.pk) {
-              unsub()
-              unsub = reducePeer(this.store, this.pk, true)(sub)
-            } else sub(PEER_PLACEHOLDER)
-          })
-          return () => unsub()
-        }
-      }
+      const $chats = s => this.store.on('chats', s)
+      return gate(init(PEER_PLACEHOLDER,
+        mute(
+          combine(
+            mute(
+              s => this.store.on('peer', s),
+              async peer => {
+                await hasProfile
+                return peer
+              }
+            ),
+            $chats
+          ),
+          computeProfile
+        )
+      ))
     }
   }
 }
 
-function reducePeer (store, id, isSelf) { // Yeah we're dropping this terminology now.
-  const $peer = isSelf
-    ? s => store.on('peer', s) // Fetch own profile from 'peer' slice
-    : mute(
-      s => store.on('peers', s), // Fetch others from 'peers' slice
-      peers => peers[id.toString('hex')] || null
-    )
-  const $chats = s => store.on('chats', s)
-  return mute(
-    combine($peer, $chats),
-    computeProfile
-  )
-}
-
 function computeProfile ([peer, chats]) {
-  if (!peer) return ERR_PEER_NOT_FOUND
+  if (!peer) return ERR_PEER_NOT_FOUND // TODO: most likely redundant
+  if (peer.state === 'error') return peer
   if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
   const stats = chats.stats[peer.pk.toString('hex')] || {
     nEnded: 0,

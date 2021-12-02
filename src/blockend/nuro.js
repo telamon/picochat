@@ -1,13 +1,30 @@
+const ERROR = Symbol.for('piconeuro:Error')
+module.exports = {
+  ERROR,
+  get,
+  next,
+  writable,
+  notEqual,
+  notEqualDeep,
+  memo,
+  mute,
+  init,
+  combine,
+  isSync,
+  gate,
+  iter
+}
 /***
  * Pico::Neuron
  *
- * A pure functional approach to the reactive-store pattern
+ * A functional approach to the reactive-store pattern
  * delivering indiscriminate minimalism.
  * Easily bridged into any other framework of choice.
  *
  * A neuron is a function following this specific contract:
- * 1. Last argument must be a subscribe callback receiving a single value.
- * 2. Current value must be synchroneously published during subscribe
+ * 1. Single argument must be a subscribe callback receiving a single value.
+ * 2.a) Current value should be synchroneously published during subscribe
+ * 2.b) If current value is not available it may be deferred by returning a promise, use (init)
  * 3. Must return an unsubscribe method taking no arguments.
  *
  * Example:
@@ -36,38 +53,7 @@
  * const $profile = combine({ $name, $age })
  * $profile(console.log)() // logs: `{ name: 'Tony', age: 300 }`
  *
-
-// No this example does not work, v is immutable, request will always be fired.
-const addr = mute(init(), (v, set) => (!v &&
-  fetch('https://api64.ipify.org?format=json')
-    .then(res => set(res.json()))
-    .catch(console.error.bind(null, 'Failed lookup')) ||
-  v
-)
-  // Neuro sum
-  // Assume sum is a costly op, and we have other stores waiting.
-  const $sum = memo(mute(
-    combine(init(3), init(7)),
-    ([a, b]) => (a + b)
-  ))
-  const $powerTwo = mutate($sum, x => x ** 2)
-  const $timesTen = mutate($sum, x => x * 10)
-
-  if (get($sum) !== 10) throw new Error('Brain Error')
 */
-
-// Return values from compute method has to be 'null' in order
-// to be set
-function mute (neuron, compute, deepCompare = false) {
-  return function NeuronMutate (syn) {
-    const set = forwardDirty(syn, deepCompare)
-    // Method by default return undefined
-    return neuron(v => ((
-      (v = compute(v, set)),
-      typeof v !== 'undefined' && set(v))
-    ))
-  }
-}
 
 // One to many neuron (opposite of combine)
 function memo (neuron) {
@@ -92,41 +78,88 @@ function memo (neuron) {
   }
 }
 
-function forwardDirty (synapse, deepCompare = false) {
-  let value
-  let first = true
-  return function SynapseDirtyFilter (v, force = false) {
-    const dirty = !force && deepCompare
-      ? notEqualDeep(v, value)
-      : notEqual(v, value)
-    // console.info(`nuro:mute(${deepCompare}) => `, dirty, v, value)
-    if (first || force || dirty) {
-      first = false
-      value = v
-      synapse(v)
-      return v
+// Neuron that fires initial value once synchroneously.
+//  init(v, $n) => Fire1:  $n.sync || v; Fire2: $n.async
+function init (value, neuron) {
+  return function InitialValue (syn) {
+    let disconnected = false
+    let unsub = function noop () {}
+    let fired = false
+    if (typeof neuron === 'function') {
+      unsub = neuron(v => {
+        // value = v
+        fired = true
+        if (!disconnected) syn(v)
+      })
+    }
+    if (!fired) syn(value) // Note: disconnected is always false here
+    return () => {
+      disconnected = true
+      unsub()
     }
   }
 }
 
-/* NotSure if useful
-function dirty (neuron) {
-  return function NeuronDirtyFilter (syn) {
-    let value
+function gate (neuron, shallow = false) {
+  let value
+  let first = true
+  const check = typeof shallow === 'function'
+    ? shallow
+    : !shallow
+        ? notEqualDeep
+        : notEqual
+  return function NoiseGate (syn) {
     return neuron(v => {
-      if (notEqual(value, v)) syn(v)
-      value = v
+      const dirty = check(v, value)
+      // console.info(`nuro:gate(${shallow}) => `, dirty ? '>>PASS>>' : '!!HOLD!!\n>>> A\n', v, '\n===\n', value, '\n<<< B')
+      if (first || dirty) {
+        first = false
+        value = clone(v)
+        syn(v)
+      }
     })
   }
 }
-*/
 
-// Neuron that fires initial value once
-// then passes subscription to optional neuron
-function init (value, neuron) {
-  return function NeuronValue (syn) {
-    syn(value)
-    return typeof neuron === 'function' ? neuron(syn) : function NOOP () {}
+/**
+ * Produces a shallow clone of objects and arrays
+ */
+function clone (o) {
+  if (typeof o === 'object' && o !== null) return { ...o }
+  if (Array.isArray(o)) return [...o]
+  return o
+}
+/*
+ * Possibly async neuron.
+ * fires on immediate or async result.
+ * Does not fire placeholders, prepend with init() a sync initialValue is needed:
+ * use:
+ *
+ *  $peersUrl => init(
+ *    [], // Empty array as placeholder
+ *    mute($data, async u => fetch(u))
+ *  )
+ */
+function mute (neuron, fn) {
+  if (typeof fn !== 'function') throw new Error('expected a mutation function')
+  return function Mutate (syn) {
+    let prev = Promise.resolve(0)
+    return neuron(input => {
+      const output = fn(input)
+      if (
+        typeof output.then === 'function' &&
+        typeof output.catch === 'function'
+      ) {
+        prev = prev.then(() =>
+          output
+            .then(syn)
+            .catch(err => {
+              console.error('n:mute() failed: ', err)
+              syn(ERROR, err)
+            })
+        )
+      } else syn(output)
+    })
   }
 }
 
@@ -134,7 +167,9 @@ function init (value, neuron) {
 // that violate the contract of immediate invocation.
 function isSync (neuron) {
   let ii = false
-  neuron(() => { ii = true })()
+  let set = () => { ii = true }
+  neuron(() => set())()
+  set = () => { throw new Error('NeuronNotSync, subscription invoked after unsubscribe()') }
   return ii
 }
 // A neuron is a function that when called returns a synapse.
@@ -245,35 +280,51 @@ function writable (value) {
   ]
 }
 
-// Gets a value of a neuron
+// Gets the synchroneous value of a neuron
 function get (neuron) {
   let value = null
   neuron(v => { value = v })()
   return value
 }
 
-// iterative sync get
-function next (sub, n = 1) {
-  let unsub = null
-  return new Promise(resolve => {
-    unsub = sub(m => !n-- ? resolve(m) : null)
-  })
-    .then(v => {
-      unsub()
-      return v
-    })
+/**
+ * async version of get()
+ * n: number of values to skip,
+ * Imagine a neuron value stream to be an array:
+ * ['a', 'b', 'c']
+ * setting `n` to 0 will return 'a', set it to 2 to get 'c'
+*/
+async function next (neuron, n = 1) {
+  let value = null
+  for await (const v of iter(neuron, n + 1)) value = v
+  return value
 }
 
-module.exports = {
-  get,
-  nextState: next,
-  next,
-  writable,
-  notEqual,
-  notEqualDeep,
-  memo,
-  mute,
-  init,
-  combine,
-  isSync
+/**
+ * - {neuron} Neuron to generate from
+ * - {nValues} Number of values to generate, 1 will yield 1 value.
+ */
+async function * iter (neuron, nValues = 5) { // set max to -1 for eternal loop
+  const rQue = []
+  const pQue = []
+  oneMore()
+  let i = 0
+  const handler = v => {
+    if (nValues === -1 || ++i < nValues) oneMore()
+    const r = rQue.shift()
+    if (r) r(v)
+  }
+  const unsub = neuron(handler)
+  while (pQue.length) {
+    const p = pQue.shift()
+    const value = await p
+    yield value
+  }
+  unsub()
+  function oneMore () {
+    let r = null
+    const p = new Promise(resolve => { r = resolve })
+    rQue.push(r)
+    pQue.push(p)
+  }
 }

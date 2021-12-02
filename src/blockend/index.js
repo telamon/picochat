@@ -37,7 +37,6 @@ class Kernel {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
-
     // Process opts
     this._now = opts.now || (() => Date.now())
 
@@ -79,6 +78,7 @@ class Kernel {
         this._vibeController.setKeys(this.pk, this._vibeBox)
       }
       await this.store.load() // returns notification
+      if (this._sk && this.store.state.peer) this.__setHasProfile(true)
       return !!this._sk
     }
     if (!this.__loading) this.__loading = deferredLoad()
@@ -108,6 +108,7 @@ class Kernel {
   get ready () {
     return !!this._sk
   }
+
 
   /**
    * Helper that throws error if kernel is not ready

@@ -7,7 +7,7 @@ const {
   seal,
   boxPair
 } = require('../util')
-const { mute, combine } = require('../nuro')
+const { mute, combine, gate, init } = require('../nuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
 const D = require('debug')('picochat:mod:vibes')
 
@@ -79,7 +79,7 @@ module.exports = function VibesModule () {
     // Lower-level alternative without
     // Vibe.peer joined in which requires readReg lookup
     _vibes () {
-      return mute(
+      return gate(init([], mute(
         combine(
           s => this.store.on('chats', s),
           s => this.store.on('vibes', s)
@@ -97,52 +97,39 @@ module.exports = function VibesModule () {
           D('emit _vibes')
           return vibes
         }
-      )
+      )))
     },
 
     $vibes () {
-      const joinPeers = (vibes, set) => {
-        const tasks = []
+      const joinPeers = async vibes => {
         // INNER JOIN profile of 'other' on vibe
+        const out = []
         for (let i = 0; i < vibes.length; i++) {
-          const vibe = vibes[i]
+          const vibe = { ...vibes[i] }
           if (vibe.peer.state !== 'loading') continue
-          if (vibe.initiator === 'local') {
-            // Attempt to remember who we sent what to.
-            const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-            vibe.id.copy(key, 1)
-            key[0] = 84 // ASCII: 'T'
-            tasks.push(
-              this._readReg(key)
-                .then(pk => this.profileOf(pk))
-                .then(peer => ({ i, peer }))
-            )
-          } else {
-            tasks.push(
-              this.profileOf(vibe.a)
-                .then(peer => ({ i, peer }))
-            )
+
+          try {
+            let pk = vibe.a
+            if (vibe.initiator === 'local') {
+              // Attempt to remember who we sent what to.
+              const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+              vibe.id.copy(key, 1)
+              key[0] = 84 // ASCII: 'T'
+              pk = await this._readReg(key)
+            }
+            vibe.peer = await this.profileOf(pk)
+          } catch (err) {
+            console.warn('Failed resolving vibe.peer', err)
+            vibe.peer = { state: 'error', errorMessage: err.message }
           }
+          out.push(vibe)
         }
-        if (!tasks.length) return vibes
-        // When all tasks finish invoke subscriber
-        Promise.all(tasks)
-          .then(patches => {
-            D('emit $vibes async')
-            set(vibes.map((vibe, n) => {
-              const p = patches.find(p => p.i === n)
-              if (!p) return vibe
-              else return { ...vibe, peer: p.peer }
-            }))
-          })
-          .catch(err => {
-            console.error('Error occured resolving vibe.peer:', err)
-            throw err
-          })
-        D('emit $vibes')
-        return vibes
+        D('emit $vibes async')
+        return out
       }
-      return mute(this._vibes(), joinPeers, false)
+      return gate(
+        init([], mute(this._vibes(), joinPeers))
+      )
     }
   }
 }

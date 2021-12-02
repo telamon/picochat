@@ -34,9 +34,9 @@ test('GC: Chats deleted', async t => {
 
   let bChat = await next(bob.k.$chat(chatId), 0)
   await bChat.send('Marry me!')
-  const aChat = await next(alice.k.$chat(chatId))
+  const aChat = await next(alice.k.$chat(chatId), 1)
   await aChat.send('leave me alone you creep!')
-  bChat = await next(bob.k.$chat(chatId))
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('But i love you!')
   // Alice's feed is not timelocked and refuses reply
 

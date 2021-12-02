@@ -5,19 +5,8 @@ const {
   spawnPeer,
   makeMatch
 } = require('./test.helpers')
-const { RPC } = require('../src/blockend/rpc')
-const { unpromise } = require('piconet')
 
 require('piconet').V = 0
-/*process.on('uncaughtException', err => {
-  console.warn('TRAP UNCAUGHT', err)
-})*/
-/* require('promises-debugger')({
-  dimNodeModules: true,
-  dimInternalModules: false,
-  dimNotInProjectRoot: true,
-  removeInternalModules: true
-})*/
 
 test('Conversation recovers from disconnect', async t => {
   const { alice, bob, chatId, disconnect } = await makeMatch()
@@ -29,16 +18,16 @@ test('Conversation recovers from disconnect', async t => {
   let aChat = await next(alice.k.$chat(chatId), 1)
   await aChat.send('Hi')
 
-  bChat = await next(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('Will you marry me?')
 
-  aChat = await next(alice.k.$chat(chatId), 1)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await disconnect() // twist of fate
 
   await aChat.send('OMG!!!... OmG OMG OMG OMG.  YES!!!!!')
 
-  aChat = await next(alice.k.$chat(chatId), 0)
-  bChat = await next(bob.k.$chat(chatId), 0)
+  aChat = await next(alice.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(aChat.messages.length, 4, 'Alice has replied')
   t.equal(bChat.messages.length, 3, 'Bob can`t see alice`s reply')
   const latest = aChat.head
@@ -48,23 +37,23 @@ test('Conversation recovers from disconnect', async t => {
   const dcCA = charlie.spawnWire().open(alice.spawnWire())
   const dcBC = bob.spawnWire().open(charlie.spawnWire())
 
-  bChat = await next(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.messages.length, 4, 'Bob received alice`s reply through charlie')
 
   await bChat.send('Phew... You had me worried there, see you tomorrow?')
 
-  aChat = await next(alice.k.$chat(chatId), 1)
+  aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.messages.length, 5, 'messages are relayed')
 
   await aChat.send('Yup! <3<3<3')
-  bChat = await next(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.messages.length, 6, 'in both directions')
 
   await bChat.bye(2)
-  aChat = await next(alice.k.$chat(chatId), 1)
+  aChat = await next(alice.k.$chat(chatId), 2)
 
   await aChat.bye(2)
-  bChat = await next(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 2)
   // Charlie has done his deed and disconnects
   dcBC()
   dcCA()

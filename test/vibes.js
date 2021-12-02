@@ -13,7 +13,7 @@ test('Own vibes should be visible', async t => {
   charlie.k.sendVibe(alice.k.pk)
   daphne.k.sendVibe(alice.k.pk)
   await alice.k.sendVibe(bob.k.pk)
-  const vibes = await next(alice.k.$vibes(), 4)
+  const vibes = await next(alice.k.$vibes(), 3)
   t.equal(vibes.length, 3)
 })
 
@@ -52,12 +52,7 @@ test('Send vibe to peer', async t => {
   t.equal(vibe.peer.name, 'Alice')
 
   // Alice should see she has a potential match
-  alice.k.$vibes()(vibes => {
-    t.equal(vibes.length, 1)
-    vibe = vibes[0]
-  })()
-
-  vibes = await next(alice.k.$vibes(), 0)
+  vibes = await next(alice.k.$vibes(), 1)
   t.equal(vibes.length, 1)
   vibe = vibes[0]
   t.ok(vibe)
@@ -70,12 +65,12 @@ test('Send vibe to peer', async t => {
   await alice.k.respondVibe(vibe.id, true)
   await next(s => bob.k.store.on('vibes', s)) // Wait for response to transfer
 
-  vibe = (await next(alice.k.$vibes(), 0))[0]
+  vibe = (await next(alice.k.$vibes(), 1))[0]
   t.ok(vibe)
   t.equal(vibe.state, 'match') // <3
 
   // Bob receives alice response
-  vibe = (await next(bob.k.$vibes(), 0))[0]
+  vibe = (await next(bob.k.$vibes(), 1))[0]
   t.ok(vibe)
   t.equal(vibe.state, 'match') // <3
   t.end()
@@ -91,7 +86,7 @@ test('Vibe rejected by remote', async t => {
   await next(bob.k.$peers()) // await profile exchange
 
   const chatId = await bob.k.sendVibe(alice.k.pk)
-  await next(alice.k.$vibes(), 2) // await vibe recv
+  await next(alice.k.$vibes(), 1) // await vibe recv
 
   await alice.k.respondVibe(chatId, false)
 
@@ -104,21 +99,17 @@ test('First notify after block-creation should contain peer', async t => {
   const alice = await spawnPeer('Alice')
   const bob = await spawnPeer('BoB')
   bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
-  await next(bob.k.$peers()) // await profile exchange
+  await next(bob.k.$peers(), 1) // await profile exchange
   // Subscribe on vibes-list ahead
   let n = 0
   const p = new Promise((resolve, reject) => {
     const unsub = bob.k.$vibes()(vibes => {
+      n++
       if (!vibes.length) return
       t.equal(vibes.length, 1)
-      if (!n++) {
-        t.ok(vibes[0].peer)
-        t.equal(vibes[0].peer.state, 'loading')
-      } else { // JOIN peer on vibe takes 1 extra cycle
-        t.equal(vibes[0].peer.name, 'Alice')
-        unsub()
-        resolve()
-      }
+      t.equal(vibes[0].peer.name, 'Alice')
+      unsub()
+      resolve()
     })
   })
   await bob.k.sendVibe(alice.k.pk)
@@ -142,8 +133,8 @@ test('Sending vibe to someone who`s waiting for reply should result in match', a
   bob.spawnWire({ client: true }).open(alice.spawnWire()) // connect peers
   await next(bob.k.$peers()) // await profile exchange
   const bCID = await bob.k.sendVibe(alice.k.pk)
-  let aVibes = await next(alice.k.$vibes(), 2)
-  let bVibes = await next(bob.k.$vibes())
+  let aVibes = await next(alice.k.$vibes(), 1)
+  let bVibes = await next(bob.k.$vibes(), 1)
   t.equal(aVibes.length, 1)
   t.equal(aVibes.length, bVibes.length)
   const aCID = await alice.k.sendVibe(bob.k.pk)
