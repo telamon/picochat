@@ -1,5 +1,5 @@
 import React from 'react'
-import { kernel, useProfile } from '../db'
+import { kernel, useProfile, useConnections } from '../db'
 import CountDown from './CountDown.jsx'
 import DebugLogging from './DebugLogging.jsx'
 import { useHistory } from 'react-router-dom'
@@ -7,7 +7,7 @@ import { useHistory } from 'react-router-dom'
 export default function Header () {
   const peer = useProfile()
   const history = useHistory()
-
+  const connections = useConnections()
   async function inspectFeed () {
     const feed = await kernel.feed()
     feed.inspect()
@@ -40,7 +40,7 @@ export default function Header () {
             <li><a href='#/pub'>Pubs</a></li>
             <li>
               <button className='button is-small' onClick={inspectFeed}>inspect</button>
-              <button className='button is-small' onClick={reloadStores}>reload</button>
+              {/*<button className='button is-small' onClick={reloadStores}>reload</button>*/}
               <button className='button is-small is-danger' onClick={clearDatabase}>destroy</button>
             </li>
             <li>
@@ -65,6 +65,7 @@ export default function Header () {
                 GAME OVER
               </li>
             )}
+            <li><sub>[Mod56: <samp>{connections}</samp>]</sub></li>
           </ul>
         </nav>
       </div>

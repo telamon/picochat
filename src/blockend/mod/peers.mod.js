@@ -70,23 +70,33 @@ module.exports = function PeersModule () {
 
     /**
      * Peer by id
+     * same as _peer but introduces gate and default placeholder
      */
     $peer (id) {
-      id = toPublicKey(id)
+      return gate(init(PEER_PLACEHOLDER, this._peer(id)))
+    },
+
+    _peer (id) { // raw neuron
+      try {
+        id = toPublicKey(id)
+      } catch (err) {
+        return init({
+          ...ERR_PEER_NOT_FOUND,
+          errorMessage: err.message
+        })
+      }
+
       if (this.pk.equals(id)) return this.$profile()
 
       const $peer = mute(
         s => this.store.on('peers', s),
         peers => peers[id.toString('hex')] || ERR_PEER_NOT_FOUND
       )
-      const $chats = s => this.store.on('chats', s)
-
-      return gate(init(PEER_PLACEHOLDER,
-        mute(
-          combine($peer, $chats),
-          computeProfile
-        )
-      ))
+      const _chats = s => this.store.on('chats', s)
+      return mute(
+        combine($peer, _chats),
+        computeProfile
+      )
     },
 
     /**

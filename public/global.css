@@ -115,19 +115,14 @@ position:absolute;
 
 .peers-list-2{
   border-style: solid;
-  margin: 2vw;
-  width: 25vw;
+  margin: 2em;
+  width: 15vw;
   text-align: center;
 }
 
 .peers-list{
   text-align: center;
   display: flex;
-}
-
-.peers-icon{
-  margin: 2vw;
-  width: 25vw;
 }
 
 .peers-list-wrap{
@@ -142,7 +137,7 @@ position:absolute;
 
 }
 
-{//--------- Chat styling --------------------}
+/*--------- Chat styling --------------------*/
 
 .chat-container {
   border: 2px solid #dedede;

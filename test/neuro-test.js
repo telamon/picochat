@@ -2,14 +2,18 @@ const test = require('tape')
 const {
   notEqual,
   notEqualDeep,
+  combine,
+  memo,
   mute,
   init,
   gate,
   get,
   next,
   write,
+  settle,
   isSync,
   iter,
+  nfo,
   ERROR
 } = require('../src/blockend/nuro')
 
@@ -105,7 +109,7 @@ test('The Problem', async t => {
               chat.state = 'expired'
               // console.log('async resolve')
               resolve(chat)
-            }, 10)
+            }, 50)
           })
         }
       )
@@ -115,15 +119,15 @@ test('The Problem', async t => {
   const syncValue = get($n)
   t.deepEqual(syncValue, placeholder, 'sync set')
   t.equal(syncValue.state, 'loading')
-  const asyncValue = await next($n, 0)
-  t.equal(asyncValue.m.length, 7, 'async set')
+  const asyncValue = await next($n, 1)
+  t.equal(asyncValue.m.length, 5, 'async set')
   t.equal(asyncValue.state, 'expired')
 })
 
 test('init(): a memory with initial value', async t => {
   const $n = init('hello')
   t.equal(get($n), 'hello')
-  t.equal(isSync($n), true)
+  t.equal(await isSync($n), true)
 })
 
 test('init(): initializes async neuron', async t => {
@@ -138,6 +142,7 @@ test('mute(): modifies all values', async t => {
     x => x + 2
   )
   t.equal(get($n), 7)
+  t.equal(await isSync($n), true)
 })
 
 test('mute(): handles promises', async t => {
@@ -158,6 +163,7 @@ test('mute(): handles promises', async t => {
   // Errors should be handled within an async mute callback
   // maybe unsub() on ERROR for failfast behaviour
   t.equal(result, ERROR)
+  t.equal(await isSync($n), false)
 })
 
 test('mute(): resolves correct order', async t => {
@@ -193,12 +199,14 @@ test('mute(): asynchronity does not leak', async t => {
 })
 
 test('iter(): returns an async iterator', async t => {
-  const $n = $interval(6)
+  const $n = $interval(7, 0)
   const res = []
   for await (const i of iter($n, 6)) {
     res.push(i)
   }
   t.deepEqual(res, [0, 1, 2, 3, 4, 5])
+  const n = await next($n, 5) // next uses iter now
+  t.equal(n, 5)
 })
 
 test('gate(): fires only onchange', async t => {
@@ -211,6 +219,46 @@ test('gate(): fires only onchange', async t => {
     res.push(i)
   }
   t.deepEqual(res, [0, 1, 3, 5, 7])
+})
+
+test('memo(): one to many', async t => {
+  const $m = memo(gate(init([0, 0],
+    combine(
+      mute(init(5), async x => x + 2),
+      init(10)
+    )
+  )))
+
+  const $n = mute(
+    combine(
+      mute($m, ([a, b]) => a + b),
+      mute($m, ([a, b]) => a - b),
+      mute($m, ([a, b]) => a * b)
+    ),
+    ([sum, diff, product]) => ({ sum, diff, product })
+  )
+  const res = await next($n, 3)
+  t.equal(res.sum, 17)
+  t.equal(res.diff, -3)
+  t.equal(res.product, 70)
+})
+
+test.skip('memo(): having fun plotting a chart', async t => {
+  const $x = nfo(memo(gate(init(0, nfo($interval(9), 'int')))), 'memo')
+  const $n = init([0, 0, 0, 0], mute(
+    nfo(settle(nfo(combine(
+      $x,
+      mute($x, x => 1 + x * 0.3),
+      mute($x, x => -3 + x ** 2 * 0.05),
+      init(4)
+    ), 'comb')), 'settle'),
+    ([x, y1, y2, ceil]) => ({ x, y1, y2, ceil })
+  ))
+  let i = 0
+  for await (const sample of iter(nfo($n, 'OUTPUT'), 10)) {
+    console.log(i++, sample)
+  }
+  t.equal(i, 10)
 })
 
 /*

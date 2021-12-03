@@ -76,10 +76,52 @@ module.exports = function VibesModule () {
       return chatId
     },
 
+    $vibe (chatId) {
+      return gate(init({ state: 'loading', type: 'vibe' }, this._vibe(chatId)))
+    },
+    _vibe (chatId) { // ungated/inited raw
+      try {
+        chatId = toChatId(chatId)
+      } catch (err) {
+        return init({
+          state: 'error',
+          errorMessage: err.message
+        })
+      }
+      return mute(
+        combine(
+          s => this.store.on('chats', s),
+          s => this.store.on('vibes', s)
+        ),
+        ([chats, { matches }]) => {
+          const match = matches[chatId.toString('hex')]
+          const chat = chats.chats[chatId.toString('hex')]
+          if (!match) return { state: 'error', errorMessage: 'VibeNotFound' }
+          const initiator = this.pk.equals(match.a)
+          const vibe = computeVibe(chatId, match, initiator, chat)
+          return joinPeer.bind(this)(vibe)
+        }
+      )
+    },
+
+    $vibes () {
+      const joinPeers = async vibes => {
+        // INNER JOIN profile of 'other' on vibe
+        const out = []
+        for (let i = 0; i < vibes.length; i++) {
+          const vibe = { ...vibes[i] }
+          await joinPeer.bind(this)(vibe)
+          out.push(vibe)
+        }
+        D('emit $vibes async')
+        return out
+      }
+      return gate(init([], mute(this._vibes(), joinPeers)))
+    },
     // Lower-level alternative without
     // Vibe.peer joined in which requires readReg lookup
     _vibes () {
-      return gate(init([], mute(
+      return mute(
         combine(
           s => this.store.on('chats', s),
           s => this.store.on('vibes', s)
@@ -97,41 +139,30 @@ module.exports = function VibesModule () {
           D('emit _vibes')
           return vibes
         }
-      )))
-    },
-
-    $vibes () {
-      const joinPeers = async vibes => {
-        // INNER JOIN profile of 'other' on vibe
-        const out = []
-        for (let i = 0; i < vibes.length; i++) {
-          const vibe = { ...vibes[i] }
-          if (vibe.peer.state !== 'loading') continue
-
-          try {
-            let pk = vibe.a
-            if (vibe.initiator === 'local') {
-              // Attempt to remember who we sent what to.
-              const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-              vibe.id.copy(key, 1)
-              key[0] = 84 // ASCII: 'T'
-              pk = await this._readReg(key)
-            }
-            vibe.peer = await this.profileOf(pk)
-          } catch (err) {
-            console.warn('Failed resolving vibe.peer', err)
-            vibe.peer = { state: 'error', errorMessage: err.message }
-          }
-          out.push(vibe)
-        }
-        D('emit $vibes async')
-        return out
-      }
-      return gate(
-        init([], mute(this._vibes(), joinPeers))
       )
     }
   }
+}
+
+async function joinPeer (vibe) {
+  try {
+    if (!vibe.peerId && vibe.initiator === 'local') {
+      // Attempt to remember who we sent what to.
+      const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+      vibe.id.copy(key, 1)
+      key[0] = 84 // ASCII: 'T'
+      const pk = await this._readReg(key)
+      vibe.peerId = pk
+    }
+
+    if (vibe.peer.state === 'loading') {
+      vibe.peer = await this.profileOf(vibe.peerId)
+    }
+  } catch (err) {
+    console.warn('Failed resolving vibe.peer', err)
+    vibe.peer = { state: 'error', errorMessage: err.message }
+  }
+  return vibe
 }
 
 function computeVibe (chatId, match, initiator, chat) {
@@ -148,6 +179,9 @@ function computeVibe (chatId, match, initiator, chat) {
     b: match.b,
     head: match.response
   }
+  if (!initiator) out.peerId = out.a
+  else if (match.b) out.peerId = out.b
+  // else gotta lookup using _readReg(chatId), handled higher up
 
   if (match.state === 'rejected') out.state = 'rejected'
   else if (match.a && match.b) out.state = 'match'
@@ -178,4 +212,16 @@ function computeVibe (chatId, match, initiator, chat) {
       b: null
     }
   }
+}
+
+function toChatId (key) {
+  if (!key ||
+    !(
+      (Buffer.isBuffer(key) && key.length === 64) ||
+      (typeof key !== 'string' && key.length === 128)
+    )
+  ) {
+    throw new Error(`ChatID expected got "${key}"`)
+  }
+  return toBuffer(key)
 }

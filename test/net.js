@@ -15,7 +15,7 @@ test('Conversation recovers from disconnect', async t => {
   let bChat = await next(bob.k.$chat(chatId), 0)
   await bChat.send('Hello')
 
-  let aChat = await next(alice.k.$chat(chatId), 1)
+  let aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('Hi')
 
   bChat = await next(bob.k.$chat(chatId), 2)
@@ -58,7 +58,7 @@ test('Conversation recovers from disconnect', async t => {
   dcBC()
   dcCA()
 
-  aChat = await next(alice.k.$chat(chatId), 0)
+  aChat = await next(alice.k.$chat(chatId), 1)
   t.equal(aChat.state, 'end')
   t.equal(bChat.state, 'end')
 })

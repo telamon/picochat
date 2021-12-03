@@ -12,7 +12,9 @@ module.exports = {
   combine,
   isSync,
   gate,
-  iter
+  settle,
+  iter,
+  nfo
 }
 /***
  * Pico::Neuron
@@ -68,7 +70,7 @@ function memo (neuron) {
     return () => {
       synapses.delete(syn)
       if (synapses.length) return
-      disconnect()
+      if (disconnect) disconnect()
       disconnect = null
     }
   }
@@ -87,12 +89,11 @@ function init (value, neuron) {
     let fired = false
     if (typeof neuron === 'function') {
       unsub = neuron(v => {
-        // value = v
         fired = true
         if (!disconnected) syn(v)
       })
     }
-    if (!fired) syn(value) // Note: disconnected is always false here
+    if (!fired) syn(clone(value)) // Note: disconnected is always false here
     return () => {
       disconnected = true
       unsub()
@@ -100,18 +101,48 @@ function init (value, neuron) {
   }
 }
 
+/*
+ * Debug neuron, logs all signals
+ */
+let __nfoCtr = 0
+const __pal = Array.from(new Array(8)).map((_, bg) => Array.from(new Array(8)).map((_, fg) => `\x1b[0;${30 + fg};${40 + bg}m`))
+module.exports.V = 1 // VERBOSITY level
+function nfo (neuron, name) {
+  if (!module.exports.V) return neuron // Completely bypass NFO when V is zero
+  const ni = __nfoCtr++
+  if (!name) name = `NFO${pn(ni)}`
+  const nlog = console.info.bind(null, c(name, 0, ni))
+  let s = 0
+  return syn => {
+    let i = 0
+    const log = nlog.bind(null, c(`SYN${pn(s++)}`, 0, ni))
+    log(`>>${pn(i)}>> connected`)
+    const unsub = neuron(v => {
+      log(`!!${pn(i++)}!! `, v)
+      syn(v)
+    })
+    return () => {
+      unsub()
+      log(`<<${pn(i)}<< disconnected`)
+    }
+  }
+  function pn (n, p = 2) { return (n + '').padStart(p, '0') }
+  function c (s, b = 0, f = 0) { return `${__pal[b % 8][f % 8]}${s}\x1b[0m` }
+}
+
 function gate (neuron, shallow = false) {
-  let value
-  let first = true
   const check = typeof shallow === 'function'
     ? shallow
     : !shallow
         ? notEqualDeep
         : notEqual
+
   return function NoiseGate (syn) {
+    let value
+    let first = true
     return neuron(v => {
       const dirty = check(v, value)
-      // console.info(`nuro:gate(${shallow}) => `, dirty ? '>>PASS>>' : '!!HOLD!!\n>>> A\n', v, '\n===\n', value, '\n<<< B')
+      // console.info(`nuro:gate() ${dirty ? '>>PASS>>' : '||HOLD||'}\n>>> NEXT\n`, v, '\n===\n', value, '\n<<< PREV')
       if (first || dirty) {
         first = false
         value = clone(v)
@@ -121,12 +152,42 @@ function gate (neuron, shallow = false) {
   }
 }
 
+// Buffers a signal and outputs last value
+// !WARNING!
+// Use with care, this neuron introduces unchecked asyncronity into
+// your path causing racing conditions along the way.
+// Only use is for buffering final outputs to silly frameworks such as react
+// that render with a built-in rising-edge buffer
+function settle (neuron, debounceMs = 10, risingEdge = false) {
+  return function DebouncedSignal (syn) {
+    let value
+    let tid
+    let first = true
+    const unsub = neuron(v => {
+      value = v
+      if (risingEdge && first) {
+        first = false
+        syn(value)
+      }
+      if (tid) clearTimeout(tid)
+      tid = setTimeout(() => {
+        tid = null
+        syn(value)
+      }, debounceMs)
+    })
+    return () => {
+      if (unsub) unsub()
+      if (tid) clearTimeout(tid)
+    }
+  }
+}
+
 /**
  * Produces a shallow clone of objects and arrays
  */
 function clone (o) {
-  if (typeof o === 'object' && o !== null) return { ...o }
   if (Array.isArray(o)) return [...o]
+  if (typeof o === 'object' && o !== null) return { ...o }
   return o
 }
 /*
@@ -165,13 +226,29 @@ function mute (neuron, fn) {
 
 // Have issues with some old async reactive stores
 // that violate the contract of immediate invocation.
-function isSync (neuron) {
+function _isSync (neuron) { // Synchroneous version that throws errors on violation.
   let ii = false
   let set = () => { ii = true }
   neuron(() => set())()
   set = () => { throw new Error('NeuronNotSync, subscription invoked after unsubscribe()') }
   return ii
 }
+
+async function isSync (neuron, ms = 100) {
+  let fired = false
+  let aFired = false
+  let set = () => { fired = true }
+  neuron(() => set())()
+  let unlock = null
+  const mutex = new Promise((resolve) => { unlock = resolve })
+  set = () => { aFired = true; unlock() } // rewrite set
+  let tid = setTimeout(() => { tid = null; unlock() }, ms) // 100ms plenty of time to resolve
+  await mutex
+  if (tid) clearTimeout(tid)
+  else if (!fired && !aFired) throw new Error('Neuron did not fire during grace period')
+  return fired && !aFired
+}
+
 // A neuron is a function that when called returns a synapse.
 // A synapse is a function that takes a subscribe function, and returns an unsubscribe function.
 
@@ -294,11 +371,15 @@ function get (neuron) {
  * ['a', 'b', 'c']
  * setting `n` to 0 will return 'a', set it to 2 to get 'c'
 */
-async function next (neuron, n = 1) {
+async function next (neuron, n = 1, inspect = false) {
   let value = null
+  if (inspect) neuron = nfo(neuron, inspect)
   for await (const v of iter(neuron, n + 1)) value = v
   return value
 }
+
+// TODO: wishlist for santa-claus
+// async function settle (neuron, timeout = 30) { ... } // debounced version of next
 
 /**
  * - {neuron} Neuron to generate from

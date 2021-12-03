@@ -1,11 +1,35 @@
 const test = require('tape')
-const { next: nextState, get } = require('../src/blockend/nuro')
+const { next: nextState, isSync } = require('../src/blockend/nuro')
 const Kernel = require('../src/blockend/')
 const {
   makeDatabase,
   spawnPeer,
   makeMatch
 } = require('./test.helpers')
+
+test('Public API neurons provide an initial value', async t => {
+  const { alice, bob, chatId } = await makeMatch()
+  const k = alice.k
+  t.ok(await isSync(k.$profile()), '$profile')
+  t.ok(await isSync(k.$peers()), '$peers')
+  t.ok(await isSync(k.$peer(bob.k.pk)), '$peer(id)')
+  t.ok(await isSync(k.$vibes()), '$vibes')
+  t.ok(await isSync(k.$vibe(chatId)), '$vibe(id)')
+  t.ok(await isSync(k.$chat(chatId)), '$chat(id)')
+})
+
+test('Synchronity of internal APIs', async t => {
+  // Test internal API while we're at it.
+  // internal API is by design async to reduce
+  // amount of notifies/gates needed.
+  // It does all the heavy lifting
+  const { alice, bob, chatId } = await makeMatch()
+  const k = alice.k
+  t.ok(await isSync(k._peer(bob.k.pk)), '_peer(id) has no async ops')
+  // t.notOk(await isSync(nfo(k._vibes())), '_vibes') // fails, produces semi-loaded vibes...
+  t.notOk(await isSync(k._vibe(chatId)), '_vibe(id)')
+  // t.notOk(await isSync(k._chat(chatId)), '_chat(id)') // not required yet
+})
 
 test('Enter pub see peers', async t => {
   const PUB = 'Abyss'
@@ -70,7 +94,7 @@ test('Self-vibes throws error', async t => {
 test('Kernel#$chat()', async t => {
   const { alice, bob, chatId } = await makeMatch()
 
-  const aChat = await nextState(alice.k.$chat(chatId), 0)
+  const aChat = await nextState(alice.k.$chat(chatId), 1)
   t.equal(aChat.myTurn, false)
   t.equal(aChat.state, 'active')
   t.ok(Array.isArray(aChat.messages))
@@ -78,7 +102,7 @@ test('Kernel#$chat()', async t => {
   t.equal(typeof aChat.pass, 'function')
   t.equal(typeof aChat.bye, 'function')
 
-  const bChat = await nextState(bob.k.$chat(chatId), 0)
+  const bChat = await nextState(bob.k.$chat(chatId), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.state, 'active')
 })
@@ -92,7 +116,7 @@ process.on('uncaughtException', err => {
 test('Conversation: Hi! ... Hello', async t => {
   const { alice, bob, chatId } = await makeMatch()
   // Bob says Hi
-  let bChat = await nextState(bob.k.$chat(chatId), 0)
+  let bChat = await nextState(bob.k.$chat(chatId), 1)
   t.notEqual(bChat.state, 'loading')
   t.ok(bChat.myTurn)
   await bChat.send('Hi!') // Send the message
@@ -105,7 +129,7 @@ test('Conversation: Hi! ... Hello', async t => {
   t.equal(bChat.messages[0]?.content, 'Hi!', 'Sent should be readable')
 
   // Alice reads
-  let aChat = await nextState(alice.k.$chat(chatId), 1)
+  let aChat = await nextState(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true, 'Alice Turn')
   t.equal(aChat.messages.length, 1, 'Message should be received')
   t.equal(aChat.messages[0].type, 'received')
@@ -134,12 +158,12 @@ test('Conversation: Hi! ... Hello', async t => {
 
 test('Conversation: lose-lose', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 0)
+  let bChat = await nextState(bob.k.$chat(chatId), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 3)
   bChat.send('Hi')
 
-  let aChat = await nextState(alice.k.$chat(chatId), 1)
+  let aChat = await nextState(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true)
   await aChat.send('Hello what')
 
@@ -166,7 +190,7 @@ test('Conversation: lose-lose', async t => {
 
   await bChat.pass() // bob gives up, conversation exhausted
 
-  bChat = await nextState(bob.k.$chat(chatId), 0)
+  bChat = await nextState(bob.k.$chat(chatId), 1)
   t.equal(bChat.health, 0)
 
   aChat = await nextState(alice.k.$chat(chatId), 2)
@@ -188,10 +212,10 @@ test('Conversation: lose-lose', async t => {
 
 test('Conversation: win-win', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 0)
+  let bChat = await nextState(bob.k.$chat(chatId), 1)
   bChat.send('Hi')
 
-  let aChat = await nextState(alice.k.$chat(chatId), 1)
+  let aChat = await nextState(alice.k.$chat(chatId), 2)
 
   await aChat.send('hi')
 
@@ -234,12 +258,13 @@ test('Conversation: win-win', async t => {
 
   aChat = await nextState(alice.k.$chat(chatId), 2)
   await aChat.bye(2) // Alice hangs up
-  aChat = await nextState(alice.k.$chat(chatId), 0)
+  aChat = await nextState(alice.k.$chat(chatId), 1)
   t.equal(aChat.myTurn, false)
 
   bChat = await nextState(bob.k.$chat(chatId), 2)
   t.equal(bChat.state, 'finalizing')
   t.equal(bChat.myTurn, true)
+
   await bChat.bye(2) // Bob hangs up
 
   // Both are at state end
@@ -255,10 +280,10 @@ test('Conversation: win-win', async t => {
 
 test('Conversation: messages should not be interpreted as hexStrings', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 0)
+  let bChat = await nextState(bob.k.$chat(chatId), 1)
   bChat.send('0123')
 
-  const aChat = await nextState(alice.k.$chat(chatId), 1)
+  const aChat = await nextState(alice.k.$chat(chatId), 2)
   t.equal(aChat.messages[0].content, '0123')
   bChat = await nextState(bob.k.$chat(chatId), 1)
   t.equal(bChat.messages[0].content, '0123')

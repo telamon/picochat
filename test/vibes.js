@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next } = require('../src/blockend/nuro')
+const { next, nfo } = require('../src/blockend/nuro')
 const {
   spawnPeer,
   spawnSwarm,
@@ -38,7 +38,6 @@ test('Send vibe to peer', async t => {
   let vibes = await next(s => alice.k.store.on('vibes', s))
   t.equal(vibes.own.length, 1)
   const match = vibes.matches[vibes.own[0].toString('hex')]
-
   t.ok(bob.k.pk.equals(match.a))
   t.ok(Buffer.isBuffer(match.remoteBox))
 
@@ -47,7 +46,7 @@ test('Send vibe to peer', async t => {
   t.equal(vibes.length, 1)
   let vibe = vibes[0]
   t.ok(vibe)
-  t.ok(chatId.equals(vibe.id))
+  t.ok(chatId.equals(vibe.id), 'chatId equals vibeId')
   t.equal(vibe.state, 'waiting_remote')
   t.equal(vibe.peer.name, 'Alice')
 
@@ -63,14 +62,13 @@ test('Send vibe to peer', async t => {
 
   // Alice sends response
   await alice.k.respondVibe(vibe.id, true)
-  await next(s => bob.k.store.on('vibes', s)) // Wait for response to transfer
 
   vibe = (await next(alice.k.$vibes(), 1))[0]
   t.ok(vibe)
   t.equal(vibe.state, 'match') // <3
 
   // Bob receives alice response
-  vibe = (await next(bob.k.$vibes(), 1))[0]
+  vibe = (await next(bob.k.$vibes(), 2))[0]
   t.ok(vibe)
   t.equal(vibe.state, 'match') // <3
   t.end()
@@ -86,8 +84,8 @@ test('Vibe rejected by remote', async t => {
   await next(bob.k.$peers()) // await profile exchange
 
   const chatId = await bob.k.sendVibe(alice.k.pk)
-  await next(alice.k.$vibes(), 1) // await vibe recv
 
+  await next(alice.k.$vibes(), 1) // await vibe recv
   await alice.k.respondVibe(chatId, false)
 
   const vibe = (await next(bob.k.$vibes(), 2))[0] // await vibe resp

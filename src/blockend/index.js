@@ -109,7 +109,6 @@ class Kernel {
     return !!this._sk
   }
 
-
   /**
    * Helper that throws error if kernel is not ready
    */

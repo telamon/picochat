@@ -71,10 +71,12 @@ test('kernel.$peers streams profile array', async t => {
 test('Successful conversation should add peer time', async t => {
   const { alice, bob, chatId } = await makeMatch()
   const d1 = await next(bob.k.$profile(), 1)
-  let bChat = await next(bob.k.$chat(chatId), 0)
+
+  let bChat = await next(bob.k.$chat(chatId), 1)
+
   await bChat.send('Hello')
 
-  let aChat = await next(alice.k.$chat(chatId), 1)
+  let aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('Hi')
 
   bChat = await next(bob.k.$chat(chatId), 2)
@@ -93,6 +95,7 @@ test('Successful conversation should add peer time', async t => {
   await bChat.bye(0)
 
   aChat = await next(alice.k.$chat(chatId), 2)
+
   await aChat.bye(2)
 
   const d2 = await next(bob.k.$profile(), 2)
@@ -101,7 +104,7 @@ test('Successful conversation should add peer time', async t => {
 
 test('Successful message should add chat time', async t => {
   const { bob, chatId } = await makeMatch()
-  let bChat = await next(bob.k.$chat(chatId), 0)
+  let bChat = await next(bob.k.$chat(chatId), 1)
   const initialCAt = bChat.createdAt
   const start = bChat.expiresAt
   t.notEqual(start, 0, 'Starting time should not be 0')

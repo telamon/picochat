@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-import { useProfile, useChat } from '../db'
+import { useProfile, useChat, usePeer } from '../db'
 import CountDownTimer from './CountDown.jsx'
 import dayjs from 'dayjs'
 
@@ -8,10 +8,23 @@ export default function Chat () {
   const { id } = useParams()
   const profile = useProfile()
   const chat = useChat(id)
-  const peer = chat.peer
+  const peer = usePeer(chat.peerId)
   const [text, setText] = useState('')
   const messageElement = useRef(null)
   const history = useHistory()
+  console.info('Chat.jsx, chat:', chat, ' profile: ', profile)
+
+  useEffect(() => {
+    if (chat.state === 'finalizing' && chat.myTurn) {
+      bye() // Auto-bye
+    }
+  }, [chat.state, chat.myTurn])
+  console.log('ChatLoader',
+    chat.state === 'loading',
+    profile.state === 'loading',
+    !chat.peerId
+  )
+
   if (messageElement.current) {
     const el = messageElement.current
     setTimeout(() => {
@@ -23,12 +36,15 @@ export default function Chat () {
       send()
     }
   }
+
   function chatTimeout () {
-    const [gameOver, setGameOver] = useState()
+    // history.push('/game_over')
+    // TODO: It's not game-over when chat times out.
+    // rather chat will eventually be moved into archive where
+    // it can be seen in it's finished state
+    // redirect to: /archive/chatId
   }
-  if (profile.state === 'expired_') {
-    history.push('/game_over')
-  }
+
   function send () {
     chat.send(text)
       .then(() => {
@@ -51,21 +67,16 @@ export default function Chat () {
       })
   }
   function bye () {
-    const gesture = 0
-    return chat.bye(gesture)
+    console.log('Ending conversation')
+    return chat.bye(0)
       .then(() => {
-        console.log('Ending conversation')
+        console.log('chat.bye() succeded')
         setText('')
       })
       .catch(err => {
         console.error('chat.bye() failed:', err)
       })
   }
-  useEffect(() => {
-    if (chat.state === 'finalizing' && chat.myTurn) {
-      bye()
-    }
-  }, [chat.state, chat.myTurn])
 
   function drawHealth () {
     let output = ''
@@ -75,11 +86,11 @@ export default function Chat () {
     return output
   }
 
-  if (chat.state === 'loading' || !peer) return (<h5>loading</h5>)
+  // if (chat.state === 'loading') return (<samp>Loading chat..</samp>)
   return (
     <div className='is-success chat-div'>
-      <h1>{profile.name} here is you can chat now with
-        <strong key={peer.pk}>{peer.name}</strong>
+      <h1>
+        <strong>{peer.name}</strong>
       </h1>
       <span className='count-down-1'>
         Time left to end of conversation <CountDownTimer expiresAt={chat.expiresAt} onTimeout={chatTimeout} />
