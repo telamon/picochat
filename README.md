@@ -4,18 +4,30 @@
 
 > Virtual Pub
 
-## Use
+## Start
+
+```bash
+yarn
+yarn dev
+```
+
+## Using as a dependency
 
 ```bash
 $ npm install picochat
 ```
 
 ```js
-const mod = require('picochat')
-mod.doMagic() // => Result
-```
+import Kernel from 'picochat'
+const k = new Kernel(leveldb)
+await k.load()
 
-## Donations
+// --or-- in future releases
+import { kernel, useProfile, usePeers, useChat } from 'picochat/react-hooks'
+```
+Check the `src/blockend` folder for kernel docs.
+
+## credits
 
 ```ad
 |  __ \   Help Wanted!     | | | |         | |
