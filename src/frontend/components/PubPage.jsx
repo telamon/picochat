@@ -46,27 +46,33 @@ export default function Pubs () {
         )}
         {!!peers.length && (
           <div className='peers-list peers-list-wrap'>
-            {peers.map(peer => (
-              <div className='peers-list-wrap-2' key={peer.pk}>
-                <div className='column peers-list-2'>
-                  <div className='column peers-icon'>
-                    <span className='icon-3'>{peer.picture}</span>
-                  </div>
-                  <div className='column'>
-                    <span className='icon-2'>{icons[peer.sex]}</span>
-                    <h1>{peer.name}</h1>
-                    <span title='Game Over when expires!'><CountDownTimer expiresAt={peer.expiresAt || 0} /></span>
-                    <h3 className='smalle-tagline'>{peer.tagline}</h3>
-                    <button
-                      disabled={vibes.find(vibe => vibe.peer.pk?.equals(peer.pk))}
-                      className='button is-primary'
-                      onClick={() => sendVibe(peer)}>
-                      Send Vibe
-                    </button>
+            {peers.map(peer => {
+              const activeVibe = vibes.find(vibe => vibe.peer.pk?.equals(peer.pk))
+              let classes = 'button is-primary'
+              if (activeVibe) classes = 'button is-ghost'
+              return (
+                <div className='peers-list-wrap-2' key={peer.pk}>
+                  <div className='column peers-list-2'>
+                    <div className='column peers-icon'>
+                      <span className='icon-3'>{peer.picture}</span>
+                    </div>
+                    <div className='column'>
+                      <span className='icon-2'>{icons[peer.sex]}</span>
+                      <h1>{peer.name}</h1>
+                      <span title='Game Over when expires!'><CountDownTimer expiresAt={peer.expiresAt || 0} /></span>
+                      <h3 className='smalle-tagline'>{peer.tagline}</h3>
+                      <button
+                        disabled={activeVibe}
+                        className={classes}
+                        onClick={() => sendVibe(peer)}
+                      >
+                        Send Vibe
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
