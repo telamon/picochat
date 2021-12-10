@@ -2,16 +2,15 @@ import { useState, useEffect } from 'react'
 import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
-import { get, mute } from '../blockend/nuro'
+import { get, mute, gate, init, settle } from '../blockend/nuro'
 const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
 export const kernel = new Kernel(DB)
-
-// Pico::Neuro To be renamed
+// Pico::Neuro
 function useNeuro ($n) {
-  const [value, set] = useState(get($n))
-  useEffect(() => $n(set), [set])
+  const [value, set] = useState(() => get($n))
+  useEffect(() => settle($n)(set), [set]) // I start disliking react more and more.
   return value
 }
 
@@ -24,8 +23,20 @@ export function usePeers () {
   return useNeuro(kernel.$peers())
 }
 
+export function usePeer (id) {
+  return useNeuro(kernel.$peer(id))
+}
+
 export function useVibes () {
-  return useNeuro(kernel.$vibes())
+  return useNeuro(
+    kernel.$vibes()
+  )
+}
+
+export function useConnections () {
+  return useNeuro(
+    gate(init(0, mute(kernel.$connections(), cnns => cnns.length)))
+  )
 }
 
 export function useGameOver () {
@@ -89,15 +100,18 @@ export function useBoot () {
  * } = useChat(id) // <-- same id as vibeId
  */
 export function useChat (chatId) {
-  const [value, set] = useState({})
+  const $n = kernel.$chat(chatId)
+  const [value, set] = useState(() => get($n))
   const [messages, setMessages] = useState([])
   useEffect(() => {
     if (!kernel.ready) return
-    return kernel.$chat(chatId)(chat => {
-      set(chat)
-      setMessages(chat.messages)
+    return settle($n)(chat => {
+      set({ ...chat })
+      // console.log('Neuro--~>--react', chat.messages)
+      setMessages([...chat.messages])
     })
   }, [kernel.ready, set, setMessages])
+  // console.log('Rerender messages', messages)
   return { ...value, messages }
 }
 

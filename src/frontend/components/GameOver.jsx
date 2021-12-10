@@ -5,7 +5,13 @@ import { useProfile } from '../db'
 export default function GameOver () {
   const history = useHistory()
   const profile = useProfile()
-  console.log(profile)
+
+  console.log('GameOver.jsx, profile:', profile)
+  if (profile.state === 'loading') {
+    return (
+      <samp>Loading..</samp>
+    )
+  }
 
   return (
     <>

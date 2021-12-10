@@ -2,6 +2,7 @@ const {
   TYPE_VIBE,
   TYPE_VIBE_RESP,
   TYPE_PROFILE,
+  TYPE_BYE_RESP,
   VIBE_REJECTED,
   decodeBlock,
   unseal
@@ -11,7 +12,7 @@ const D = require('debug')('picochat:slices:vibes')
 const TTL = 5 * 1000 * 60 // Defaults to 5 minutes
 const RESP_TTL = 3 * 1000 * 60 // Defaults to 5 minutes
 
-class VibeCtrl { // TODO: revert back to factory instead of class pattern.
+class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
   constructor (vibeTTL = TTL) {
     this._sk = null
     this._pk = null
@@ -57,7 +58,10 @@ class VibeCtrl { // TODO: revert back to factory instead of class pattern.
     // Assert vibes
     if (type === TYPE_VIBE) {
       // Ensure parent is either profile or own chat-head or tail?
-      if (parentType !== TYPE_VIBE && parentType !== TYPE_PROFILE) return `InvalidParent: ${parentType}`
+      if (
+        parentType !== TYPE_PROFILE &&
+        parentType !== TYPE_BYE_RESP // Continue where we left off
+      ) return `InvalidParent: ${parentType}`
 
       const key = block.key.toString('hex')
       // Reject block if vibe timestamp located in the future.

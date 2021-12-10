@@ -7,7 +7,7 @@ const {
   seal,
   boxPair
 } = require('../util')
-const { mute } = require('../nuro')
+const { mute, combine, gate, init } = require('../nuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
 const D = require('debug')('picochat:mod:vibes')
 
@@ -66,6 +66,7 @@ module.exports = function VibesModule () {
       const sealedMessage = seal(msgBox.pk, peer.box)
 
       const block = await this.repo.readBlock(chatId)
+      if (!block) throw new Error('Block no longer exists')
       const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
         box: !like ? VIBE_REJECTED : sealedMessage,
         link: this.store.state.peer.sig // Weak-ref to own checkpoint
@@ -75,16 +76,63 @@ module.exports = function VibesModule () {
       return chatId
     },
 
+    $vibe (chatId) {
+      return gate(init({ state: 'loading', type: 'vibe' }, this._vibe(chatId)))
+    },
+    _vibe (chatId) { // ungated/inited raw
+      try {
+        chatId = toChatId(chatId)
+      } catch (err) {
+        return init({
+          state: 'error',
+          errorMessage: err.message
+        })
+      }
+      return mute(
+        combine(
+          s => this.store.on('chats', s),
+          s => this.store.on('vibes', s)
+        ),
+        ([chats, { matches }]) => {
+          const match = matches[chatId.toString('hex')]
+          const chat = chats.chats[chatId.toString('hex')]
+          if (!match) return { state: 'error', errorMessage: 'VibeNotFound' }
+          const initiator = this.pk.equals(match.a)
+          const vibe = computeVibe(chatId, match, initiator, chat)
+          return joinPeer.bind(this)(vibe)
+        }
+      )
+    },
+
+    $vibes () {
+      const joinPeers = async vibes => {
+        // INNER JOIN profile of 'other' on vibe
+        const out = []
+        for (let i = 0; i < vibes.length; i++) {
+          const vibe = { ...vibes[i] }
+          await joinPeer.bind(this)(vibe)
+          out.push(vibe)
+        }
+        D('emit $vibes async')
+        return out
+      }
+      return gate(init([], mute(this._vibes(), joinPeers)))
+    },
     // Lower-level alternative without
-    // Vibe.peer joined in
+    // Vibe.peer joined in which requires readReg lookup
     _vibes () {
-      return mute(s => this.store.on('vibes', s),
-        ({ sent, received, own, matches }, set) => {
+      return mute(
+        combine(
+          s => this.store.on('chats', s),
+          s => this.store.on('vibes', s)
+        ),
+        ([chats, { sent, received, own, matches }], set) => {
           const vibes = []
           for (const chatId of own) {
             const match = matches[chatId.toString('hex')]
+            const chat = chats.chats[chatId.toString('hex')]
             const initiator = this.pk.equals(match.a)
-            const vibe = computeVibe(chatId, match, initiator)
+            const vibe = computeVibe(chatId, match, initiator, chat)
             if (vibe.state === 'expired') continue // let GC handle the rest
             vibes.push(vibe)
           }
@@ -92,54 +140,37 @@ module.exports = function VibesModule () {
           return vibes
         }
       )
-    },
-
-    $vibes () {
-      const joinPeers = (vibes, set) => {
-        const tasks = []
-        // INNER JOIN profile of 'other' on vibe
-        for (const vibe of vibes) {
-          if (vibe.initiator === 'local') {
-            // Attempt to remember who we sent what to.
-            const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
-            vibe.id.copy(key, 1)
-            key[0] = 84 // ASCII: 'T'
-            tasks.push(
-              this._readReg(key)
-                .then(pk => this.profileOf(pk))
-                .then(peer => { vibe.peer = peer })
-            )
-          } else {
-            tasks.push(
-              this.profileOf(vibe.a)
-                .then(p => { vibe.peer = p })
-            )
-          }
-        }
-        // When all tasks finish invoke subscriber
-        Promise.all(tasks)
-          .then(() => {
-            D('emit $vibes async')
-            set(vibes)
-          })
-          .catch(err => {
-            console.error('Error occured resolving vibe.peer:', err)
-            throw err
-          })
-        D('emit $vibes')
-        return vibes
-      }
-      return mute(this._vibes(), joinPeers)
     }
   }
 }
 
-function computeVibe (chatId, match, initiator) {
+async function joinPeer (vibe) {
+  try {
+    if (!vibe.peerId && vibe.initiator === 'local') {
+      // Attempt to remember who we sent what to.
+      const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
+      vibe.id.copy(key, 1)
+      key[0] = 84 // ASCII: 'T'
+      const pk = await this._readReg(key)
+      vibe.peerId = pk
+    }
+
+    if (vibe.peer.state === 'loading') {
+      vibe.peer = await this.profileOf(vibe.peerId)
+    }
+  } catch (err) {
+    console.warn('Failed resolving vibe.peer', err)
+    vibe.peer = { state: 'error', errorMessage: err.message }
+  }
+  return vibe
+}
+
+function computeVibe (chatId, match, initiator, chat) {
   const out = {
     ...initVibe(chatId),
     updatedAt: match.updatedAt,
     createdAt: match.createdAt,
-    expiresAt: match.expiresAt,
+    expiresAt: chat?.expiresAt || match.expiresAt,
     box: match.remoteBox,
     initiator: initiator ? 'local' : 'remote',
     localRejected: initiator && match.state === 'rejected',
@@ -148,6 +179,9 @@ function computeVibe (chatId, match, initiator) {
     b: match.b,
     head: match.response
   }
+  if (!initiator) out.peerId = out.a
+  else if (match.b) out.peerId = out.b
+  // else gotta lookup using _readReg(chatId), handled higher up
 
   if (match.state === 'rejected') out.state = 'rejected'
   else if (match.a && match.b) out.state = 'match'
@@ -178,4 +212,16 @@ function computeVibe (chatId, match, initiator) {
       b: null
     }
   }
+}
+
+function toChatId (key) {
+  if (!key ||
+    !(
+      (Buffer.isBuffer(key) && key.length === 64) ||
+      (typeof key !== 'string' && key.length === 128)
+    )
+  ) {
+    throw new Error(`ChatID expected got "${key}"`)
+  }
+  return toBuffer(key)
 }

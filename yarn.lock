@@ -276,9 +276,9 @@
     "@swc/core-win32-x64-msvc" "^1.2.105"
 
 "@telamon/picostore@^1.3.1":
-  version "1.4.6"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.4.6.tgz#b013cb0b2a6785936257f02ae02b45c05ba739b5"
-  integrity sha512-mlrrj4Ja+GS5+ElOEP/PInzEweNKSwY60gVCkB+fzft2UR3/2RqCtB8Xy5eubtEblmbmP8Ln7mH+4cy8hW1afQ==
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.4.7.tgz#0adcb12348e9489a49e8f05506c51eed7a77d05a"
+  integrity sha512-6S4XnXGCTl0nUAWBbYJ6kO8RxrS3j4Qak/JQ31EJZ5DVYzGz4wb/a95Y5lD5kun2eFunRmifzNVYWYwsUDow3A==
   dependencies:
     picorepo "^1.0.0"
 
@@ -3581,10 +3581,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.2.3:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.0.tgz#f1f061de8f6a4bf022892e2d128234fb98302972"
   integrity sha512-lY1Q/PiJGC2zOv/z391WOTD+Z02bCgsFfvxoXXf6h7kv9o+WmsmzYqrAwY63sNgOxE4xEdq0WyUnXfKeBrSvYw==
 
-piconet@^2.0.0:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/piconet/-/piconet-2.2.2.tgz#ca3245dce4fa0e44b266274e04e6e3d09e6ba147"
-  integrity sha512-wk3aE/BJZSmr2seusG0T7wif8K0s/35wKLKcdFgmVjr1l7czYiHR2LZL+judDLx0Vj1dvBh3IVsgvY8DeByksQ==
+piconet@^3.1.0:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/piconet/-/piconet-3.1.1.tgz#3a8c0774f29574ef53aebf90060e91a057fd0be3"
+  integrity sha512-O8Kjyg1if/zyhguR0OLo3ZVEEaYMiTP4cK5F5H0V56OjntBkvU1YLz0qUW7WZWoZWZTGhULFWT1ZZqaDMrtipg==
 
 picorepo@^1.0.0:
   version "1.0.0"
