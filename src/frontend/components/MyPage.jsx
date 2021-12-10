@@ -32,6 +32,7 @@ export default function Mypage () {
           <p>Was created at {dayjs(profile.date).format('DD/MM/YYYY HH:mm:ss')}</p>
           <CountDownTimer expiresAt={profile.expiresAt || 0} />
           <p>State: <samp>{profile.state}</samp></p>
+          <p>Current Score is: <samp>{profile.score}</samp></p>
         </div>
       </div>
       <Pubs />
