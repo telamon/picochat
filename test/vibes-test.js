@@ -3,7 +3,8 @@ const { next } = require('../src/blockend/nuro')
 const {
   spawnPeer,
   spawnSwarm,
-  makeMatch
+  makeMatch,
+  makeChat
 } = require('./test.helpers')
 
 test('Own vibes should be visible', async t => {
@@ -160,4 +161,14 @@ test('Store rejects sendVibe if previous has not timed out', async t => {
   }
   bVibes = await next(bob.k.$vibes())
   t.equal(bVibes.length, 1)
+})
+
+test('Initiator can send vibe after chat end', async t => {
+  const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
+  const chatAB = await makeChat(alice, bob)
+  t.ok(chatAB)
+  // await alice.k._inspectChat(chatAB)
+  const chatAC = await makeChat(alice, charlie)
+  t.ok(chatAC)
+  // await alice.k._inspectChat(chatAC)
 })

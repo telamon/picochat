@@ -122,7 +122,13 @@ class Kernel {
         case TYPE_BYE_RESP:
           keys[0] = block.key
           heads[0] = block.sig
-          abort(!nLoaded && type !== TYPE_BYE_RESP)
+          // If this is not the first block encountered
+          // and we reached a bye or profile, then we've reached
+          // end of segment and should not load further.
+          // to load that next segment rerun tracepath with exported
+          // head[0]
+          if (nLoaded) abort()
+          // abort(!nLoaded && type !== TYPE_BYE_RESP)
           break
         case TYPE_VIBE:
           chatId = block.sig

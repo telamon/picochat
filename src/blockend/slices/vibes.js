@@ -3,6 +3,7 @@ const {
   TYPE_VIBE_RESP,
   TYPE_PROFILE,
   TYPE_BYE_RESP,
+  EV_CHAT_END,
   VIBE_REJECTED,
   decodeBlock,
   unseal
@@ -81,7 +82,6 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
       if (parentType !== TYPE_VIBE) return `InvalidParent: ${parentType}`
       // TODO: return 'Expired' if match.expiresAt < now()
     }
-
     return false // All good, accept block
   }
 
@@ -93,12 +93,11 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
     const key = chatId.toString('hex')
     const rejected = VIBE_REJECTED.equals(vibe.box)
 
-    // Set lookup reference
-    state.seen[block.key.toString('hex')] = chatId
-
     if (type === TYPE_VIBE) {
       D('%s reducing vibe: %o %h %h', root.peer.name, !!state.matches[key], block.key, block.sig)
       if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
+      // Set lookup reference
+      state.seen[block.key.toString('hex')] = chatId
       const match = state.matches[key] = mkMatch()
       match.chatId = chatId
       match.a = block.key
@@ -139,23 +138,25 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
 
     this._reduceHasRun = true
     schedule('chat', match.chatId, match.expiresAt)
-
-    // Collect garbage
-    // TODO: Rewrite to handle matches & own registries
-    // TODO: somehow remove obsolete blocks from repo
-    /*
-    {
-      const before = [state.received.length, state.sent.length, Object.keys(state.seen).length]
-      debug(`Collecting garbage. r/s/t: ${before}`)
-      // All timestamps older/less than timout are considered expired
-      const timeout = new Date().getTime() - this.ttl
-      for (const key in state.seen) {
-        if (state.seen[key].date < timeout) delete state.seen[key]
-      }
-      debug(`Collected. r/s/t: ${[state.received.length, state.sent.length, Object.keys(state.seen).length]}`)
-    } */
-
     return state // return new state
+  }
+
+  trap ({ code, payload, root, state }) {
+    switch (code) {
+      case EV_CHAT_END: {
+        const strkey = payload.toString('hex')
+        const chat = root.chats.chats[strkey]
+        delete state.seen[chat.a.toString('hex')] // Release vibe-block
+        // delete state.matches[strkey] // remove match to please single-vibe filter.
+        // Question; should state.own be cleared here??
+        // i know too little about what to do with completed chats.
+        // they should most likely be archived.
+        D('%s Peer Unseen %h => %h', root.peer.name, chat.a.toString('hex'), payload)
+      } break
+      default:
+        return // return undefined, (interrupt ignored/state-unchanged)
+    }
+    return state
   }
 }
 

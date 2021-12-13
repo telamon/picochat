@@ -23,6 +23,10 @@ const TYPE_MESSAGE = 'message'
 const TYPE_BYE = 'bye'
 const TYPE_BYE_RESP = 'byebye'
 
+// Interrupts (internal lowlevel events)
+// Yes.. they look scary cause they probably are. :/
+const EV_CHAT_END = 60
+
 // Other Constants
 const VIBE_REJECTED = Buffer.from('💔')
 const PASS_TURN = Buffer.from('😶')
@@ -128,36 +132,37 @@ createDebug.formatters.H = v => {
  */
 function feedToGraph (f) {
   let graph = ''
-  const w = f.first.isGenesis ? f.first.key : null
+  let w = f.first.isGenesis ? f.first.key : null
   for (const block of f.blocks()) {
     switch (typeOfBlock(block.body)) {
       case TYPE_PROFILE:
         graph += 'P'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
       case TYPE_VIBE:
+        if (!w) w = block.key
         graph += 'V'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
       case TYPE_VIBE_RESP: {
         graph += 'W'
         const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
         if (r) graph += 'r'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
       } break
       case TYPE_MESSAGE: {
         graph += 'M'
         const p = PASS_TURN.equals(decodeBlock(block.body).content)
         graph += p ? 'p' : 'm'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
       } break
       case TYPE_BYE:
         graph += 'B'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
       case TYPE_BYE_RESP:
         graph += 'E'
-        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
     }
   }
@@ -174,6 +179,7 @@ module.exports = {
   TYPE_MESSAGE,
   TYPE_BYE,
   TYPE_BYE_RESP,
+  EV_CHAT_END,
   VIBE_REJECTED,
   PASS_TURN,
   PEACE,

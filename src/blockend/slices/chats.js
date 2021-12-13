@@ -4,6 +4,7 @@ const {
   TYPE_MESSAGE,
   TYPE_BYE,
   TYPE_BYE_RESP,
+  EV_CHAT_END,
   PASS_TURN,
   decodeBlock
 } = require('../util')
@@ -100,7 +101,7 @@ function ConversationCtrl (opts = {}) {
       return false // All good, accept block
     },
 
-    reducer ({ block, parentBlock, root, state, schedule }) {
+    reducer ({ block, parentBlock, root, state, schedule, signal }) {
       const data = decodeBlock(block.body)
       const { type } = data
       const parentType = decodeBlock(parentBlock.body).type
@@ -126,7 +127,6 @@ function ConversationCtrl (opts = {}) {
       }
 
       const chat = state.chats[indexKey]
-      chat.head = block.sig
 
       chat.updatedAt = data.date
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
@@ -185,6 +185,7 @@ function ConversationCtrl (opts = {}) {
         const bStat = state.stats[chat.a.toString('hex')]
         aStat.nEnded++
         bStat.nEnded++
+        signal(EV_CHAT_END, chatId)
       }
 
       D('[%s] Conversation(%h) state: %s mLength: %d, head: %h => %h', root.peer.name, chatId, chat.state, chat.mLength, block.parentSig, block.sig)

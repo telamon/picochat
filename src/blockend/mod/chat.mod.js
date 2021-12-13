@@ -6,6 +6,7 @@ const {
   PASS_TURN,
   PEACE, LOVE,
   UNDERSTANDING,
+  feedToGraph,
   seal,
   unseal,
   toBuffer
@@ -158,9 +159,10 @@ module.exports = function ChatModule () {
 
       const c = this.store.state.chats.chats[str]
       if (!v && !c) D('conversation not found %h', chatId)
-
+      head = c?.head || head
       if (!head) return
-      return await this.repo.loadFeed(head) // TODO: abort load after profile || before end
+      const search = await this._tracePath(head)
+      return search.feed
     },
 
     async _inspectChat (chatId, dump = false) {
