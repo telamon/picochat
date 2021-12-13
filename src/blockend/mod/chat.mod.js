@@ -1,3 +1,4 @@
+const D = require('debug')('picochat:mod:chat')
 const {
   TYPE_MESSAGE,
   TYPE_BYE,
@@ -29,6 +30,7 @@ module.exports = function ChatModule () {
         const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
         const branch = await this.repo.loadFeed(cache.head)
         const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
+        // console.log('Appending message to', feedToGraph(branch))
         await this._createBlock(branch, TYPE_MESSAGE, { content })
         // Branch "hopefully" contains new block, if not use return of createBlock() in future
         if (!pass) await this._setMessageBody(branch.last.sig, Buffer.from(message))
@@ -144,6 +146,27 @@ module.exports = function ChatModule () {
           )
         )
       )
+    },
+
+    async loadChat (chatId) {
+      chatId = toBuffer(chatId)
+      const str = chatId.toString('hex')
+      let head = null
+      const v = this.store.state.vibes.matches[str]
+      head = v?.response || v?.chatId
+      if (!v) D('vibe does not exist for chatId:', str)
+
+      const c = this.store.state.chats.chats[str]
+      if (!v && !c) D('conversation not found %h', chatId)
+
+      if (!head) return
+      return await this.repo.loadFeed(head) // TODO: abort load after profile || before end
+    },
+
+    async _inspectChat (chatId, dump = false) {
+      const f = await this.loadChat(chatId)
+      console.log(feedToGraph(f))
+      if (dump) f.inspect()
     }
   }
 }

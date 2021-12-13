@@ -97,7 +97,7 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
     state.seen[block.key.toString('hex')] = chatId
 
     if (type === TYPE_VIBE) {
-      D('%s %o %h', root.peer.name, !!state.matches[key], block.key)
+      D('%s reducing vibe: %o %h %h', root.peer.name, !!state.matches[key], block.key, block.sig)
       if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
       const match = state.matches[key] = mkMatch()
       match.chatId = chatId

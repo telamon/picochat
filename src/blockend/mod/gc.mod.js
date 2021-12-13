@@ -1,5 +1,12 @@
-const { decodeBlock, TYPE_VIBE_RESP } = require('../util')
 const D = require('debug')('picochat:mod:gc')
+const {
+  decodeBlock,
+  typeOfBlock,
+  TYPE_PROFILE,
+  TYPE_BYE_RESP,
+  TYPE_VIBE_RESP,
+  TYPE_VIBE
+} = require('../util')
 const REG_TIMER = 116 // 't'
 
 module.exports = function GarbageCollectModule (store) {
@@ -22,76 +29,17 @@ module.exports = function GarbageCollectModule (store) {
   }
 
   return {
-    async _collectGarbage (now = Date.now()) {
-      D('Attempting to aquire lock, queue %d', store._queue.length)
+    async _collectGarbage (now) {
+      D('Locking store')
       const unlock = await store._waitLock()
-
-      D('Starting collecting garbage...')
-      const pending = await tickQuery(repo._db, now)
-      D('Fetched pending from store:', pending.length)
-      let mutated = new Set()
-      const batch = []
-      const evictRange = []
-      for (const p of pending) {
-        const { type, id } = unpackValue(p.value)
-        if (!type) throw new Error('GC OP missing')
-        await sweep({ // TOO PHAT CONTEXT
-          now,
-          id,
-          gcType: type,
-          rootState: store.state,
-          didMutate: n => mutated.add(n),
-          drop (head, tail, peers) {
-            evictRange.push([head, tail])
-          }
-        })
-        batch.push({ type: 'del', key: p.key })
+      try {
+        const res = await collectGarbage.bind(this)(now)
+        unlock()
+        return res
+      } catch (err) {
+        unlock()
+        throw err
       }
-      await repo._db.batch(batch) // Clear out keys
-      const evicted = []
-      // Evict blocks
-      for (const [head, tail] of evictRange) {
-        const keys = new Set()
-        const idHead = {}
-        const idTail = {}
-        const feed = await repo.loadFeed(head, (block, abort) => {
-          // Detect if built in signing-identity heads need to be adjusted in repo
-          if (!idHead[block.key.toString('hex')]) idHead[block.key.toString('hex')] = block.sig
-          keys.add(block.key)
-
-          { // Faulty code
-            const data = decodeBlock(block.body)
-            const { type } = data
-            if (type === TYPE_VIBE_RESP) idTail[block.key.toString('hex')] = data.link // follow weak-ref
-            else idTail[block.key.toString('hex')] = block.parentSig // TODO: parent is not guaranteed to be own block..
-            // TODO: one more issue, given alice chatting with bob and charlie simultaneously her head is going to be reset to her link: profile.
-          }
-          // end of range reached
-          if (block.sig.equals(tail)) abort(true)
-        })
-        for (const key of keys) {
-          const stored = await repo._getHeadPtr(key)
-          // Rollback internal repo headPtr before deletion
-          if (idHead[key.toString('hex')].equals(stored)) {
-            const newHead = idTail[key.toString('hex')]
-            // console.warn('Rolling back heads', stored.toString('hex'), ' => ', newHead.toString('hex'))
-            await repo._setHeadPtr(key, newHead)
-            // TODO: tailpointer needs to be cleared if newHead === GENESIS
-          }
-        }
-        for (const block of feed.blocks()) {
-          await repo.deleteBlock(block.sig)
-        }
-        evicted.push(feed)
-      }
-
-      // notify all affected stores
-      mutated = Array.from(mutated)
-      store._notifyObservers(mutated)
-      D('Stores mutated', mutated, 'feeds evicted', evicted.length)
-      /// D(evicted.map(f => f.inspect(true)))
-      unlock()
-      return { mutated, evicted }
     },
 
     startGC (inteval = 3 * 1000) {
@@ -106,6 +54,45 @@ module.exports = function GarbageCollectModule (store) {
     }
   }
 
+  async function collectGarbage (now = Date.now()) {
+    D('Starting collecting garbage...')
+    const pending = await tickQuery(repo._db, now)
+    D('Fetched pending from store:', pending.length)
+    let mutated = new Set()
+    const segments = []
+    for (const p of pending) {
+      const { type, id } = unpackValue(p.value)
+      if (!type) throw new Error('GC OP missing')
+      await sweep({ // TOO PHAT CONTEXT
+        now,
+        id,
+        gcType: type,
+        rootState: store.state,
+        didMutate: n => mutated.add(n),
+        drop: head => segments.push([head, type === 'chat' ? id : null])
+      })
+    }
+    const evicted = []
+    for (const [ptr, segmentId] of segments) {
+      // const owner = await this.repo._traceOwnerOf(ptr) // repo.ownerOf(ptr)
+      const s = await this._tracePath(ptr)
+      if (segmentId) { // Delete a chat/vibe off a user-profile
+        if (!segmentId.equals(s.chatId)) throw new Error('InternalError: Attempted to evict wrong segment')
+        debugger
+        const d = await this.repo.rollback(s.keys[0], s.heads[0])
+        evicted.push(d)
+      } else { // Clear out stale profiles
+        evicted.push(await this.repo.rollback(s.keys[0]))
+      }
+    }
+    // notify all affected stores
+    mutated = Array.from(mutated)
+    store._notifyObservers(mutated)
+    D('Stores mutated', mutated, 'segments evicted', evicted.length)
+    /// D(evicted.map(f => f.inspect(true)))
+    return { mutated, evicted }
+  }
+
   // TODO: if this hack works, move the time-based GarbageCollector functionality to PicoStore
   // and allow store.register() to include a sweep function, `expiresAt` prop becomes a first citizen.
   function sweep ({ now, rootState, drop, gcType, id, didMutate }) {
@@ -115,9 +102,13 @@ module.exports = function GarbageCollectModule (store) {
       const head = chat?.head || match?.response || match?.chatId
       let del = false
       if (!head) return // nothing to do
+      const expiresAt = (chat?.expiresAt || match?.expiresAt || 0)
+      const hasExpired = expiresAt < now
+      D('Chat[%h] expired: %s, timeLeft: %d', id, hasExpired, expiresAt - now)
+      if (!hasExpired) return // not yet
 
-      // GC chats
-      if (chat && chat.expiresAt < now) {
+      // Clear chat registry
+      if (chat) {
         const { chats, heads, own } = rootState.chats
         delete chats[id.toString('hex')]
         delete heads[head.toString('hex')]
@@ -127,9 +118,8 @@ module.exports = function GarbageCollectModule (store) {
         del = true
       }
 
-      // GC vibes
-      const vibeExpiresAt = chat ? chat.expiresAt : match.expiresAt
-      if (match && vibeExpiresAt < now) {
+      // Clear vibes registry
+      if (match) {
         // Restore state
         const { seen, matches, own } = rootState.vibes
         if (match.a && seen[match.a.toString('hex')]?.equals(id)) delete seen[match.a.toString('hex')]
@@ -140,13 +130,12 @@ module.exports = function GarbageCollectModule (store) {
         didMutate('vibes')
         del = true
       }
-      if (del) drop(head, id)
+      if (del) drop(head, id) // id: chatId, head: lastBlock on chat
     } else if (gcType === 'peer') {
       const { peers } = rootState
       const isSelf = rootState.peer.pk.equals(id)
       if (isSelf && rootState.peer.expiresAt < now) {
-        // Notify that we need to re-issue a new profile or heartbeat block
-        rootState.peer.state = 'expired'
+        rootState.peer.state = 'expired' // Not sure if should delete.
         didMutate('peer')
       }
       const peer = peers[id.toString('hex')]
@@ -155,7 +144,7 @@ module.exports = function GarbageCollectModule (store) {
         didMutate('peers')
         if (!isSelf) {
           delete peers[id.toString('hex')]
-          drop(peer.sig, peer.sig)
+          drop(peer.sig)
         }
       }
     } else throw new Error(`Garbage collection for "${gcType}" not supported!`)

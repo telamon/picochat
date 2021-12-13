@@ -60,13 +60,14 @@ module.exports = function VibesModule () {
 
       const vibe = matches[chatId.toString('hex')]
       if (!vibe) throw new Error('VibeNotFound')
+      if (vibe.state !== 'wait') throw new Error('VibeResponseNotApplicable')
       const peer = await this.profileOf(vibe.a)
 
       if (!peer) throw new Error('PeerNotFound')
       const sealedMessage = seal(msgBox.pk, peer.box)
 
       const block = await this.repo.readBlock(chatId)
-      if (!block) throw new Error('Block no longer exists')
+      if (!block) throw new Error('Vibe no longer exists')
       const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
         box: !like ? VIBE_REJECTED : sealedMessage,
         link: this.store.state.peer.sig // Weak-ref to own checkpoint
@@ -134,6 +135,7 @@ module.exports = function VibesModule () {
             const initiator = this.pk.equals(match.a)
             const vibe = computeVibe(chatId, match, initiator, chat)
             if (vibe.state === 'expired') continue // let GC handle the rest
+            if (chat && chat.state === 'end') continue
             vibes.push(vibe)
           }
           D('emit _vibes')

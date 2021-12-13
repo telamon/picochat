@@ -55,6 +55,7 @@ module.exports = function NetworkModule (k) {
           const keys = Object.values(store.state.peers)
           // experimental
           // .filter(peer => peer.date > new Date().getTime() - 1000 * 60 * 60) // Only peers active last hour
+            .filter(peer => peer.state !== 'expired')
             .sort((a, b) => a.date - b.date) // Newest first or something
             .map(peer => peer.pk)
           const feeds = []

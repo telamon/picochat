@@ -23,9 +23,13 @@ const {
   TYPE_VIBE,
   TYPE_VIBE_RESP,
   TYPE_MESSAGE,
+  TYPE_PROFILE,
+  TYPE_BYE,
+  TYPE_BYE_RESP,
   VIBE_REJECTED,
   decodeBlock,
-  encodeBlock
+  encodeBlock,
+  typeOfBlock
 } = require('./util')
 const debug = require('debug')
 const D = debug('picochat:kernel')
@@ -98,7 +102,36 @@ class Kernel {
    */
   async feed (limit = undefined) {
     this._checkReady()
-    return this.repo.loadHead(this.pk, limit)
+    return this.repo.loadHead(this.pk)
+  }
+
+  async _tracePath (head) {
+    const keys = []
+    const heads = []
+    let chatId = null
+    let nLoaded = 0
+    const feed = await this.repo.loadFeed(head, (block, abort) => {
+      const type = typeOfBlock(block.body)
+      switch (type) {
+        case TYPE_VIBE_RESP:
+          keys[1] = block.key
+          heads[1] = decodeBlock(block.body).link
+          break
+
+        case TYPE_PROFILE:
+        case TYPE_BYE_RESP:
+          keys[0] = block.key
+          heads[0] = block.sig
+          abort(!nLoaded && type !== TYPE_BYE_RESP)
+          break
+        case TYPE_VIBE:
+          chatId = block.sig
+          break
+      }
+      nLoaded++
+    })
+    if (!feed) throw new Error('FeedNotFound')
+    return { keys, heads, feed, chatId }
   }
 
   /**
@@ -162,15 +195,28 @@ class Kernel {
   }
 }
 
-// This function is called by repo when a non-linear block is encountered
+// The idea of merge strategy needs to be reworked a bit.
+// besides passing block here, pico-repo should pass an array
+// of keys that are already encountered in the feed.
+//
+// Strategy attempts to answer the question:
+//  "When block with foreign identity encountered,
+//  should the block be allowed to bump the peer's head?"
+//
+// Vibe is an invitation to participate so: yes. (if it was adressed to you)
+// Message? "yes" if you were the one that was adressed.
+// Same thing with bye. There's identity checks in store-filters but
+// maybe should be handled on strategy level.
 async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? mergStr(b, r, !dryMerge && loud)
   const content = decodeBlock(block.body)
   const { type } = content
+  const pBlock = await repo.readBlock(block.parentSig)
+  const parentType = typeOfBlock(pBlock.body)
+
   // Allow VibeResponses to be merged onto foreign vibes
   if (type === TYPE_VIBE_RESP) {
     const pBlock = await repo.readBlock(block.parentSig)
-    const pContent = decodeBlock(pBlock.body)
-    if (pContent.type !== TYPE_VIBE) return false
+    if (parentType !== TYPE_VIBE) return false
     if (!VIBE_REJECTED.equals(content.box)) {
       D('Match detected: %h <3 %h', block.key, pBlock.key)
     } else {
@@ -178,11 +224,15 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
     }
     return true // All good, merge permitted
   }
-  console.warn('MergeStrategy rejected', type)
+
   // Allow Messages onto foreign VibeResponses or Messages
   if (type === TYPE_MESSAGE) {
-    // debugger
+    if (parentType === TYPE_MESSAGE) return true
   }
+  if (type === TYPE_BYE && parentType === TYPE_MESSAGE) return true
+  if (type === TYPE_BYE_RESP && parentType === TYPE_BYE) return true
+
+  console.warn('MergeStrategy rejected', parentType, '<--', type)
   return false // disallow by default
 }
 module.exports = Kernel

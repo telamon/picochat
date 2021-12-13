@@ -26,7 +26,6 @@ async function makeMatch (kOpts = {}) {
 // Guy walks into a bar
 async function spawnPeer (name, kOpts = {}) {
   const app = new Kernel(makeDatabase(), kOpts)
-  monkeyPatchStoreMutex(name, app)
   await app.load()
   await app.register({
     name,
@@ -60,24 +59,6 @@ async function spawnSwarm (...actors) {
 
 function makeDatabase () {
   return levelup(memdown())
-}
-
-function monkeyPatchStoreMutex (name, kernel) {
-  const waitLock = kernel.store._waitLock.bind(kernel.store)
-  // const stacks = []
-  kernel.store._waitLock = async function () {
-    // let stack = null
-    const queue = this._queue
-    // try { throw new Error('mutex') } catch (err) { stack = err.stack }
-    D('Mutex REQUESTED', name, queue.length) //, stack)
-    const unlock = await waitLock()
-    D('Mutex ACQUIRED', name, queue.length)
-    return () => {
-      unlock()
-      D('Mutex RELEASED', name, queue.length)
-    }
-  }
-  return kernel
 }
 
 module.exports = {

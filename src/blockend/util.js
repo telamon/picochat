@@ -51,6 +51,11 @@ function decodeBlock (body, offset = 0) {
   return JSON.parse(body, bufferReplacer)
 }
 
+function typeOfBlock (body) {
+  return decodeBlock(body).type
+  // return body[0]
+}
+
 function bufferReplacer (k, o) {
   return (o && typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o
 }
@@ -106,7 +111,9 @@ function boxPair () {
   return { pk, sk }
 }
 
-/* -------------------- */
+/*
+ * Pepper `debug` lib with buf->hexstring interpolators
+ */
 createDebug.formatters.h = v => {
   if (!Buffer.isBuffer(v) || !v?.length) return v
   return v.slice(0, Math.min(8, v.length)).toString('hex')
@@ -114,6 +121,47 @@ createDebug.formatters.h = v => {
 createDebug.formatters.H = v => {
   if (!Buffer.isBuffer(v) || !v?.length) return v
   return v.toString('hex')
+}
+
+/**
+ * And so the madness recurses upon itself
+ */
+function feedToGraph (f) {
+  let graph = ''
+  const w = f.first.isGenesis ? f.first.key : null
+  for (const block of f.blocks()) {
+    switch (typeOfBlock(block.body)) {
+      case TYPE_PROFILE:
+        graph += 'P'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        break
+      case TYPE_VIBE:
+        graph += 'V'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        break
+      case TYPE_VIBE_RESP: {
+        graph += 'W'
+        const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
+        if (r) graph += 'r'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+      } break
+      case TYPE_MESSAGE: {
+        graph += 'M'
+        const p = PASS_TURN.equals(decodeBlock(block.body).content)
+        graph += p ? 'p' : 'm'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+      } break
+      case TYPE_BYE:
+        graph += 'B'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        break
+      case TYPE_BYE_RESP:
+        graph += 'E'
+        if (w) graph += block.key.equals(w) ? 'w' : 'b'
+        break
+    }
+  }
+  return graph
 }
 
 module.exports = {
@@ -133,10 +181,12 @@ module.exports = {
   UNDERSTANDING,
   encodeBlock,
   decodeBlock,
+  typeOfBlock,
   fixJsonBuffers,
   toBuffer,
   boxPair,
   seal,
   unseal,
-  bufferReplacer
+  bufferReplacer,
+  feedToGraph
 }

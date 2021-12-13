@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next, nfo } = require('../src/blockend/nuro')
+const { next } = require('../src/blockend/nuro')
 const {
   spawnPeer,
   spawnSwarm,
@@ -43,14 +43,14 @@ test('Send vibe to peer', async t => {
 
   // Bob should see the sent vibe
   vibes = await next(bob.k.$vibes(), 1)
-  t.equal(vibes.length, 1)
+  t.equal(vibes.length, 1, 'Bob sees sent vibe')
   let vibe = vibes[0]
   t.ok(vibe)
   t.ok(chatId.equals(vibe.id), 'chatId equals vibeId')
   t.equal(vibe.state, 'waiting_remote')
   t.equal(vibe.peer.name, 'Alice')
 
-  // Alice should see she has a potential match
+  // Alice should see she has a potential match (inspect highlevel outputs)
   vibes = await next(alice.k.$vibes(), 1)
   t.equal(vibes.length, 1)
   vibe = vibes[0]
@@ -58,7 +58,7 @@ test('Send vibe to peer', async t => {
   t.ok(chatId.equals(vibe.id))
 
   t.equal(vibe.state, 'waiting_local')
-  t.equal(vibe.peer.name, 'BoB')
+  t.equal(vibe.peer.name, 'BoB', 'Alice sees the vibe')
 
   // Alice sends response
   await alice.k.respondVibe(vibe.id, true)
