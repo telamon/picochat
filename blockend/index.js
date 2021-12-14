@@ -1,10 +1,10 @@
 const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')
-// Block state controllers
-const PeerCtrl = require('./slices/peers')
-const VibeCtrl = require('./slices/vibes')
-const ConversationCtrl = require('./slices/chats')
+// Lowlevel registers that hold block-state
+const PeerCtrl = require('./slices/peers.reg')
+const VibeCtrl = require('./slices/vibes.reg')
+const ConversationCtrl = require('./slices/chats.reg')
 // const StatsCtrl = require('./slices/stats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
