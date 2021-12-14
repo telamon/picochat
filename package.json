@@ -3,6 +3,11 @@
   "version": "0.5.0",
   "description": "Decentralized chat and single purpose blockchain",
   "main": "blockend/index.js",
+  "keywords": ["decentralized", "chat", "blockchain"],
+  "files": [
+    "modem56.js",
+    "blockend/*"
+  ],
   "scripts": {
     "test": "tape test/*.js",
     "debug": "node inspect $(npm bin)/tape test/*.js",
@@ -23,7 +28,7 @@
   "author": "Tony Ivanov",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/telamon/picochat"
+    "url": "https://github.com/telamon/picochat/issues"
   },
   "homepage": "https://github.com/telamon/picochat",
   "devDependencies": {
