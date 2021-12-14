@@ -2,7 +2,7 @@ const hyperswarm = require('hyperswarm-web')
 const ProtoStream = require('hypercore-protocol')
 const crypto = require('crypto')
 const { hyperWire } = require('piconet')
-
+const D = require('debug')('modem56')
 /*
  *  It's **beep** time!
  *     ~¤~
@@ -21,7 +21,7 @@ class Modem56 {
   // - hyperswarm-web
   // - hyper-simulator
   constructor (swarm = null) {
-    console.info('[Modem56] Brrrrrr.. ptong ptong ptong ptong *whitenoise*')
+    D('[Modem56] Brrrrrr.. ptong ptong ptong ptong *whitenoise*')
     this.swarm = swarm || hyperswarm()
     // Initial release support only 1 topic due to design limitations
     this._topic = null
@@ -45,7 +45,7 @@ class Modem56 {
   }
 
   _onconnection (socket, details) {
-    console.info('[Modem56] peer connected', details)
+    D('[Modem56] peer connected', details)
     const { client } = details
     const hyperProtocolStream = new ProtoStream(client)
     socket.pipe(hyperProtocolStream).pipe(socket)

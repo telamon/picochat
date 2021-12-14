@@ -1,7 +1,7 @@
 const Simulator = require('hyper-simulator')
 const { spawnPeer } = require('../test/test.helpers.js')
 const Modem56 = require('../modem56.js')
-const { settle, next } = require('../src/blockend/nuro')
+const { settle, next } = require('../blockend/nuro')
 
 async function main () {
   const sim = new Simulator()
@@ -22,7 +22,6 @@ async function main () {
   }
   return sim.run(1, 200)
 }
-
 
 // Spawns an alice bot
 // - alice likes to respond to vibes
