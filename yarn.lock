@@ -292,11 +292,12 @@
     "@swc/core-win32-ia32-msvc" "^1.2.119"
     "@swc/core-win32-x64-msvc" "^1.2.119"
 
-"@telamon/picostore@^1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.5.1.tgz#5eda80eced39f4848e55b6cbfa309f8a28e8b4d2"
-  integrity sha512-EODxxAoLDY4U7r6vtROGvWVlrDsQr2UM5G4g3OenQOOmV/nK6TnHR3YVRdwJ6he6PRt9kgrTLNbzpDqpJTHyhw==
+"@telamon/picostore@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.6.0.tgz#fa1f3da9f97b5a43cbcd5d07f9084a86d0fa4736"
+  integrity sha512-tP0/hB5VgkRcPD0NGcqNJGfWJmIo0OvP8A50WCZfXEFRlXJeRetIhJ7oKeWeqCd5V9q4Paiz6hiNPEVMsuxqOQ==
   dependencies:
+    msgpackr "^1.5.1"
     picorepo "^1.2.1"
 
 "@types/estree@*":
@@ -3612,11 +3613,6 @@ performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
-
-pico-scheduler@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/pico-scheduler/-/pico-scheduler-1.0.0.tgz#48396d1db763d605e2677f4b630e22bc22de11d1"
-  integrity sha512-UKg29ynW9bxAE6eyyMrtgmu0xSNRYwNy9E7rwrwGZ2/ceyGmI1MpMgqgk06OmyTAUL+p0Ofdm8MSGt83KEvZeA==
 
 picofeed@^3.3.2:
   version "3.3.2"

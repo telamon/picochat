@@ -9,6 +9,7 @@ const {
 } = require('sodium-universal')
 /* eslint-enable camelcase */
 const createDebug = require('debug')
+const { pack, unpack } = require('msgpackr')
 
 // Global registry names (used as session variables)
 const KEY_SK = 'reg/sk'
@@ -38,21 +39,21 @@ const LOVE = 2
  * Convert Object to buffer
  */
 function encodeBlock (type, seq, payload) {
-  // TODO: Convert to protobuffer instead of JSON to allow storing images and video
-  return JSON.stringify({
+  return pack({
     ...payload,
     type,
     seq,
     date: new Date().getTime()
   })
+  // return JSON.stringify(o)
 }
 
 /**
  * Converts buffer to Object
  */
 function decodeBlock (body, offset = 0) {
-  // TODO: Convert to protobuffer instead of JSON to allow storing images and video
-  return JSON.parse(body, bufferReplacer)
+  return unpack(body)
+  // return JSON.parse(body, bufferReplacer)
 }
 
 function typeOfBlock (body) {

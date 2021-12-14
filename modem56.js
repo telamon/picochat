@@ -30,7 +30,13 @@ class Modem56 {
   }
 
   join (topic, spawnWire) {
-    if (this._topic) this.leave()
+    if (this._topic) {
+      // this.leave()
+      // don't wanna have multi-topic support yet
+      // so we'll just update the spawnWire ref and call it a day :D
+      this._spawnWire = spawnWire || this._spawnWire
+      return
+    }
     if (typeof topic === 'string') {
       topic = crypto.createHash('sha256')
         .update(topic)
@@ -59,6 +65,7 @@ class Modem56 {
   leave () {
     this.swarm.leave(this._topic)
     this.swarm.off('connection', this._onconnection)
+    this.swarm.off('error')
     this._topic = null
   }
 }
