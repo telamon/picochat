@@ -1,12 +1,4 @@
 const D = require('debug')('picochat:mod:gc')
-const {
-  decodeBlock,
-  typeOfBlock,
-  TYPE_PROFILE,
-  TYPE_BYE_RESP,
-  TYPE_VIBE_RESP,
-  TYPE_VIBE
-} = require('../util')
 const REG_TIMER = 116 // 't'
 
 module.exports = function GarbageCollectModule (store) {
@@ -75,14 +67,17 @@ module.exports = function GarbageCollectModule (store) {
     const evicted = []
     for (const [ptr, segmentId] of segments) {
       // const owner = await this.repo._traceOwnerOf(ptr) // repo.ownerOf(ptr)
-      const s = await this._tracePath(ptr)
-      if (segmentId) { // Delete a chat/vibe off a user-profile
-        if (!segmentId.equals(s.chatId)) throw new Error('InternalError: Attempted to evict wrong segment')
-        debugger
-        const d = await this.repo.rollback(s.keys[0], s.heads[0])
-        evicted.push(d)
-      } else { // Clear out stale profiles
-        evicted.push(await this.repo.rollback(s.keys[0]))
+      try {
+        const s = await this._tracePath(ptr)
+        if (segmentId) { // Delete a chat/vibe off a user-profile
+          if (!segmentId.equals(s.chatId)) throw new Error('InternalError: Attempted to evict wrong segment')
+          const d = await this.repo.rollback(s.keys[0], s.heads[0])
+          evicted.push(d)
+        } else { // Clear out stale profiles
+          evicted.push(await this.repo.rollback(s.keys[0]))
+        }
+      } catch (err) {
+        console.warn('Rollback failed, already gone?', err)
       }
     }
     // notify all affected stores

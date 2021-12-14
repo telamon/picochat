@@ -1,6 +1,6 @@
 const test = require('tape')
-const Kernel = require('../src/blockend')
-const { next, get } = require('../src/blockend/nuro')
+const Kernel = require('../blockend')
+const { next, get } = require('../blockend/nuro')
 const {
   spawnPeer,
   spawnSwarm,

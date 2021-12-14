@@ -15,7 +15,7 @@ const {
   iter,
   nfo,
   ERROR
-} = require('../src/blockend/nuro')
+} = require('../blockend/nuro')
 
 test('notEqual(a, b)', async t => {
   // some random primitives

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import levelup from 'levelup'
 import leveljs from 'level-js'
-import Kernel from '../blockend/'
-import { get, mute, gate, init, settle } from '../blockend/nuro'
+import Kernel from '../../blockend/'
+import { get, mute, gate, init, settle } from '../../blockend/nuro'
 const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB

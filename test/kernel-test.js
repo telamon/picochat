@@ -1,6 +1,6 @@
 const test = require('tape')
-const { next: nextState, isSync } = require('../src/blockend/nuro')
-const Kernel = require('../src/blockend/')
+const { next: nextState, isSync } = require('../blockend/nuro')
+const Kernel = require('../blockend/')
 const {
   makeDatabase,
   spawnPeer,

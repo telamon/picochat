@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next } = require('../src/blockend/nuro')
+const { next } = require('../blockend/nuro')
 const {
   // spawnSwarm,
   spawnPeer,

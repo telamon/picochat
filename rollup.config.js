@@ -12,7 +12,7 @@ import json from '@rollup/plugin-json'
 const production = !process.env.ROLLUP_WATCH
 
 export default {
-  input: 'src/main.js',
+  input: 'frontend/main.js',
   output: {
     sourcemap: true,
     format: 'iife',

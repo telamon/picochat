@@ -1,4 +1,3 @@
-//
 const Repo = require('picorepo')
 const Store = require('@telamon/picostore')
 const Feed = require('picofeed')

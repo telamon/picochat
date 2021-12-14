@@ -1,7 +1,7 @@
 const levelup = require('levelup')
 const memdown = require('memdown')
-const { next, gate, init, mute, nfo, settle } = require('../src/blockend/nuro')
-const Kernel = require('../src/blockend/')
+const { next } = require('../blockend/nuro')
+const Kernel = require('../blockend/')
 const D = require('debug')('picochat:test')
 
 // Alice and Bob sits down at a table
