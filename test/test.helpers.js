@@ -1,6 +1,6 @@
 const levelup = require('levelup')
 const memdown = require('memdown')
-const { next } = require('../blockend/nuro')
+const { next, until } = require('../blockend/nuro')
 const Kernel = require('../blockend/')
 const D = require('debug')('picochat:test')
 
@@ -107,25 +107,6 @@ async function makeChat (initiator, responder, reverseFarewell = false, nMessage
   D('makeChat() bye_resp sent')
   await until(a.$chat(chatId), chat => chat.state === 'end')
   return chatId
-
-  async function until (neuron, condition, timeout = -1) {
-    let set, setErr
-    const result = new Promise((resolve, reject) => { set = resolve; setErr = reject })
-    let timerId = null
-    if (timeout > 0) {
-      timerId = setTimeout(() => {
-        setErr(new Error('until($n) timed out'))
-      }, timeout)
-    }
-    const unsub = neuron(value => {
-      if (condition(value)) {
-        if (timerId) clearTimeout(timerId)
-        set(value)
-      }
-    })
-    result.finally(unsub)
-    return result
-  }
 }
 
 module.exports = {

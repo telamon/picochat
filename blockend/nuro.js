@@ -1,8 +1,17 @@
+/***
+ * Pico::NeUROn
+ *
+ * A functional approach to the reactive-store pattern
+ * delivering indiscriminate minimalism.
+ * Easily bridged into any other framework of choice.
+*/
+
 const ERROR = Symbol.for('piconeuro:Error')
 module.exports = {
   ERROR,
   get,
   next,
+  until,
   writable,
   notEqual,
   notEqualDeep,
@@ -11,51 +20,12 @@ module.exports = {
   init,
   combine,
   isSync,
+  _isSync,
   gate,
   settle,
   iter,
   nfo
 }
-/***
- * Pico::Neuron
- *
- * A functional approach to the reactive-store pattern
- * delivering indiscriminate minimalism.
- * Easily bridged into any other framework of choice.
- *
- * A neuron is a function following this specific contract:
- * 1. Single argument must be a subscribe callback receiving a single value.
- * 2.a) Current value should be synchroneously published during subscribe
- * 2.b) If current value is not available it may be deferred by returning a promise, use (init)
- * 3. Must return an unsubscribe method taking no arguments.
- *
- * Example:
- * const unsubscribe = neuron(value => console.log(value), ...optionalArguments)
-
- *
- * Given such a function you can build logical pathways using the functional transformers in this
- * module.
- *
- * // A dummy neuron holding a single immutable value
- * const $name = init('Tony') // prefix variables holding neurons with a $-sign
- * $name(console.log)() // logs 'Tony' and unsubscribes
- *
- * // Mutate value
- * const $greet = mute($name, name => `Yo ${name)!`)
- * $greet(console.log)() // logs 'Yo Tony!' and unsubscribes
- *
- * // Writable neuron with an inital value
- * const [$age, setAge] = writable('who cares')
- *
- * // Combine two neurons (Array mode)
- * const $na = combine($name, $age)
- * $na(([name, age]) => console.log('Name:', name, 'Age:', age))
- *
- * // Combine two neurons (ObjMode strips $-prefixes)
- * const $profile = combine({ $name, $age })
- * $profile(console.log)() // logs: `{ name: 'Tony', age: 300 }`
- *
-*/
 
 // One to many neuron (opposite of combine)
 function memo (neuron) {
@@ -190,6 +160,7 @@ function clone (o) {
   if (typeof o === 'object' && o !== null) return { ...o }
   return o
 }
+
 /*
  * Possibly async neuron.
  * fires on immediate or async result.
@@ -223,17 +194,11 @@ function mute (neuron, fn) {
     })
   }
 }
-
-// Have issues with some old async reactive stores
-// that violate the contract of immediate invocation.
-function _isSync (neuron) { // Synchroneous version that throws errors on violation.
-  let ii = false
-  let set = () => { ii = true }
-  neuron(() => set())()
-  set = () => { throw new Error('NeuronNotSync, subscription invoked after unsubscribe()') }
-  return ii
-}
-
+/**
+ * Utility method that tests a neuron for synchronity.
+ * returns true if and only if the neuron fired once immediately
+ * throws error if the neuron did not fire within the grace period.
+ */
 async function isSync (neuron, ms = 100) {
   let fired = false
   let aFired = false
@@ -249,10 +214,22 @@ async function isSync (neuron, ms = 100) {
   return fired && !aFired
 }
 
-// A neuron is a function that when called returns a synapse.
-// A synapse is a function that takes a subscribe function, and returns an unsubscribe function.
+/**
+ * Synchronized version of isSync that throws errors
+ * when async behaviour is detected.
+ */
+function _isSync (neuron) {
+  let ii = false
+  let set = () => { ii = true }
+  neuron(() => set())()
+  set = () => { throw new Error('NeuronNotSync, subscription invoked after unsubscribe()') }
+  return ii
+}
 
-// neuron that takes multiple synapes as input and exports it as a single synapse
+/**
+ * A neuron that combines the output of multiple neurons into a single output.
+ * The first output is held until all neurons have fired once.
+ */
 function combine (...neurons) {
   return function NeuronCombine (syn) {
     // Assume combine was called with map: combine({ a: synapse1, b: synapse2 })  // => 'synapse': function
@@ -297,12 +274,14 @@ function combine (...neurons) {
   }
 }
 
-// Shallow compares two values targeting computationally efficient
-// in-memory comparision with minimal recursion.
-// Quick returns true if a difference is detected.
-// if array, compare lengths and elements identities
-// if object, compare props count and reference identities
-// properties of object are expected to be enumerable.
+/**
+ * Shallow compares two values targeting computationally efficient
+ * in-memory comparision with minimal recursion.
+ * Quick returns true if a difference is detected.
+ * if array, compare lengths and elements identities
+ * if object, compare props count and reference identities
+ * properties of object are expected to be enumerable.
+ */
 function notEqual (a, b) {
   if (Array.isArray(a) && Array.isArray(b)) {
     return b.length !== a.length ||
@@ -339,6 +318,11 @@ function notEqualDeep (a, b) {
   return a !== b
 }
 
+/**
+ * A neuron that provides a set method:
+ *
+ * const [$name, setName] = writable('placeholder')
+ */
 function writable (value) {
   const subs = new Set()
   return [
@@ -357,7 +341,9 @@ function writable (value) {
   ]
 }
 
-// Gets the synchroneous value of a neuron
+/**
+ * Gets the synchroneous value of a neuron
+ */
 function get (neuron) {
   let value = null
   neuron(v => { value = v })()
@@ -378,10 +364,8 @@ async function next (neuron, n = 1, inspect = false) {
   return value
 }
 
-// TODO: wishlist for santa-claus
-// async function settle (neuron, timeout = 30) { ... } // debounced version of next
-
 /**
+ * Converts a neuron into an iterator
  * - {neuron} Neuron to generate from
  * - {nValues} Number of values to generate, 1 will yield 1 value.
  */
@@ -408,4 +392,29 @@ async function * iter (neuron, nValues = 5) { // set max to -1 for eternal loop
     rQue.push(r)
     pQue.push(p)
   }
+}
+
+/**
+ * Sibling of next(), an async utility getter that
+ * resolves value when 'condition' function returns truthy.
+ *
+ * const hiFive = await until($clock, time => t > 5)
+ */
+async function until (neuron, condition, timeout = -1) {
+  let set, setErr
+  const result = new Promise((resolve, reject) => { set = resolve; setErr = reject })
+  let timerId = null
+  if (timeout > 0) {
+    timerId = setTimeout(() => {
+      setErr(new Error('until($n) timed out'))
+    }, timeout)
+  }
+  const unsub = neuron(value => {
+    if (condition(value)) {
+      if (timerId) clearTimeout(timerId)
+      set(value)
+    }
+  })
+  result.finally(unsub)
+  return result
 }
