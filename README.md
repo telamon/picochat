@@ -2,7 +2,10 @@
 [`code style | standard`](https://standardjs.com/)
 # picochat
 
-> Virtual Pub
+> HyperPub toolkit
+
+The idea of bar where anyone regardless of belief or background is welcome.
+- tricky huh?
 
 ## Start
 
@@ -25,7 +28,9 @@ await k.load()
 // --or-- in future releases
 import { kernel, useProfile, usePeers, useChat } from 'picochat/react-hooks'
 ```
-Check the `src/blockend` folder for kernel docs.
+
+Proper docs will emerge when the time requires it.
+For now read the `blockend/`-source or just [ask](https://github.com/telamon/picochat/issues).
 
 ## credits
 

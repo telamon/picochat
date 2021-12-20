@@ -16,7 +16,6 @@ const {
  *  while (!isAcknowledged) propagateAsTruth(stats)
  *
  */
-
 test('kernel.$profile', async t => {
   const app = new Kernel(makeDatabase())
   const loggedIn = await app.load()
