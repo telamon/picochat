@@ -241,3 +241,7 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
   return false // disallow by default
 }
 module.exports = Kernel
+
+module.exports.keygen = function (gender, geo) {
+  return Feed.signPair()
+}

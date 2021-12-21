@@ -6,29 +6,27 @@ import resolve from '@rollup/plugin-node-resolve'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import css from 'rollup-plugin-css-only'
+import SWC from '@swc/core'
 import json from '@rollup/plugin-json'
-import svelte from 'rollup-plugin-svelte'
 
 const production = !process.env.ROLLUP_WATCH
 
 export default {
-  input: 'next/main.js',
+  input: 'frontend/main.js',
   output: {
     sourcemap: true,
     format: 'iife',
     name: 'app',
     file: 'public/build/bundle.js',
     globals: {
+      react: 'React',
+      'react-dom': 'ReactDOM'
     }
   },
 
   plugins: [
-    svelte({
-      compilerOptions: {
-        // enable run-time checks when not in production
-        dev: !production
-      }
-    }),
+    swcJSX(),
+
     // we'll extract any component CSS out into
     // a separate file - better for performance
     css({ output: 'bundle.css' }),
@@ -40,7 +38,7 @@ export default {
     // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       browser: true,
-      dedupe: ['svelte', 'sodium-universal'],
+      dedupe: ['react', 'react-dom', 'sodium-universal'],
       preferBuiltins: false
     }),
     commonjs(),
@@ -87,6 +85,27 @@ function serve () {
 
       process.on('SIGTERM', toExit)
       process.on('exit', toExit)
+    }
+  }
+}
+
+function swcJSX (options = {}) {
+  return {
+    transform (code, id) {
+      if (!id.endsWith('.jsx')) return
+      const opts = {
+        ...options,
+        jsc: {
+          ...options.jsc,
+          parser: {
+            ...options.jsc?.parser,
+            jsx: true
+          }
+        },
+        sourceMaps: true,
+        filename: id
+      }
+      return SWC.transformSync(code, opts)
     }
   }
 }
