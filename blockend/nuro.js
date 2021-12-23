@@ -12,6 +12,7 @@ module.exports = {
   get,
   next,
   until,
+  write: writable,
   writable,
   notEqual,
   notEqualDeep,
@@ -97,7 +98,8 @@ function nfo (neuron, name) {
     }
   }
   function pn (n, p = 2) { return (n + '').padStart(p, '0') }
-  function c (s, b = 0, f = 0) { return `${__pal[b % 8][f % 8]}${s}\x1b[0m` }
+  function c (s) { return s }
+  // function c (s, b = 0, f = 0) { return `${__pal[b % 8][f % 8]}${s}\x1b[0m` }
 }
 
 function gate (neuron, shallow = false) {
@@ -231,24 +233,21 @@ function _isSync (neuron) {
  * The first output is held until all neurons have fired once.
  */
 function combine (...neurons) {
-  return function NeuronCombine (syn) {
-    // Assume combine was called with map: combine({ a: synapse1, b: synapse2 })  // => 'synapse': function
-    if (neurons.length === 1 && typeof neurons[0] !== 'function') {
-      const props = []
-      const s = syn
-      const m = neurons[0]
-      neurons = []
-      for (const prop in m) {
-        neurons.push(m[prop])
-        props.push(prop)
-      }
-      syn = values => s(values.reduce((m, v, i) => (((m[props[i]] = v), m)), {}))
-      // console.log('Combine[ObjMode]', props)
+  if (!Array.isArray(neurons) || !neurons.length) throw new Error('A list of neurons is required')
+  const props = []
+  // Assume combine was called with map: combine({ a: synapse1, b: synapse2 })  // => 'synapse': function
+  if (neurons.length === 1 && typeof neurons[0] !== 'function') {
+    const m = neurons[0]
+    neurons = []
+    for (const prop in m) {
+      neurons.push(m[prop])
+      props.push(prop)
     }
+    // console.log('Combine[ObjMode]', props)
+  }
 
-    if (!Array.isArray(neurons) || !neurons.length) throw new Error('A list of neurons is required')
+  return function NeuronCombine (syn) {
     if (typeof syn !== 'function') throw new Error('Derivation function required')
-
     const loaded = []
     const values = []
     let remaining = neurons.length
@@ -269,7 +268,11 @@ function combine (...neurons) {
       }
       values[i] = val
       // console.log(`CombineHandler[${i}] ${neurons.map((n, i) => !!loaded[i])}`)
-      if (!remaining) syn(values)
+      if (!remaining) {
+        props.length
+          ? syn(values.reduce((m, v, i) => (((m[props[i]] = v), m)), {}))
+          : syn(values)
+      }
     }
   }
 }

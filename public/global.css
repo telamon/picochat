@@ -141,4 +141,4 @@ idsqr {
   height: 300px;
   padding: 1em;
 }
-
+.row, .column, .col { display: flex; }

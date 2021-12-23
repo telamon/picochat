@@ -1,11 +1,17 @@
 import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
-import { mute, gate, init } from '../blockend/nuro'
+import Keychain from '../blockend/keychain'
+import { mute, gate, init, write, combine, nfo, get } from '../blockend/nuro'
+import { navigate } from './router'
 const Modem56 = window.Modem56
 
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
+const personalBucket = levelup(leveljs('keychain')) // Open IndexedDB
 export const kernel = new Kernel(DB)
+export const keychain = new Keychain(personalBucket)
+export const keygen = Keychain.generate
+export const decodePk = Keychain.decodePk
 
 /**
  * Pico::N(e)uro -> svelte adapter
@@ -52,47 +58,59 @@ export function GameOver () {
 // Boot up
 let tryBoot = null
 export let lastError = null
+
+const [$kstate, setKstate] = write('loading')
+const [$error, setError] = write()
+const [$entered, setEntered] = write(false) // block published/ participating
+const [$swarming, setSwarming] = write(false) // are the m56 lights blinking?
+const [$hasKey, setHasKey] = write(false)
+const [$hasProfile, setHasProfile] = write(false)
+
+const $state = combine({
+  state: $kstate,
+  error: $error,
+  hasKey: $hasKey,
+  hasProfile: $hasProfile,
+  entered: $entered,
+  swarming: $swarming
+})
+
+export const state = svlt($state)
+
 export function boot () {
   if (!tryBoot) {
-    tryBoot = kernel.load()
-      .then(hasProfile => {
+    tryBoot = keychain.readIdentity()
+      .then(sk => {
+        setHasKey(!!sk)
+        return keychain.readProfile()
+      })
+      .then(pTemplate => {
+        setHasProfile(!!pTemplate)
+        return kernel.load()
+      })
+      .then(entered => {
+        setEntered(entered)
         // kernel.startGC()
-        return hasProfile
       })
       .catch(err => {
         console.error('kernel boot failure', err)
         lastError = err
-        return false
+        setError(err)
+        setKstate('error')
+        throw err
       })
-      .then(l => { // Auto-redirect if needed
-        if (lastError) window.location.hash = '/error?message=' + lastError.message
-        else if (!kernel.ready) window.location.hash = '/keygen'
-        return l
+      .then(entered => { // Auto-redirect if needed
+        setKstate('running')
+        const s = get($state)
+        console.info('Final state', s)
+        if (s.error) window.location.hash = '/error?message=' + s.error.message
+        else if (!s.hasKey) navigate('/keygen')
+        else if (!s.hasProfile) navigate('/profile')
+        else return connectSwarm()
       })
   }
-
-  // Consider moving to kernel.$state?
-  const initalKernelState = {
-    state: 'loading',
-    error: null,
-    hasKey: false,
-    hasProfile: false,
-    entered: false
-  }
-
-  const $n = init(initalKernelState, syn => {
-    tryBoot.then(l => {
-      syn({
-        state: 'running',
-        error: lastError,
-        hasKey: !!l,
-        hasProfile: l,
-        entered: false
-      })
-    })
-    return () => {} // noop
-  })
-  return svlt($n, 'KernelBoot')
+  // tryBoot.then(do something everytime boot is invoked)
+  return tryBoot
 }
 
 /*
@@ -127,12 +145,34 @@ export function Chat (chatId) {
  */
 let modem = null // hardware is expensive, we can only afford a single modem for now.
 // Helper to wire up modem56 to kernel and enter a pub in a single action.
-export async function enterPub () {
+export async function connectSwarm () {
   const name = 'HardCode'
   if (!Modem56) throw new Error('Modem not available, did you load it?')
   if (!modem) modem = new Modem56()
+  else return // already connected
   // else modem.leave()
 
   const spawnWire = await kernel.enter(name) // TODO, kernel.leave()
   modem.join(name, spawnWire)
+  setSwarming(true)
+}
+
+export function encodeImage (url) {
+  const regex = /^data:([^;]+);base64,/
+  const m = url.match(regex)
+  if (m[1] !== 'image/jpeg') throw new Error('CanvasExportedUnexpectedFiletype: ' + m[1])
+  return Buffer.from(url.replace(regex, ''), 'base64')
+}
+
+export function decodeImage (buf) {
+  return 'data:image/jpeg;base64,' + buf.toString('base64')
+}
+
+export async function updateProfile (profile) {
+  await keychain.writeProfile(profile)
+  setHasProfile(true)
+  if (get($hasKey) && !get($swarming)) {
+    await connectSwarm()
+    navigate('/pub')
+  }
 }

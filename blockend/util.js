@@ -35,6 +35,14 @@ const PEACE = 0
 const UNDERSTANDING = 1
 const LOVE = 2
 
+const G_M = 0
+const G_F = 1
+const G_NB = 2
+const G_R = 3 // Robots are people too
+
+// It's silly to waste
+const GEO_BITS = 17
+
 /**
  * Convert Object to buffer
  */
@@ -169,7 +177,6 @@ function feedToGraph (f) {
   }
   return graph
 }
-
 module.exports = {
   KEY_SK,
   KEY_BOX_LIKES_PK,
@@ -186,6 +193,11 @@ module.exports = {
   PEACE,
   LOVE,
   UNDERSTANDING,
+  G_M,
+  G_F,
+  G_NB,
+  G_R,
+  GEO_BITS,
   encodeBlock,
   decodeBlock,
   typeOfBlock,

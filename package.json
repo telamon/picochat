@@ -36,7 +36,6 @@
   },
   "homepage": "https://github.com/telamon/picochat",
   "devDependencies": {
-    "@koffeine/svelte-router": "^1.0.3",
     "@picocss/pico": "^1.4.2",
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-json": "^4.1.0",
@@ -47,7 +46,7 @@
     "hypercore-protocol": "^8.0.7",
     "hyperswarm-web": "^2.1.1",
     "iso3166-2-db": "^2.3.10",
-    "latlon-geohash": "^2.0.0",
+    "jimp": "^0.16.1",
     "level-js": "^6.1.0",
     "levelup": "^5.1.1",
     "memdown": "^6.1.1",
@@ -64,11 +63,13 @@
     "standard": "^16.0.4",
     "surge": "^0.23.0",
     "svelte": "^3.44.3",
+    "svelte-easy-crop": "^1.0.5",
     "tape": "^5.3.2"
   },
   "dependencies": {
     "@telamon/picostore": "^1.6.0",
     "debug": "^4.3.2",
+    "latlon-geohash": "^2.0.0",
     "msgpackr": "^1.5.1",
     "picofeed": "^3.3.2",
     "piconet": "^3.1.0"
