@@ -2,7 +2,7 @@ import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
-import { mute, gate, init, write, combine, nfo, get } from '../blockend/nuro'
+import { mute, gate, init, write, combine, svlt, get } from '../blockend/nuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
 
@@ -12,15 +12,6 @@ export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
 export const keygen = Keychain.generate
 export const decodePk = Keychain.decodePk
-
-/**
- * Pico::N(e)uro -> svelte adapter
- * */
-function svlt (neuron) { // totally pronounced 'svälti' with an icelandic accent.
-  return {
-    subscribe: neuron
-  }
-}
 
 // Helpers hooks for quick register access
 export function Profile () {
@@ -103,10 +94,11 @@ export function boot () {
         setKstate('running')
         const s = get($state)
         console.info('Final state', s)
+        const autoSwarm = JSON.parse(window.localStorage.getItem('auto_swarm'))
         if (s.error) window.location.hash = '/error?message=' + s.error.message
         else if (!s.hasKey) navigate('/keygen')
         else if (!s.hasProfile) navigate('/profile')
-        else return connectSwarm()
+        else return autoSwarm && connectSwarm()
       })
   }
   // tryBoot.then(do something everytime boot is invoked)

@@ -7,6 +7,7 @@ import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import css from 'rollup-plugin-css-only'
 import json from '@rollup/plugin-json'
+import yaml from '@rollup/plugin-yaml'
 import svelte from 'rollup-plugin-svelte'
 
 const production = !process.env.ROLLUP_WATCH
@@ -33,6 +34,7 @@ export default {
     // a separate file - better for performance
     css({ output: 'bundle.css', sourceMap: false }),
     json(),
+    yaml(),
     // If you have external dependencies installed from
     // npm, you'll most likely need these plugins. In
     // some cases you'll need additional configuration -

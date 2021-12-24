@@ -6,6 +6,7 @@ import { writable } from 'svelte/store'
 const name = writable()
 const tagline = writable()
 const picture = writable()
+
 async function save () {
   await updateProfile({
     name: $name,
@@ -22,11 +23,9 @@ async function load () {
   $name = p.name
   $tagline = p.tagline
   $picture = p.picture
-  // $pictureURI = URI.createObjectSomething()
   return p
 }
 let _loading = load()
-
 </script>
 <profile-view>
   <h1>Profile</h1>

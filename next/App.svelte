@@ -1,7 +1,6 @@
 <script>
-// export let KConfig, kernel
 import { writable, derived } from 'svelte/store'
-import { view, setView, navigate } from './router'
+import { view, setView, navigate, routeName } from './router'
 import { boot, state, kernel, Connections } from './api'
 const _loading = boot()
 const conn = Connections()
@@ -29,9 +28,15 @@ function toggleTheme () {
 function enterPub () {
   console.info('TODO: enter pub')
 }
+
+const autoSwarm = JSON.parse(window.localStorage.getItem('auto_swarm'))
+function toggleAutoConnect() {
+  window.localStorage.setItem('auto_swarm', !autoSwarm)
+  window.location.reload()
+}
 </script>
 
-<root data-theme={$theme}>
+<root data-theme={$theme} class={'view-' + $routeName}>
   {#if $showDev}
   <!-- Developer bar -->
   <dev-bar class="flex row xcenter space-between">
@@ -39,10 +44,26 @@ function enterPub () {
       K[{$state.state}]
       ID²[{$state.hasKey ? 1 : 0}]
       P[{$state.hasProfile ? 1 : 0}]
-      m56[{$state.swarming ? 1 : 0}:{$conn}]
+      m56[{$conn}]
       E[{$state.entered ? 1 : 0}]
     </div>
     <div>
+      <!--
+        sometimes you just need to
+        let yourself have some fun.
+        Say hello to modem-kun!
+      -->
+      <btn on:click={toggleAutoConnect} class={autoSwarm ? 'm56 auto' : 'm56 no-auto'}>
+        {#if !$state.swarming}
+          |=_=|
+        {:else if !$conn}
+          |o_=|
+        {:else if 2 > $conn}
+          |o_o|
+        {:else}
+          |ó_ó|
+        {/if}
+      </btn>
       <btn on:click={toggleTheme}>t</btn>
       <btn on:click={inspectFeed}>i</btn>
       <btn class="danger" on:click={purge}>X</btn>
@@ -70,10 +91,12 @@ function enterPub () {
     <round class="flex column center xcenter" on:click={() => navigate('shop')}>
       <img src="gfx/gfx-shop.svg" alt="Shop"/>
     </round>
-    <stat class="flex column center xcenter" on:click={enterPub}>
-      <h3>00:35</h3>
-      <h6>enter</h6>
-    </stat>
+    {#if !$state.entered}
+      <stat class="flex column center xcenter outside" on:click={enterPub}>
+        <h3 class="muted">--:--</h3>
+        <h6 class="primary">enter</h6>
+      </stat>
+    {/if}
     <round class="flex column center xcenter" on:click={() => navigate('msgs')}>
       <img src="gfx/gfx-msgs.svg" alt="Messages"/><br>
       <samp>0</samp>
@@ -86,4 +109,9 @@ function enterPub () {
 </root>
 
 <style>
+.m56 { padding: 0; }
+.m56.no-auto { background-color: var(--grave); }
+
+stat.outside h3 { color: var(--muted-color); }
+stat.outside h6 { color: var(--ash); }
 </style>

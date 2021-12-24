@@ -1,0 +1,27 @@
+drinks:
+  - name: Lager
+    time: 20
+    short: Cold, quenching
+    price: 2€
+  - name: Kosmo
+    time: 18
+    short: Tasty
+    price: 3€
+    mod: Random perk
+  - name: Ale
+    time: 22
+    short: Slightly different
+    price: 3.2€
+  - name: Stout
+    time: 30
+    price: 5€
+    mod: silence
+    short: Liquid darkness
+  - name: Sparkly Wine
+    time: 15
+    mod: 1.5X Rewards
+    price: 6€
+    short: Proof of Prestige
+
+
+

@@ -17,6 +17,7 @@
   --grave: #777;
   --ash: #c4c4c4;
   --poison: #77ff37;
+  --slate: rgb(65, 84, 98);
   --leaf: #48ad19;
   --blurSize: 10px;
 }
@@ -109,7 +110,10 @@ bar stat h3, bar stat h6 {
   margin: 0;
   padding: 0;
 }
-bar stat h6 {   font-size: smaller; }
+bar stat h6 {
+  font-size: smaller;
+  margin-top: 4px;
+}
 
 
 dev-bar {
@@ -142,3 +146,7 @@ idsqr {
   padding: 1em;
 }
 .row, .column, .col { display: flex; }
+.view-shop {
+  background-color: var(--pitch);
+  display: block;
+}
