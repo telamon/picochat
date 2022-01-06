@@ -37,6 +37,18 @@ export function Vibes () {
   )
 }
 
+export function Chats () {
+  // TODO: kernel.$chats() neuron
+  return svlt(
+    mute(
+      kernel.$vibes(),
+      vibes => vibes.filter(
+        v => v.state === 'match'
+      )
+    )
+  )
+}
+
 export function Cooldowns () {
   return svlt(
     init({ vibe: 0 })

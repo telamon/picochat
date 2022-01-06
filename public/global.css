@@ -151,7 +151,10 @@ idsqr {
   background-color: var(--pitch);
   display: block;
 }
-.no-margin { margin: 0; }
+/*---- Pico CSS unpad/repad ----*/
+.no-margin { margin: unset; }
+.pad { padding: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
+.gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 
 /*----- views/Pub.svelte: Peer Card */
 :root { --mdsqrsz: 300px; }
@@ -161,7 +164,7 @@ article.peer {
 }
 article.peer overlay h2,
 article.peer overlay h3 { margin: 0; }
-article.peer legend bimg img { width: 100%; }
+article.peer legend .bimg { width: 100%; }
 
 article.peer legend {
   width: var(--mdsqrsz);

@@ -35,20 +35,20 @@ function respondVibe (chatId, rejected) {
   <h5>Conversations</h5>
   <conversations>
   {#each $chats as chat}
-    <div class="row space-between">
+    <chat class="row space-between"
       on:click={() => navigate('/chat/' + chat.id.toString('hex'))}>
-      <div class="row">
-        <BinaryImage src={chat.peer.picture} size={100}/>
-        <div class="columns space-between">
-          <h3>{chat.peer.name}</h3>
-          <h6>{chat.myTurn ? 'your turn' : 'waiting'}</h6>
+      <div class="row xcenter">
+        <BinaryImage src={chat.peer.picture} size="80px"/>
+        <div class="columns space-between gap">
+          <h3 class="no-margin">{chat.peer.name}</h3>
+          <h6 class="no-margin">{chat.myTurn ? 'your turn' : 'waiting'}</h6>
         </div>
       </div>
-      <div class="columns xcenter">
+      <div class="columns xcenter gap">
         <span>&lt;3&lt;3&lt;3</span>
-        <h3><Timer expiresAt={chat.expiresAt}/></h3>
+        <h3 class="no-margin"><Timer expiresAt={chat.expiresAt}/></h3>
       </div>
-    </div>
+    </chat>
   {/each}
   </conversations>
   {#if $vibeDetail}
@@ -70,4 +70,5 @@ function respondVibe (chatId, rejected) {
 .reject { color: var(--blood); }
 .accept { color: var(--wizardry); }
 .timer { margin-top: 0; margin-bottom: 0.5em; }
+chat { border-bottom: 1px solid var(--ash); }
 </style>

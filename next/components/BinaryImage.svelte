@@ -1,6 +1,7 @@
 <script>
 import { decodeImage } from '../api'
 export let src = null
+export let size = null
 /*
   import { onMount } from 'svelte'
   const url = ''
@@ -8,7 +9,9 @@ export let src = null
     return () => URL.revokeObjectURL(url)
   })
 */
+const style = !(size ?? false) ? '' : `width: ${size}; height: ${size}`
 </script>
-<bimg>
-  <img src={decodeImage(src)}>
-</bimg>
+<img
+  class="bimg"
+  style={style}
+  src={decodeImage(src)}>
