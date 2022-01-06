@@ -1,6 +1,7 @@
 const test = require('tape')
-const { next: nextState, isSync } = require('../blockend/nuro')
+const { next, isSync } = require('../blockend/nuro')
 const Kernel = require('../blockend/')
+const Feed = require('picofeed')
 const {
   makeDatabase,
   spawnPeer,
@@ -31,33 +32,54 @@ test('Synchronity of internal APIs', async t => {
   // t.notOk(await isSync(k._chat(chatId)), '_chat(id)') // not required yet
 })
 
-test('Enter pub see peers', async t => {
+test.skip('Kernel states', async t => {
+  // Things that should be encoded and available in a TYPE_PUB block
+  // that should serve as an invitation.
+  // (whoa I almost centralized the whole thing.)
+  // Gonna take it easy with this test until the new frontend has more
+  // stuff goin on.
+  const Config = {
+    pub: 'HardCode',
+    geo: 0xffff, // Geohash of current human.
+    key: PUB_PK
+  }
+
+  const a = new Kernel(makeDatabase(), Config)
+  t.deepEqual(a.state, { loaded: false, passive: true, connected: false, entered: false })
+  await a.load()
+  t.deepEqual(a.state, { loaded: true, passive: true, connected: false, entered: false })
+
+  await a.upgrade(Feed.signPair().sk) // Enable block-creation
+  t.deepEqual(a.state, { loaded: true, passive: false, connected: false, entered: false })
+  await a.enter(Feed.signPair().sk, { name: 'Amiss', tagline: 'yay', age: 24, sex: 0, picture: 'a' })
+})
+
+test.skip('Enter pub see peers', async t => {
   const PUB = 'Abyss'
   const alice = new Kernel(makeDatabase())
   const bob = new Kernel(makeDatabase())
+  const robo = new Kernel(makeDatabase()) // passive node.
+  await robo.load()
   await alice.load()
   await bob.load()
-  await alice.register({ name: 'Amiss', tagline: 'yay', age: 24, sex: 0, picture: 'a' })
-  await bob.register({ name: 'Bobby', tagline: 'hey', age: 27, sex: 1, picture: 'b' })
-  // Upon entering same bar/topic
-  const spawnWireA = await alice.enter(PUB)
-  const spawnWireB = await bob.enter(PUB)
+  await alice.enter({ name: 'Amiss', tagline: 'yay', age: 24, sex: 0, picture: 'a' })
 
-  // Attach store observer
-  const observer = new Promise((resolve, reject) => {
-    let nRuns = 0
-    alice.store.on('peers', state => {
-      if (!nRuns++) return
-      // Their profiles should end up in the dynamic/disposable bar store.
-      const profiles = Object.values(state)
-      t.equal(profiles.length, 2)
-      t.ok(profiles.find(p => p.name === 'Bobby'))
-      resolve()
-    })
-  })
+  // Upon entering same bar/topic
+  const spawnWireA = await alice.connect(PUB)
+  const spawnWireB = await bob.connect(PUB)
+  const spawnWireR = await robo.connect(PUB)
+
+  await bob.enter({ name: 'Bobby', tagline: 'hey', age: 27, sex: 1, picture: 'b' })
+
   const b = spawnWireB()
+  spawnWireR({ client: true }).open(spawnWireA()) // Connect passive node
   spawnWireA({ client: true }).open(b)
-  await observer
+
+  const aPeers = Object.values(await next(s => alice.store.on('peers', s)))
+  t.equal(aPeers.length, 2)
+  t.ok(aPeers.find(p => p.name === 'Bobby'), 'Alice sees bob')
+  const peers = await next(robo.$peers(), 1)
+  t.equal(peers.length, 2)
   t.end()
 })
 
@@ -94,7 +116,7 @@ test('Self-vibes throws error', async t => {
 test('Kernel#$chat()', async t => {
   const { alice, bob, chatId } = await makeMatch()
 
-  const aChat = await nextState(alice.k.$chat(chatId), 1)
+  const aChat = await next(alice.k.$chat(chatId), 1)
   t.equal(aChat.myTurn, false)
   t.equal(aChat.state, 'active')
   t.ok(Array.isArray(aChat.messages))
@@ -102,7 +124,7 @@ test('Kernel#$chat()', async t => {
   t.equal(typeof aChat.pass, 'function')
   t.equal(typeof aChat.bye, 'function')
 
-  const bChat = await nextState(bob.k.$chat(chatId), 1)
+  const bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.state, 'active')
 })
@@ -116,12 +138,12 @@ process.on('uncaughtException', err => {
 test('Conversation: Hi! ... Hello', async t => {
   const { alice, bob, chatId } = await makeMatch()
   // Bob says Hi
-  let bChat = await nextState(bob.k.$chat(chatId), 1)
+  let bChat = await next(bob.k.$chat(chatId), 1)
   t.notEqual(bChat.state, 'loading')
   t.ok(bChat.myTurn)
   await bChat.send('Hi!') // Send the message
 
-  bChat = await nextState(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 1)
 
   t.equal(bChat.myTurn, false, 'Nolonger bobs turn')
   t.equal(bChat.messages.length, 1, 'Message should be stored')
@@ -129,7 +151,7 @@ test('Conversation: Hi! ... Hello', async t => {
   t.equal(bChat.messages[0]?.content, 'Hi!', 'Sent should be readable')
 
   // Alice reads
-  let aChat = await nextState(alice.k.$chat(chatId), 2)
+  let aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true, 'Alice Turn')
   t.equal(aChat.messages.length, 1, 'Message should be received')
   t.equal(aChat.messages[0].type, 'received')
@@ -137,12 +159,12 @@ test('Conversation: Hi! ... Hello', async t => {
 
   // Alice replies
   await aChat.send('Hello~') // Send reply
-  aChat = await nextState(alice.k.$chat(chatId), 1) // needs async value for decryption
+  aChat = await next(alice.k.$chat(chatId), 1) // needs async value for decryption
   t.equal(aChat.myTurn, false, 'Nolonger alice turn')
   t.equal(aChat.messages.length, 2, 'Message should be appended')
 
   // Bob recieves reply
-  bChat = await nextState(bob.k.$chat(chatId), 2) // sync + receive + decrypt
+  bChat = await next(bob.k.$chat(chatId), 2) // sync + receive + decrypt
   t.equal(bChat.messages.length, 2, 'new message visible')
   t.equal(bChat.messages[1].content, 'Hello~')
   t.equal(bChat.myTurn, true, 'Bob`s turn again')
@@ -158,42 +180,42 @@ test('Conversation: Hi! ... Hello', async t => {
 
 test('Conversation: lose-lose', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 1)
+  let bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 3)
   bChat.send('Hi')
 
-  let aChat = await nextState(alice.k.$chat(chatId), 2)
+  let aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true)
   await aChat.send('Hello what')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.myTurn, true)
   await bChat.send('SHOW ME THEM BAPS!!1!') // improper netiquette
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true)
   await aChat.pass()
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 2) // first hit
   await bChat.send('Y U NO SHAW THEM???') // Recovers 0.3
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true)
   await aChat.pass()
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.myTurn, true)
   t.equal(bChat.health, 1)
 
   await bChat.pass() // bob gives up, conversation exhausted
 
-  bChat = await nextState(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(bChat.health, 0)
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.myTurn, true)
   t.equal(aChat.health, 0, 'Alice also sees the health drop to zero')
   t.equal(aChat.state, 'exhausted')
@@ -212,67 +234,67 @@ test('Conversation: lose-lose', async t => {
 
 test('Conversation: win-win', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 1)
+  let bChat = await next(bob.k.$chat(chatId), 1)
   bChat.send('Hi')
 
-  let aChat = await nextState(alice.k.$chat(chatId), 2)
+  let aChat = await next(alice.k.$chat(chatId), 2)
 
   await aChat.send('hi')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('Nice profile pic') // Master pickup artist
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('Thx :>')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('Is that a snake? 🤨')
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('What? No, It`s a bracelet!!')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('Whoa that`s rad!')
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   // mental-note: messages should be buffered with a 1-3sec delay, if user is still typing
   // then give them a chance to finish writing the next paragraph before commiting the block.
   // paragrafs should be embedded in the content as usual but visually represented as different messages.
   // - sometimes people burst into talkativity, they should be given a chance to speak their mind during the turn.
   await aChat.send('I know right?!\nBirthday present from mom\nI use it almost every day!')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('So your mom`s into snakes?')
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('Naw.. but I actually have a live one')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('No way? What do you feed it with')
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.send('You don`t wanna know...')
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   await bChat.send('then tell me next time <3, was really cool talking to you')
 
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   await aChat.bye(2) // Alice hangs up
-  aChat = await nextState(alice.k.$chat(chatId), 1)
+  aChat = await next(alice.k.$chat(chatId), 1)
   t.equal(aChat.myTurn, false)
 
-  bChat = await nextState(bob.k.$chat(chatId), 2)
+  bChat = await next(bob.k.$chat(chatId), 2)
   t.equal(bChat.state, 'finalizing')
   t.equal(bChat.myTurn, true)
 
   await bChat.bye(2) // Bob hangs up
 
   // Both are at state end
-  aChat = await nextState(alice.k.$chat(chatId), 2)
+  aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.state, 'end')
   t.equal(aChat.myTurn, false)
 
-  bChat = await nextState(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(bChat.state, 'end')
   t.equal(bChat.myTurn, false)
   t.end()
@@ -280,11 +302,11 @@ test('Conversation: win-win', async t => {
 
 test('Conversation: messages should not be interpreted as hexStrings', async t => {
   const { alice, bob, chatId } = await makeMatch()
-  let bChat = await nextState(bob.k.$chat(chatId), 1)
+  let bChat = await next(bob.k.$chat(chatId), 1)
   bChat.send('0123')
 
-  const aChat = await nextState(alice.k.$chat(chatId), 2)
+  const aChat = await next(alice.k.$chat(chatId), 2)
   t.equal(aChat.messages[0].content, '0123')
-  bChat = await nextState(bob.k.$chat(chatId), 1)
+  bChat = await next(bob.k.$chat(chatId), 1)
   t.equal(bChat.messages[0].content, '0123')
 })

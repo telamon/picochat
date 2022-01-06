@@ -18,7 +18,13 @@ const emptyProfile = (pk = null) => ({
 function validateProfile (data) {
   // Validate profile content
   if (!data.picture) return 'Profile Picture missing'
-  if (typeof data.picture !== 'string' || data.picture.length > 10) return 'Picture should be an emoji'
+  if (Buffer.isBuffer(data.picture)) { // webp support
+    // TODO: validate webp headers && bitmap offsets?
+    if (data.picture.length > 15000) return 'Picture should be less than 15kB'
+  } else if (typeof data.picture !== 'string' || data.picture.length > 10) {
+    return 'Picture should be an emoji'
+  }
+
   if (containsURL(data.tagline)) return 'URL in tagline not permitted'
   if (containsURL(data.name)) return 'Links in name is not permitted'
   if (data.name.match(/^\s/)) return 'Name must contain only letters or numbers'

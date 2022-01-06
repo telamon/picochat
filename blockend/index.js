@@ -32,16 +32,33 @@ const {
 } = require('./util')
 const debug = require('debug')
 const D = debug('picochat:kernel')
-
+const { writable, combine, get } = require('./nuro')
 // debug.enable('pico*')
+
+function initialState () {
+  const [loaded, setLoaded] = writable(false)
+  // Passive nodes participate in the network
+  // but do not publish blocks of their own. (upgraded simply by injecting sk)
+  // ( NOT YET SUPPORTED!! )
+  const [passive, setPassive] = writable(true)
+  const [connected, setConnected] = writable(false)
+  const [entered, setEntered] = writable(false)
+  return [
+    combine({ loaded, passive, connected, entered }),
+    { setLoaded, setPassive, setConnected, setEntered }
+  ]
+}
 
 class Kernel {
   constructor (db, opts = {}) {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
+    this._state = initialState()
     // Process opts
     this._now = opts.now || (() => Date.now())
+    this._sk = null // Signing secret + public key
+    this._vibeBox = null // Vibe box-pair
 
     // Setup slices
     this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
@@ -59,6 +76,9 @@ class Kernel {
     Object.assign(this, Network(this))
     Object.assign(this, GarbageCollector(this.store))
   }
+
+  get state () { return get(this._state[0]) }
+  get $state () { return this._state[0] }
 
   /**
    * Restores session/data from store
@@ -240,8 +260,6 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
   console.warn('MergeStrategy rejected', parentType, '<--', type)
   return false // disallow by default
 }
+
 module.exports = Kernel
 
-module.exports.keygen = function (gender, geo) {
-  return Feed.signPair()
-}

@@ -15,7 +15,7 @@ const { makeDatabase } = require('./test.helpers')
  * - There is no way to prove that the Secret exists without revealing it, at which point it stops being one.
  */
 
-test.only('Keychain is separate from kernel', async t => {
+test('Keychain is separate from kernel', async t => {
   const db = makeDatabase()
   const kc = new Keychain(db)
   const { sk } = Keychain.generate()

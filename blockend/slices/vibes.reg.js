@@ -10,7 +10,7 @@ const {
 } = require('../util')
 const D = require('debug')('picochat:slices:vibes')
 
-const TTL = 5 * 1000 * 60 // Defaults to 5 minutes
+const TTL = 5 * 1000 * 600 // Defaults to 5 minutes
 const RESP_TTL = 3 * 1000 * 60 // Defaults to 5 minutes
 
 class VibeCtrl { // TODO: use same pattern as aother reducers instead of class

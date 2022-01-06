@@ -19,6 +19,7 @@ module.exports = {
   memo,
   mute,
   init,
+  when,
   combine,
   isSync,
   _isSync,
@@ -70,6 +71,17 @@ function init (value, neuron) {
       disconnected = true
       unsub()
     }
+  }
+}
+
+/**
+ * Experimental async neuron that converts a promise
+ * and fires once.
+ */
+function when (promise) {
+  if (!promise || typeof promise.then !== 'function') throw new Error('Expected a Promise')
+  return function WhenResolved (syn) {
+    promise.then(syn)
   }
 }
 
@@ -426,7 +438,6 @@ async function until (neuron, condition, timeout = -1) {
 /**
  * Pico::N(e)uro -> svelte adapter
  * */
-function svlt (neuron) { // totally pronounced 'svälti' with an icelandic accent.
-  return { subscribe: neuron }
+function svlt (neuron, dbg) { // totally pronounced 'svälti' with an icelandic accent.
+  return { subscribe: !dbg ? neuron : nfo(neuron, dbg) }
 }
-

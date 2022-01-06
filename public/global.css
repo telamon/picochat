@@ -72,7 +72,7 @@ root [data-theme="dark"] {
 
 /* Typography */
 h1, h2, h3 { font-weight: 100; }
-h4, h5, h6, button {
+h4, h5, h6, button, a[role=button] {
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -89,6 +89,7 @@ bar {
   margin: 0;
   height: 4em;
   padding: 0 0.6em;
+  z-index: 100;
 }
 bar round {
   display: inline-block;
@@ -150,3 +151,52 @@ idsqr {
   background-color: var(--pitch);
   display: block;
 }
+.no-margin { margin: 0; }
+
+/*----- views/Pub.svelte: Peer Card */
+:root { --mdsqrsz: 300px; }
+article.peer {
+  padding: 0;
+  max-width: var(--mdsqrsz);
+}
+article.peer overlay h2,
+article.peer overlay h3 { margin: 0; }
+article.peer legend bimg img { width: 100%; }
+
+article.peer legend {
+  width: var(--mdsqrsz);
+  height: var(--mdsqrsz);
+}
+
+article.peer legend overlay {
+  width: var(--mdsqrsz);
+  height: var(--mdsqrsz);
+  position: absolute;
+  z-index: 11;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "nw ne"
+    "w e"
+    "sw se";
+}
+
+article.peer legend h2, article.peer legend h3 {
+  color: var(--bone);
+}
+
+article.peer dot {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  vertical-align: baseline;
+  border-radius: 100%;
+  background-color: var(--ash);
+  line-height: 1em;
+  margin: 0 0.3em;
+}
+article.peer dot.vibing {
+  background-color: var(--wizardry);
+}
+/*-- END OF PEER CARD --*/

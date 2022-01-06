@@ -2,7 +2,7 @@ import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
-import { mute, gate, init, write, combine, svlt, get } from '../blockend/nuro'
+import { mute, gate, init, write, combine, svlt, get, nfo } from '../blockend/nuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
 
@@ -10,7 +10,12 @@ const DB = levelup(leveljs('picochat')) // Open IndexedDB
 const personalBucket = levelup(leveljs('keychain')) // Open IndexedDB
 export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
-export const keygen = Keychain.generate
+
+export const keygen = (gender, geo, attempts) => {
+  if (geo) return Keychain.generate(gender, geo, attempts)
+  else return Keychain.generateAnonymous()
+}
+
 export const decodePk = Keychain.decodePk
 
 // Helpers hooks for quick register access
@@ -28,7 +33,13 @@ export function Peer (id) {
 
 export function Vibes () {
   return svlt(
-    kernel.$vibes()
+    kernel.$vibes(), 'vibes'
+  )
+}
+
+export function Cooldowns () {
+  return svlt(
+    init({ vibe: 0 })
   )
 }
 
@@ -167,4 +178,23 @@ export async function updateProfile (profile) {
     await connectSwarm()
     navigate('/pub')
   }
+}
+
+export async function storeIdentity (sk) {
+  await keychain.writeIdentity(sk)
+  setHasKey(true)
+}
+
+export async function enter () {
+  if (!get($hasKey)) return navigate('/keygen')
+  if (!get($hasProfile)) return navigate('/profile')
+  // TODO: in this contexted $entered refers to if profile-block is published or not
+  // need to refactor kernel states for clarity
+  if (!get($entered)) {
+    const sk = await keychain.readIdentity()
+    const profile = await keychain.readProfile()
+    await kernel.register(profile, sk)
+    setEntered(true)
+  }
+  return connectSwarm()
 }

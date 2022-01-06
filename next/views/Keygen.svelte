@@ -1,6 +1,6 @@
 <script>
   import { navigate } from '../router'
-  import { keychain, keygen, decodePk } from '../api'
+  import { keychain, keygen, decodePk, storeIdentity } from '../api'
   import { writable } from 'svelte/store'
   import Geohash from 'latlon-geohash'
 
@@ -32,7 +32,7 @@
     }
 
     if (pair) {
-      await keychain.writeIdentity(pair.sk)
+      await storeIdentity(pair.sk)
       $secret = pair.sk
     } else $unlucky = true
     $progress = 100
@@ -79,6 +79,7 @@
       </div>
       <div>
         <button on:click={roll} disabled={$progress !== 100}>Generate</button>
+        <!-- <button on:click={() => {$gender = null; roll()}} disabled={$progress !== 100}>Give up</button> -->
         <danger>{$secret?.slice(32, 8).toString('hex')}</danger>
       </div>
     </idsqr>

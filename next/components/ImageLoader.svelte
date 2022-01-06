@@ -60,21 +60,25 @@ function onCrop (ev) {
   // $doCrop = false
   $output = false
 }
+
 onMount(() => {
   ctx = canvasElement.getContext('2d')
   ctx.fillStyle = 'gray'
   ctx.fillRect(0, 0, 300, 300)
-  console.info('ImgLoader onMount()', $output)
-  if ($output) {
-    // gonna have to tweak $profile and $peer neurons to provide object-urls
-    // also have to not load peer.picture blob into register memory.
-    // also have to use an interrupt to catch each incoming image and store
-    // to some separate store that allows createObjectURL api/reference
-    const url = decodeImage($output)
-    setImage(url)
-  }
+  const unsub = output?.subscribe(blob => {
+    console.info('Redrawing preview due to change', blob?.length)
+    if (blob) {
+      // gonna have to tweak $profile and $peer neurons to provide object-urls
+      // also have to not load peer.picture blob into register memory.
+      // also have to use an interrupt to catch each incoming image and store
+      // to some separate store that allows createObjectURL api/reference
+      const url = decodeImage($output)
+      setImage(url)
+    }
+  })
 
   return () => { // Destroy
+    unsub && unsub()
   }
 })
 </script>

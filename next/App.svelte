@@ -1,12 +1,23 @@
 <script>
 import { writable, derived } from 'svelte/store'
 import { view, setView, navigate, routeName } from './router'
-import { boot, state, kernel, Connections } from './api'
+import {
+  boot,
+  enter,
+  state,
+  kernel,
+  Connections,
+  Profile
+} from './api'
+import Timer from './components/Timer.svelte'
+import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
-const theme = writable()
 const showBar = derived(state, s => s.hasKey)
 const showDev = writable(true)
+const showDebugSelector = writable(false)
+
+const profile = Profile()
 
 async function inspectFeed () {
   const feed = await kernel.feed()
@@ -22,11 +33,15 @@ async function purge () {
   // await keychain.db.clear()
   window.location.reload()
 }
+
 function toggleTheme () {
-  $theme = $theme ? undefined : 'dark'
+  const htmlTag = document.documentElement
+  if(htmlTag.dataset.theme) delete htmlTag.dataset.theme
+  else htmlTag.dataset.theme = 'dark'
 }
+
 function enterPub () {
-  console.info('TODO: enter pub')
+  enter()
 }
 
 const autoSwarm = JSON.parse(window.localStorage.getItem('auto_swarm'))
@@ -36,12 +51,12 @@ function toggleAutoConnect() {
 }
 </script>
 
-<root data-theme={$theme} class={'view-' + $routeName}>
+<root class={'view-' + $routeName}>
   {#if $showDev}
   <!-- Developer bar -->
   <dev-bar class="flex row xcenter space-between">
     <div >
-      K[{$state.state}]
+      K[{$state?.state[0]}]
       ID²[{$state.hasKey ? 1 : 0}]
       P[{$state.hasProfile ? 1 : 0}]
       m56[{$conn}]
@@ -64,11 +79,13 @@ function toggleAutoConnect() {
           |ó_ó|
         {/if}
       </btn>
+      <btn on:click={() => $showDebugSelector = true}>D</btn>
       <btn on:click={toggleTheme}>t</btn>
       <btn on:click={inspectFeed}>i</btn>
       <btn class="danger" on:click={purge}>X</btn>
     </div>
   </dev-bar>
+  <DebugSelector open={showDebugSelector}/>
   {/if}
 
   <!-- Main container -->
@@ -96,6 +113,11 @@ function toggleAutoConnect() {
         <h3 class="muted">--:--</h3>
         <h6 class="primary">enter</h6>
       </stat>
+    {:else}
+      <stat class="flex column center xcenter inside">
+        <h3 class="primary"><Timer expiresAt={$profile.expiresAt} /></h3>
+        <h6 class="muted">exit</h6>
+      </stat>
     {/if}
     <round class="flex column center xcenter" on:click={() => navigate('msgs')}>
       <img src="gfx/gfx-msgs.svg" alt="Messages"/><br>
@@ -114,4 +136,6 @@ function toggleAutoConnect() {
 
 stat.outside h3 { color: var(--muted-color); }
 stat.outside h6 { color: var(--ash); }
+stat.inside h3 { color: var(--ash); }
+stat.inside h6 { color: var(--muted-color); }
 </style>

@@ -8,7 +8,7 @@ const {
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK
 } = require('../util')
-const { mute, combine, init, gate } = require('../nuro')
+const { mute, combine, init, gate, when } = require('../nuro')
 
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
@@ -20,11 +20,11 @@ module.exports = function PeersModule () {
     __setHasProfile: setHasProfile, // Used by kernel.load()
     hasProfile,
     /**
-     * Generates a new user identity and creates the first profile block
+     * Publishes a profile block.
      */
-    async register (profile) {
+    async register (profile, sk) {
+      sk = sk || Feed.signPair().sk
       // Signing identity
-      const { sk } = Feed.signPair()
       this._sk = sk
 
       // A box for love-letters
@@ -105,9 +105,11 @@ module.exports = function PeersModule () {
     $peers () {
       // TODO: make LRU-backed $profiles singleton-neuron
       const ownid = this.pk
-      const $peers = mute(
+      const $peers = mute( // filter own profile.
         this.store.on.bind(this.store, 'peers'),
-        peerMap => Object.values(peerMap).filter(p => !ownid.equals(p.pk))
+        peerMap => ownid
+          ? Object.values(peerMap).filter(p => !ownid.equals(p.pk))
+          : Object.values(peerMap)
       )
       const $chats = this.store.on.bind(this.store, 'chats')
 
@@ -128,6 +130,7 @@ module.exports = function PeersModule () {
      */
     $profile () {
       const $chats = s => this.store.on('chats', s)
+      const $loaded = when(this.load())
       return gate(init(PEER_PLACEHOLDER,
         mute(
           combine(
@@ -138,7 +141,8 @@ module.exports = function PeersModule () {
                 return peer
               }
             ),
-            $chats
+            $chats,
+            $loaded
           ),
           computeProfile
         )
@@ -149,6 +153,7 @@ module.exports = function PeersModule () {
 
 function computeProfile ([peer, chats]) {
   if (!peer) return ERR_PEER_NOT_FOUND // TODO: most likely redundant
+  if (peer.date === null) return PEER_PLACEHOLDER // when neuron invoked pre-kernel load.
   if (peer.state === 'error') return peer
   if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
   const stats = chats.stats[peer.pk.toString('hex')] || {

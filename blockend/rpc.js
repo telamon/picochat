@@ -17,6 +17,7 @@ const K_NODE_ID = 40
 const K_OK = 80
 const K_ERR = 81
 const K_SIG = 82
+const K_EMPTY = 84
 
 // Experimental
 const K_JSON = 201
@@ -85,6 +86,10 @@ class RPC {
   }
 
   _uploadFeeds (sink, feeds) {
+    if (!feeds || !feeds.length) {
+      return sink(encodeMsg(K_EMPTY))
+    }
+
     const remaining = [...feeds]
     const current = remaining.shift()
     return sink(encodeMsg(K_BLOCKS, current), !!remaining.length)
@@ -143,10 +148,12 @@ class RPC {
           D('NodeConnected %s', node.id)
           if (this.handlers.onhandshake) this.handlers.onhandshake(node)
           break
+
         case K_QUERY: {
           const feeds = await this.handlers.onquery(data)
           await this._uploadFeeds(replyTo, feeds)
         } break
+
         case K_BLOCKS: // Download feeds
           for await (const blocks of this._downloadFeeds(msg, replyTo)) {
             const forward = await this.handlers.onblocks(blocks)
@@ -157,6 +164,11 @@ class RPC {
             }
           }
           break
+
+        case K_EMPTY:
+          // NOOP
+          break
+
         default:
           debugger
           throw new Error(`UnknownMessageType: ${type} - ${kTypeToString(type)}`)
@@ -173,6 +185,7 @@ function encodeMsg (type, obj) {
     // case K_BLOCKS_ACK:
     case K_BLOCKS:
       // TODO: Extend picofeed with official binary pickle support.
+      if (!obj) throw new Error('Feed expected')
       obj = Feed.from(obj)
       buffer = Buffer.alloc(obj.tail + 1)
       obj.buf.copy(buffer, 1, 0, obj.tail)
@@ -194,6 +207,7 @@ function encodeMsg (type, obj) {
 
     // Serialize signals
     case K_ERR:
+    case K_EMPTY:
     case K_OK:
       buffer = Buffer.alloc(1)
       break
@@ -249,6 +263,7 @@ function decodeMsg (buffer) {
     // deserialize signals
     case K_OK:
     case K_ERR:
+    case K_EMPTY:
       break
 
     // deserialize json messages
@@ -279,6 +294,7 @@ module.exports = {
   K_REQUEST_TAIL,
   K_OK,
   K_ERR,
+  K_EMPTY,
   K_SIG,
   K_JSON,
   K_ERR_MSG
