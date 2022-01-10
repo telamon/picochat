@@ -1,6 +1,6 @@
 <script>
 import { writable, derived } from 'svelte/store'
-import { view, setView, navigate, routeName } from './router'
+import { view, id, setView, navigate, routeName } from './router'
 import {
   boot,
   enter,
@@ -9,6 +9,7 @@ import {
   Connections,
   Profile
 } from './api'
+import Icon from './components/Icon.svelte'
 import Timer from './components/Timer.svelte'
 import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
@@ -93,7 +94,11 @@ function toggleAutoConnect() {
     {#await _loading}
       <h1>Loading kernel...</h1>
     {:then}
-      <svelte:component this={$view} />
+      {#if $id}
+        <svelte:component this={$view} id={$id} />
+      {:else}
+        <svelte:component this={$view} />
+      {/if}
     {:catch err}
       <h3>KernelPanic! {err.message}</h3>
       <pre>{err.stack}</pre>
@@ -103,10 +108,10 @@ function toggleAutoConnect() {
   <!-- Bottom bar with phat buttons -->
   <bar class="flex row xcenter space-between">
     <round class="flex column center xcenter" on:click={() => navigate('pub')}>
-      <img src="gfx/gfx-vibe.svg" alt="Pub"/>
+      <Icon id="gfx-vibe"/>
     </round>
     <round class="flex column center xcenter" on:click={() => navigate('shop')}>
-      <img src="gfx/gfx-shop.svg" alt="Shop"/>
+      <Icon id="gfx-shop"/>
     </round>
     {#if !$state.entered}
       <stat class="flex column center xcenter outside" on:click={enterPub}>
@@ -120,11 +125,11 @@ function toggleAutoConnect() {
       </stat>
     {/if}
     <round class="flex column center xcenter" on:click={() => navigate('msgs')}>
-      <img src="gfx/gfx-msgs.svg" alt="Messages"/><br>
+      <Icon id="gfx-msgs"/>
       <samp>0</samp>
     </round>
     <round class="flex column center xcenter" on:click={() => navigate('profile')}>
-      <img src="gfx/gfx-profile.svg" alt="Profile"/>
+      <Icon id="gfx-profile"/>
     </round>
   </bar>
   {/if}

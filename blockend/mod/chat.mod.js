@@ -60,6 +60,7 @@ module.exports = function ChatModule () {
       const chat = {
         id: chatId,
         state: 'loading',
+        initiator: false,
         myTurn: null,
         peerId: null,
         peer: null,
@@ -96,6 +97,7 @@ module.exports = function ChatModule () {
         chat.expiresAt = lChat ? lChat.expiresAt : vibe.expiresAt
         chat.peerId = vibe.peerId
         chat.peer = vibe.peer
+        chat.initiator = vibe.initiator === 'local' // TODO: remove 'local' string in vibe.mod
 
         if (!lChat && vibe.state === 'match') {
           // First to vibe is first to write

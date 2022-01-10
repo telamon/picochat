@@ -26,8 +26,7 @@ module.exports = {
   gate,
   settle,
   iter,
-  nfo,
-  svlt
+  nfo
 }
 
 // One to many neuron (opposite of combine)
@@ -433,11 +432,4 @@ async function until (neuron, condition, timeout = -1) {
   })
   result.finally(unsub)
   return result
-}
-
-/**
- * Pico::N(e)uro -> svelte adapter
- * */
-function svlt (neuron, dbg) { // totally pronounced 'svälti' with an icelandic accent.
-  return { subscribe: !dbg ? neuron : nfo(neuron, dbg) }
 }

@@ -9,6 +9,7 @@ import css from 'rollup-plugin-css-only'
 import json from '@rollup/plugin-json'
 import yaml from '@rollup/plugin-yaml'
 import svelte from 'rollup-plugin-svelte'
+import svgSprite from 'rollup-plugin-svg-sprite-deterministic'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -19,8 +20,7 @@ export default {
     format: 'iife',
     name: 'app',
     file: 'public/build/bundle.js',
-    globals: {
-    }
+    globals: { }
   },
 
   plugins: [
@@ -51,6 +51,9 @@ export default {
     // builtins(),
     // globals(),
 
+    svgSprite({
+      outputFolder: 'public/build'
+    }),
     // In dev mode, call `npm run start` once
     // the bundle has been generated
     !production && serve(),

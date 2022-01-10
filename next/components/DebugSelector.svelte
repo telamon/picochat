@@ -1,6 +1,7 @@
 <script>
 import { writable } from 'svelte/store'
 import debug from 'debug'
+import Dialog from './Dialog.svelte'
 export let open = null ?? writable(false)
 // patterns.map(name => ({ name, enabled: debug.enabled(name) }))
 const patterns = [
@@ -26,25 +27,8 @@ function set (value) {
   }
 }
 
-function updateAttribute(node, name, value) {
-  if (value === null || value === false) {
-    node.removeAttribute(name);
-  }
-  else node.setAttribute(name, value+"")
-}
-function attr(node, entry) {
-  if(entry) {
-     updateAttribute(node, entry[0], entry[1])
-   }
-  return {
-    update(updated) {
-      if(!updated) return
-      updateAttribute(node, updated[0], updated[1])
-    }
-  }
-}
 </script>
-<dialog  use:attr={["open", $open]}>
+<Dialog open={$open} on:fade={() => $open = false}>
   <article>
     <h6>namespaces</h6>
     <input type="text" bind:value={$namespaces} />
@@ -63,6 +47,6 @@ function attr(node, entry) {
       <button on:click={() => $open = false}>ok</button>
     </footer>
   </article>
-</dialog>
+</Dialog>
 <style>
 </style>

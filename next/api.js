@@ -2,10 +2,22 @@ import levelup from 'levelup'
 import leveljs from 'level-js'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
-import { mute, gate, init, write, combine, svlt, get, nfo } from '../blockend/nuro'
+import { readable } from 'svelte/store'
+import { mute, gate, init, write, combine, get, nfo } from '../blockend/nuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
 
+
+/**
+ * Pico::N(e)uro -> svelte adapter
+ * */
+export function svlt (neuron, dbg) {
+  return readable(null, set =>
+    !dbg
+      ? neuron(set)
+      : nfo(neuron, dbg)(set)
+  )
+}
 const DB = levelup(leveljs('picochat')) // Open IndexedDB
 const personalBucket = levelup(leveljs('keychain')) // Open IndexedDB
 export const kernel = new Kernel(DB)
@@ -146,8 +158,8 @@ export function boot () {
  *   bye,  // async function, bye(mood)
  * } = useChat(id) // <-- same id as vibeId
  */
-export function Chat (chatId) {
-  return svlt(kernel.$chat(chatId))
+export function Chat (chatId, d) {
+  return svlt(kernel.$chat(chatId), d)
 }
 
 /**

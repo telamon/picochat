@@ -1,5 +1,6 @@
 import '@picocss/pico'
 import 'picoflex'
+import './icons'
 import './router'
 import App from './App.svelte'
 import dayjs from 'dayjs'

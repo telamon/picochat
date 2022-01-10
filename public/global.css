@@ -1,10 +1,3 @@
-/* .h2 {
-  color: #ff3e00;
-  text-transform: uppercase;
-  font-size: 4em;
-  font-weight: 100;
-} */
-
 :root {
   --pitch: #000;
   --bone: #fff;
@@ -77,10 +70,10 @@ h4, h5, h6, button, a[role=button] {
   text-transform: uppercase;
 }
 
-
 /* global components */
+
+/** bottom navbar */
 main.has-bar { padding-bottom: 4em; }
-main.has-dev { padding-top: 1em; }
 bar {
   background-color: var(--pitch);
   position: fixed;
@@ -100,10 +93,17 @@ bar round {
   text-align: center;
   border-radius: 100%;
 }
+bar round svg.icon { max-width: 36px; max-height: 28px; } /* TODO: not responsive */
 bar round:nth-child(1) { box-shadow: 0 0 var(--blurSize) var(--wizardry); }
 bar round:nth-child(2) { box-shadow: 0 0 var(--blurSize) var(--sorcery); }
 bar round:nth-child(4) { box-shadow: 0 0 var(--blurSize) var(--blood); }
 bar round:nth-child(5) { box-shadow: 0 0 var(--blurSize) var(--leaf); }
+
+bar round:nth-child(1):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--wizardry); }
+bar round:nth-child(2):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--sorcery); }
+bar round:nth-child(4):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--blood); }
+bar round:nth-child(5):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--leaf); }
+
 bar stat { display: block; line-height: 0; }
 bar stat h3, bar stat h6 {
   color: var(--chalk);
@@ -115,8 +115,10 @@ bar stat h6 {
   font-size: smaller;
   margin-top: 4px;
 }
+/** end of bottom-navbar */
 
-
+/** Developers info bar */
+main.has-dev { padding-top: 1em; }
 dev-bar {
   position: fixed;
   width: 100%;
@@ -138,6 +140,7 @@ dev-bar btn {
 dev-bar btn.danger {
   background-color: var(--blood);
 }
+/** end of devbar */
 
 idsqr {
   display: block;
@@ -146,15 +149,21 @@ idsqr {
   height: 300px;
   padding: 1em;
 }
-.row, .column, .col { display: flex; }
-.view-shop {
-  background-color: var(--pitch);
-  display: block;
-}
+
+.row, .column, .col { display: flex; } /* TODO: move this rule to flexi.css */
 /*---- Pico CSS unpad/repad ----*/
-.no-margin { margin: unset; }
+.no-margin, .nogap { margin: unset; }
 .pad { padding: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 .gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
+.vgap { margin: var(--block-spacing-vertical) 0; }
+.hgap { margin: 0 var(--block-spacing-horizontal); }
+
+/* SVG Sprite Icons (Unset pico.css fill rule)*/
+svg.icon {
+  fill: none;
+  max-width: 100%;
+  max-height: 100%;
+}
 
 /*----- views/Pub.svelte: Peer Card */
 :root { --mdsqrsz: 300px; }
@@ -203,3 +212,8 @@ article.peer dot.vibing {
   background-color: var(--wizardry);
 }
 /*-- END OF PEER CARD --*/
+
+.view-shop {
+  background-color: var(--pitch);
+  display: block;
+}
