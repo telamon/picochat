@@ -1,11 +1,18 @@
 <script>
-import ImageLoader from '../components/ImageLoader.svelte'
-import { kernel, keychain, updateProfile } from '../api'
+import { kernel, keychain, updateProfile, decodePk } from '../api'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
+import ImageLoader from '../components/ImageLoader.svelte'
+import Icon from '../components/Icon.svelte'
+import Dialog from '../components/Dialog.svelte'
+import QRCode from '../components/QRCode.svelte'
+
 const name = writable()
 const tagline = writable()
 const picture = writable()
+const pk = writable()
+const sk = writable()
+const showKeyDialog = writable(false)
 
 async function save () {
   await updateProfile({
@@ -23,12 +30,34 @@ async function load () {
   $name = p.name
   $tagline = p.tagline
   $picture = p.picture
+  $sk = await keychain.readIdentity()
+  $pk = $sk.slice(32)
   return p
 }
+
+async function saveBackup () {
+  const b = new File(
+    [
+      JSON.stringify({ pk: $sk.slice(32).toString('hex'), sk: $sk.toString('hex') })
+    ],
+    'idsqr-insecure-backup.json',
+    { type: 'application/json' }
+  )
+  console.log('BFile', b)
+  const u = URL.createObjectURL(b)
+  window.open(u, '_blank')
+  // TODO: revokeObjectURL
+}
+
 let _loading = load()
 </script>
 <profile-view>
-  <h1>Profile</h1>
+  <div class="row space-between xstart">
+    <h1>Profile</h1>
+    <h2 on:click={() => $showKeyDialog = true}>
+      <Icon id="icon-qr" />
+    </h2>
+  </div>
   <label for="name">
     <h5>name</h5>
     <input type="text" bind:value={$name} placeholder="You got a street name?" id="name" name="name">
@@ -53,4 +82,34 @@ let _loading = load()
     <danger>Loading profile failed {error.message}</danger>
     <pre>{error.stack}</pre>
   {/await}
+
+  {#if $showKeyDialog}
+    <Dialog open={true} on:fade={() => $showKeyDialog = false}>
+      <article>
+        <header><h5>IDSQR</h5></header>
+        <div class="column xcenter">
+          {#if $pk}
+            <ul>
+              <li>Gender: {['F', 'M', 'NB'][decodePk($pk).sex]}</li>
+              <li>Location: {decodePk($pk).geohash}</li>
+            </ul>
+          {/if}
+          <QRCode data={pk} size={6}/>
+          <br/>
+          <p>
+            This is your cryptographic identity.
+            <br/>
+            Let your friends scan your code
+            but keep the backed up image safe.
+          </p>
+        </div>
+        <footer>
+          <div class="text-center">
+            <a role="button">purge</a>
+            <a role="button" on:click={saveBackup}>backup</a>
+          </div>
+        </footer>
+      </article>
+    </Dialog>
+  {/if}
 </profile-view>
