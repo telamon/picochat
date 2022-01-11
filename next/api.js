@@ -24,6 +24,7 @@ export const keychain = new Keychain(personalBucket)
 
 export const keygen = (gender, geo, attempts) => {
   if (geo) return Keychain.generate(gender, geo, attempts)
+  else if (gender !== null) Keychain.generate(gender, null, attempts)
   else return Keychain.generateAnonymous()
 }
 
@@ -128,7 +129,7 @@ export function boot () {
       })
       .then(pTemplate => {
         setHasProfile(!!pTemplate)
-        if (pTemplate.picture) setProfilePicture(pTemplate.picture)
+        if (pTemplate?.picture) setProfilePicture(pTemplate.picture)
         return kernel.load()
       })
       .then(entered => {

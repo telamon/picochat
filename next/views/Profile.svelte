@@ -48,6 +48,12 @@ async function saveBackup () {
   window.open(u, '_blank')
   // TODO: revokeObjectURL
 }
+async function purge () {
+  if (!window.confirm('Permanently wipe ALL data, you sure?')) return
+  await keychain.db.clear()
+  await kernel.db.clear()
+  window.location.reload()
+}
 
 let _loading = load()
 </script>
@@ -94,8 +100,9 @@ let _loading = load()
               <li>Location: {decodePk($pk).geohash}</li>
             </ul>
           {/if}
-          <QRCode data={pk} size={6}/>
-          <br/>
+          <div class="vpad">
+            <QRCode data={pk} size={6}/>
+          </div>
           <p>
             This is your cryptographic identity.
             <br/>
@@ -105,7 +112,7 @@ let _loading = load()
         </div>
         <footer>
           <div class="text-center">
-            <a role="button">purge</a>
+            <a role="button" on:click={purge}>purge</a>
             <a role="button" on:click={saveBackup}>backup</a>
           </div>
         </footer>
