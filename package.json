@@ -20,7 +20,7 @@
     "build": "yarn modem && rollup -c",
     "dev": "yarn modem && rollup -c -w",
     "start": "sirv public",
-    "surge": "yarn build && surge public/ hardcode.surge.sh",
+    "surge": "yarn build && surge public/ hardcode2.surge.sh",
     "modem": "browserify modem56.js -s Modem56 -o public/build/modem.js",
     "signal": "hyperswarm-web",
     "lab": "hypersim -T lab/index.js"

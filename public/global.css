@@ -15,6 +15,16 @@
   --blurSize: 10px;
 }
 
+[data-theme="light"],:root:not([data-theme="dark"]) {
+  --p1fg: var(--bone);
+  --p2fg: var(--pitch);
+}
+
+[data-theme="dark"] {
+  --p1fg: var(--ash);
+  --p2fg: var(--blood);
+}
+
 /* Theme overrides for pico-css.
  * (no that's a completely unrelated project the cryptic picoverse
  *  but the authors seem to be of a similar mindset <3)
@@ -92,8 +102,22 @@ bar round {
   height: 36pt;
   text-align: center;
   border-radius: 100%;
+  font-size: 18pt;
+  line-height: 18pt;
 }
-bar round svg.icon { max-width: 36px; max-height: 28px; } /* TODO: not responsive */
+bar round .notifications-badge {
+  margin: -0.3em 0 -0.7em 0;
+  font-size: 12pt;
+}
+bar round .notifications-badge:not(.zero) {
+  color: var(--ember);
+}
+bar round .bimg {
+  max-width: 97%;
+  max-height: 97%;
+  border-radius: 100%;
+}
+/* bar round svg.icon { max-width: 36px; max-height: 28px; }*/ /* TODO: not responsive */
 bar round:nth-child(1) { box-shadow: 0 0 var(--blurSize) var(--wizardry); }
 bar round:nth-child(2) { box-shadow: 0 0 var(--blurSize) var(--sorcery); }
 bar round:nth-child(4) { box-shadow: 0 0 var(--blurSize) var(--blood); }
@@ -160,9 +184,9 @@ idsqr {
 
 /* SVG Sprite Icons (Unset pico.css fill rule)*/
 svg.icon {
-  fill: none;
-  max-width: 100%;
-  max-height: 100%;
+  /* fill: none; */
+  max-width: 1.4em;
+  height: 1em;
 }
 
 /*----- views/Pub.svelte: Peer Card */
@@ -217,3 +241,18 @@ article.peer dot.vibing {
   background-color: var(--pitch);
   display: block;
 }
+
+/*-- Chat view --*/
+chat svg.icon {
+  margin: -0.2em;
+}
+svg.icon.p1:not(.nofill) {
+  fill: var(--p1fg);
+  color: var(--p2fg);
+}
+svg.icon.p2:not(.nofill) {
+  fill: var(--p2fg);
+  color: var(--p1fg);
+}
+health svg.icon.full { fill: var(--blood); }
+health svg.icon.empty { fill: var(--grave); }

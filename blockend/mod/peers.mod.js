@@ -104,11 +104,10 @@ module.exports = function PeersModule () {
      */
     $peers () {
       // TODO: make LRU-backed $profiles singleton-neuron
-      const ownid = this.pk
       const $peers = mute( // filter own profile.
         this.store.on.bind(this.store, 'peers'),
-        peerMap => ownid
-          ? Object.values(peerMap).filter(p => !ownid.equals(p.pk))
+        peerMap => this.pk
+          ? Object.values(peerMap).filter(p => !this.pk.equals(p.pk))
           : Object.values(peerMap)
       )
       const $chats = this.store.on.bind(this.store, 'chats')

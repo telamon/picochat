@@ -4,6 +4,7 @@ import PendingVibe from '../components/PendingVibe.svelte'
 import PeerPortrait from '../components/PeerPortrait.svelte'
 import Timer from '../components/Timer.svelte'
 import Dialog from '../components/Dialog.svelte'
+import Icon from '../components/Icon.svelte'
 import BinaryImage from '../components/BinaryImage.svelte'
 import {
   kernel,
@@ -45,8 +46,12 @@ function respondVibe (chatId, rejected) {
         </div>
       </div>
       <div class="columns xcenter gap">
-        <span>&lt;3&lt;3&lt;3</span>
-        <h3 class="no-margin"><Timer expiresAt={chat.expiresAt}/></h3>
+        <health>
+          <Icon id="heal_resp" tag="full" />
+          <Icon id="heal_resp" tag="full" />
+          <Icon id="heal_resp" tag="full" />
+        </health>
+        <h3 class="no-margin"><Timer expiresAt={chat.expiresAt} format="mm:ss" /></h3>
       </div>
     </chat>
   {/each}
@@ -57,7 +62,7 @@ function respondVibe (chatId, rejected) {
       <p>{$vibeDetail.peer.tagline}</p>
       <h6 class="text-center no-margin">Vibe Expires in</h6>
       <h2 class="text-center timer"><Timer expiresAt={$vibeDetail.expiresAt} format="mm:ss"/></h2>
-      <div class="text-center" aria-busy="true">
+      <div class="text-center">
         <a role="button" class="reject" on:click={() => respondVibe($vibeDetail.id, true)}>reject</a>
         <a role="button" class="accept" on:click={() => respondVibe($vibeDetail.id)}>accept</a>
       </div>

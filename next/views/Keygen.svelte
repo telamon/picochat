@@ -43,12 +43,12 @@
       if (!navigator.geolocation) reject(new Error('Browser does not support geolocation APIs'))
       else navigator.geolocation.getCurrentPosition(resolve, reject, options)
     })
-    }
+  }
   async function autoGeohash () {
     const res = await fetchPosition()
     console.log(res)
     const { latitude: lat, longitude: lng } = res.coords
-    $geohash = geohash()
+    $geohash = Geohash.encode(lat, lng, 6)
   }
 </script>
 <keygen-view>

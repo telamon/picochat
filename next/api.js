@@ -7,7 +7,6 @@ import { mute, gate, init, write, combine, get, nfo } from '../blockend/nuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
 
-
 /**
  * Pico::N(e)uro -> svelte adapter
  * */
@@ -49,16 +48,31 @@ export function Vibes () {
   )
 }
 
-export function Chats () {
-  // TODO: kernel.$chats() neuron
+export function NotificationsCount () {
   return svlt(
     mute(
-      kernel.$vibes(),
-      vibes => vibes.filter(
-        v => v.state === 'match'
+      combine(kernel.$vibes(), $chats),
+      ([vibes, chats]) => vibes.reduce(
+        (sum, v) => v.state === 'waiting_local' ? sum + 1 : sum,
+        0
+      ) +
+      chats.reduce( // Dosen't work cause chats are actually vibe-objects.
+        (sum, c) => c.myTurn ? sum + 1 : sum,
+        0
       )
     )
   )
+}
+
+// TODO: kernel.$chats() neuron
+const $chats = mute(
+  kernel.$vibes(),
+  vibes => vibes.filter(
+    v => v.state === 'match'
+  )
+)
+export function Chats () {
+  return svlt($chats)
 }
 
 export function Cooldowns () {
@@ -91,6 +105,7 @@ const [$entered, setEntered] = write(false) // block published/ participating
 const [$swarming, setSwarming] = write(false) // are the m56 lights blinking?
 const [$hasKey, setHasKey] = write(false)
 const [$hasProfile, setHasProfile] = write(false)
+const [$profilePicture, setProfilePicture] = write(null)
 
 const $state = combine({
   state: $kstate,
@@ -102,6 +117,7 @@ const $state = combine({
 })
 
 export const state = svlt($state)
+export const profilePicture = svlt($profilePicture)
 
 export function boot () {
   if (!tryBoot) {
@@ -112,6 +128,7 @@ export function boot () {
       })
       .then(pTemplate => {
         setHasProfile(!!pTemplate)
+        if (pTemplate.picture) setProfilePicture(pTemplate.picture)
         return kernel.load()
       })
       .then(entered => {
@@ -198,6 +215,7 @@ export function decodeImage (buf) {
 export async function updateProfile (profile) {
   await keychain.writeProfile(profile)
   setHasProfile(true)
+  if (profile.picture) setProfilePicture(profile.picture)
   if (get($hasKey) && !get($swarming)) {
     await connectSwarm()
     navigate('/pub')

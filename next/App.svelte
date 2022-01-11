@@ -7,22 +7,26 @@ import {
   state,
   kernel,
   Connections,
-  Profile
+  Profile,
+  profilePicture,
+  NotificationsCount,
 } from './api'
 import Icon from './components/Icon.svelte'
 import Timer from './components/Timer.svelte'
+import BinaryImage from './components/BinaryImage.svelte'
 import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
 const showBar = derived(state, s => s.hasKey)
 const showDev = writable(true)
 const showDebugSelector = writable(false)
-
+const nCount = NotificationsCount()
 const profile = Profile()
 
 async function inspectFeed () {
   const feed = await kernel.feed()
   feed.inspect()
+  console.log(`Size: ${(feed.tail / 1024).toFixed(2)} kB`, )
 }
 async function reloadStores () {
   await kernel.store.reload()
@@ -108,10 +112,10 @@ function toggleAutoConnect() {
   <!-- Bottom bar with phat buttons -->
   <bar class="flex row xcenter space-between">
     <round class="flex column center xcenter" on:click={() => navigate('pub')}>
-      <Icon id="gfx-vibe"/>
+      <Icon id="gfx-vibe" nofill/>
     </round>
     <round class="flex column center xcenter" on:click={() => navigate('shop')}>
-      <Icon id="gfx-shop"/>
+      <Icon id="gfx-shop" nofill/>
     </round>
     {#if !$state.entered}
       <stat class="flex column center xcenter outside" on:click={enterPub}>
@@ -125,11 +129,16 @@ function toggleAutoConnect() {
       </stat>
     {/if}
     <round class="flex column center xcenter" on:click={() => navigate('msgs')}>
-      <Icon id="gfx-msgs"/>
-      <samp>0</samp>
+      <Icon id="gfx-msgs" nofill/>
+      <samp class="notifications-badge" class:zero={!$nCount}>{$nCount}</samp>
+      <!-- TODO: read/unread messages tracking not yet implemented -->
     </round>
     <round class="flex column center xcenter" on:click={() => navigate('profile')}>
-      <Icon id="gfx-profile"/>
+      {#if !$profilePicture}
+        <Icon id="gfx-profile" nofill/>
+      {:else}
+        <BinaryImage src={$profilePicture} />
+      {/if}
     </round>
   </bar>
   {/if}
