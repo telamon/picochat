@@ -1,13 +1,35 @@
 <script>
+import { afterUpdate } from 'svelte'
 import { writable, derived } from 'svelte/store'
 import { Chat } from '../api'
 import BinaryImage from '../components/BinaryImage.svelte'
 import Icon from '../components/Icon.svelte'
 import Timer from '../components/Timer.svelte'
+
 export let id
+
+let messagesElement
+let inputElement
 const chat = Chat(id, 'Chat')
 const showInput = writable(false)
 const line = writable('')
+
+// Auto-bye
+$: if ($chat.state === 'finalizing' && $chat.myTurn) end()
+
+const health = derived(chat, c =>
+  Array.from(new Array(3)).map((_, n) => n < c.health)
+)
+
+// Auto-scroll
+afterUpdate(() => {
+  messagesElement.scrollTo({
+    top: messagesElement.scrollHeight,
+    left: 0,
+    behaviour: 'smooth'
+  })
+  if ($showInput) inputElement.focus()
+})
 
 function sendMessage () {
   $chat.send($line.trim())
@@ -40,14 +62,8 @@ function onKeyPress ({ charCode }) {
       break
   }
 }
-// Auto-bye
-$: if ($chat.state === 'finalizing' && $chat.myTurn) end()
-
-const health = derived(chat, c =>
-  Array.from(new Array(3)).map((_, n) => n < c.health)
-)
 </script>
-<chat>
+<chat class:player1={$chat.initiator} class:player2={!$chat.initiator}>
   <header class="row space-between nogap">
     <div class="row">
       {#if $chat.peer}
@@ -70,9 +86,8 @@ const health = derived(chat, c =>
       <h3><Timer expiresAt={$chat.expiresAt} format="mm:ss" /></h3>
     </div>
   </header>
-  <messages class="nogap"
-    class:player1={$chat.initiator}
-    class:player2={!$chat.initiator}>
+  <messages bind:this={messagesElement}
+    class="nogap">
     {#each $chat.messages as message}
       <msg
         class="row xcenter"
@@ -109,19 +124,25 @@ const health = derived(chat, c =>
     </h2>
     <div class="row space-between">
       {#if !$showInput}
-      <button class="gap" disabled={!$chat.myTurn}
+      <button class="hgap" disabled={!$chat.myTurn}
         on:click={end.bind(null, 0)}>end</button>
-      <button class="gap"
+
+      <button class="hgap"
         disabled={!$chat.myTurn}
         on:click={() => $showInput = true}>
         msg
       </button>
-      <button class="gap" disabled={!$chat.myTurn}
+
+      <button class="hgap" disabled={!$chat.myTurn}
         on:click={pass}>
         pass
       </button>
       {:else}
-        <input class="line" bind:value={$line} on:keypress={onKeyPress}/>
+        <input bind:this={inputElement}
+          class="line"
+          bind:value={$line}
+          on:keypress={onKeyPress}
+          on:blur={() => $showInput = !!$line.length} />
       {/if}
     </div>
   {:else if $chat.state === 'end'}

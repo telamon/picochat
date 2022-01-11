@@ -178,9 +178,12 @@ idsqr {
 /*---- Pico CSS unpad/repad ----*/
 .no-margin, .nogap { margin: unset; }
 .pad { padding: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
+.hpad { padding: 0 var(--block-spacing-horizontal); }
+.vpad { padding: var(--block-spacing-vertical) 0; }
 .gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 .vgap { margin: var(--block-spacing-vertical) 0; }
 .hgap { margin: 0 var(--block-spacing-horizontal); }
+
 
 /* SVG Sprite Icons (Unset pico.css fill rule)*/
 svg.icon {
@@ -194,6 +197,7 @@ svg.icon {
 article.peer {
   padding: 0;
   max-width: var(--mdsqrsz);
+  margin: 0;
 }
 article.peer overlay h2,
 article.peer overlay h3 { margin: 0; }

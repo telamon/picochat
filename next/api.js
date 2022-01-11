@@ -30,21 +30,21 @@ export const keygen = (gender, geo, attempts) => {
 export const decodePk = Keychain.decodePk
 
 // Helpers hooks for quick register access
-export function Profile () {
-  return svlt(kernel.$profile())
+export function Profile (dbg) {
+  return svlt(kernel.$profile(), dbg)
 }
 
-export function Peers () {
-  return svlt(kernel.$peers())
+export function Peers (dbg) {
+  return svlt(kernel.$peers(), dbg)
 }
 
-export function Peer (id) {
-  return svlt(kernel.$peer(id))
+export function Peer (id, dbg) {
+  return svlt(kernel.$peer(id), dbg)
 }
 
-export function Vibes () {
+export function Vibes (dbg) {
   return svlt(
-    kernel.$vibes(), 'vibes'
+    kernel.$vibes(), dbg
   )
 }
 
