@@ -260,3 +260,9 @@ svg.icon.p2:not(.nofill) {
 }
 health svg.icon.full { fill: var(--blood); }
 health svg.icon.empty { fill: var(--grave); }
+button svg.icon, a[role=button] svg.icon {
+  color: var(--bone);
+  fill: var(--blood);
+  font-size: 1.6rem;
+  margin: -0.5em -0.4em;
+}

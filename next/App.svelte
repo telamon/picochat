@@ -96,7 +96,9 @@ function toggleAutoConnect() {
   <!-- Main container -->
   <main class={`container ${$showDev && 'has-dev'} ${$showBar && 'has-bar'}`}>
     {#await _loading}
-      <h1>Loading kernel...</h1>
+      <div class="column center xcenter" style="height: 100%">
+        <h5 aria-busy="true">Booting up...</h5>
+      </div>
     {:then}
       {#if $id}
         <svelte:component this={$view} id={$id} />

@@ -10,7 +10,7 @@ import QRCode from '../components/QRCode.svelte'
 const progress = writable(100)
 const idsqr = writable()
 const secret = writable()
-const geohash = writable(Geohash.encode(52.20, 0.12, 6))
+const geohash = writable(null) // Geohash.encode(52.20, 0.12, 6))
 const gender = writable(0)
 const unlucky = writable(false)
 const fails = writable(0)
@@ -38,7 +38,11 @@ async function roll (mode = 0) {
   let pair = null
   for (let i = 0; i < 100; i++) {
     $progress++
-    pair = keygen(mode < 2 ? $gender : null, !mode ? $geohash : null, 500)
+    pair = keygen(
+      mode < 2 ? $gender : null,
+      mode < 1 ? $geohash : null,
+      500
+    )
     if (pair) break
     await new Promise(resolve => setTimeout(resolve, 100)) // give browser some breathing space
   }
@@ -71,7 +75,7 @@ async function validateImport () {
 </script>
 <keygen-view>
   <h1 on:click={() => $showAboutDialog = true}>
-    Identity Keygen
+    Sign up
     <Icon id="icon-info" />
   </h1>
   <h5>Gender</h5>
@@ -86,8 +90,16 @@ async function validateImport () {
   <br/>
   <h5>Location</h5>
   <div class="flex row">
-    <div><a role="button" on:click={autoGeohash}>L</a></div>
-    <div><input type="text" placeholder="geohash" bind:value={$geohash}></div>
+    <div>
+      <a role="button" on:click={autoGeohash}><Icon id="icon-location" /></a>
+    </div>
+    <div>
+      <input type="text"
+        placeholder="Geohash"
+        readonly
+        on:click={autoGeohash}
+        bind:value={$geohash} >
+    </div>
   </div>
   <h5>
     IDSQR
@@ -109,7 +121,7 @@ async function validateImport () {
             {#if $fails > 1}
               <button on:click={roll.bind(null, 1)} disabled={$progress !== 100}>Give up</button>
             {/if}
-            <button on:click={roll} disabled={$progress !== 100 || $secret}>Generate</button>
+            <button on:click={roll.bind(null, 0)} disabled={$progress !== 100 || $secret}>Generate</button>
           </div>
           {#if $unlucky}
             <danger>Sorry.. RNG0D ignored your prayers, please try again</danger>
@@ -156,12 +168,6 @@ async function validateImport () {
       <article>
         <h3>Welcome to True Decentralization</h3>
         <div class="about">
-          <p><i>
-            The hyperspace is vast.<br/>
-            It's real-estate is just like air -
-            worth nothing while there's enough for everyone.<br/>
-            Let's keep it that way
-          </i> 🙂</p>
           <p>
             Picochat is a <strong>coinless blockchain</strong>, there
             are no super-nodes and everything is slightly different from
@@ -180,15 +186,18 @@ async function validateImport () {
             Trees say "Thanks!" 🌱
           </p>
           <p>
-            Don't generate more keys than you need, mining of any form is a pointless waste of precious world-resources.
-            And don't ever trade one as it is <strong>insecure and dangerous</strong>.
+            Please don't generate more keys than you need, mining of any form is a pointless waste of world-resources.
+            Hate to say it; but don't ever trade a key, it is <strong>insecure and dangerous</strong>.
           </p>
-          <p>
-            Happy chatting! ✌️
-          </p>
+          <p><i>
+            The hyperspace is vast.<br/>
+            It's real-estate, just like air -
+            worth nothing while there's enough for everyone.<br/>
+            Let's keep it that way
+          </i> 🙂</p>
         </div>
         <footer>
-          <button on:click={() => $showAboutDialog = false}>got it</button>
+          <button on:click={() => $showAboutDialog = false}>gotcha</button>
         </footer>
       </article>
     </Dialog>

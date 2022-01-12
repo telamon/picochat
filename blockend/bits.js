@@ -267,6 +267,14 @@ function decodeSL (buf, geoPrecision = 16) {
   return { sex, geohash }
 }
 
+function proximityOf (a, b) {
+  let n = 0
+  for (;n < a.length; n++) {
+    if (bitAt(a, n) !== bitAt(b, n)) break
+  }
+  return n
+}
+
 // Exports
 module.exports = {
   // functions
@@ -276,6 +284,7 @@ module.exports = {
   unshift,
   countTrailingZeroes,
   countOnes,
+  proximityOf,
   mapOverlap,
   packGeo,
   unpackGeo,

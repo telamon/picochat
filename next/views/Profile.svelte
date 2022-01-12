@@ -37,11 +37,9 @@ async function load () {
 
 async function saveBackup () {
   const b = new File(
-    [
-      JSON.stringify({ pk: $sk.slice(32).toString('hex'), sk: $sk.toString('hex') })
-    ],
-    'idsqr-insecure-backup.json',
-    { type: 'application/json' }
+    [ $sk.toString('hex') ],
+    'idsqr-insecure-backup.txt',
+    { type: 'application/text' }
   )
   console.log('BFile', b)
   const u = URL.createObjectURL(b)
@@ -111,9 +109,10 @@ let _loading = load()
           </p>
         </div>
         <footer>
-          <div class="text-center">
+          <div class="row space-between">
             <a role="button" on:click={purge}>purge</a>
             <a role="button" on:click={saveBackup}>backup</a>
+            <a role="button" on:click={() => $showKeyDialog = false}>close</a>
           </div>
         </footer>
       </article>

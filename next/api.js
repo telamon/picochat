@@ -1,5 +1,6 @@
 import levelup from 'levelup'
 import leveljs from 'level-js'
+import Geohash from 'latlon-geohash'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
 import { readable } from 'svelte/store'
@@ -23,12 +24,14 @@ export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
 
 export const keygen = (gender, geo, attempts) => {
-  if (geo) return Keychain.generate(gender, geo, attempts)
-  else if (gender !== null) Keychain.generate(gender, null, attempts)
-  else return Keychain.generateAnonymous()
+  return Keychain.generate(gender, geo, attempts)
 }
 
-export const decodePk = Keychain.decodePk
+export function decodePk (pk) {
+  const info = Keychain.decodePk(pk)
+  const ll = Geohash.decode(info.geohash)
+  return { ...info, ...ll }
+}
 
 // Helpers hooks for quick register access
 export function Profile (dbg) {

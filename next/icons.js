@@ -26,5 +26,6 @@ import './gfx/heal_resp.svg'
 // Misc
 import './gfx/icon-qr.svg'
 import './gfx/icon-info.svg'
+import './gfx/icon-location.svg'
 
 // import './gfx/icon-round.svg'

@@ -1,7 +1,15 @@
 <script>
+import { getDistance } from 'geolib'
 import BinaryImage from './BinaryImage.svelte'
+import { kernel, decodePk } from '../api'
 export let peer
 export let size = 'normal'
+let distance = null
+if (kernel.pk) {
+  const a = decodePk(kernel.pk)
+  const b = decodePk(peer.pk)
+  distance = getDistance(a, b, 1000)
+}
 </script>
   <article class="peer">
     <legend>
@@ -16,6 +24,11 @@ export let size = 'normal'
       </overlay>
       <BinaryImage src={peer.picture}/>
     </legend>
+    <slot name="genderloc">
+      {#if distance !== null}
+        Distance {distance}Km
+      {/if}
+    </slot>
     <slot></slot>
   </article>
 <style>
