@@ -266,3 +266,27 @@ button svg.icon, a[role=button] svg.icon {
   font-size: 1.6rem;
   margin: -0.5em -0.4em;
 }
+
+/*** About page ***/
+logo {
+  --size: 80vw;
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  font-size: var(--size);
+  line-height: var(--size);
+  width: var(--size);
+  height: var(--size);
+  text-align: left;
+  vertical-align: unset;
+  /* border: 1px solid black;*/
+  overflow: hidden;
+  border-radius: calc(var(--size) * 0.1);
+}
+logo svg.icon {
+  vertical-align: unset;
+  margin-top: -1px; /* wtf */
+  --size: 80vw;
+  width: var(--size);
+  height: var(--size);
+}

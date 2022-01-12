@@ -40,9 +40,14 @@ let _loading = load()
 <profile-view>
   <div class="row space-between xstart">
     <h1>Profile</h1>
-    <h2 on:click={() => $showKeyDialog = true}>
-      <Icon id="icon-qr" />
-    </h2>
+    <div class="row">
+      <h2 on:click={() => $showKeyDialog = true}>
+        <Icon id="icon-qr" />
+      </h2>
+      <h2 on:click={() => navigate('/about')}>
+        <Icon id="icon-info" />
+      </h2>
+    </div>
   </div>
   <label for="name">
     <h5>name</h5>
