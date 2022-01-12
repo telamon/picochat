@@ -49,6 +49,12 @@ function toggleAutoConnect() {
   window.localStorage.setItem('auto_swarm', !autoSwarm)
   window.location.reload()
 }
+function globReject (error) {
+  console.error('[Unhandled Rejection]', error)
+}
+function globError (error) {
+  console.error('[GlobError]', error)
+}
 </script>
 
 <root class={'view-' + $routeName}>
@@ -140,7 +146,7 @@ function toggleAutoConnect() {
   </bar>
   {/if}
 </root>
-
+<svelte:window on:error={globError} on:unhandledrejection={globReject} />
 <style>
 .m56 { padding: 0; }
 .m56.no-auto { background-color: var(--grave); }

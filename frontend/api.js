@@ -137,7 +137,7 @@ export function boot () {
       })
       .then(entered => {
         setEntered(entered)
-        // kernel.startGC()
+        kernel.startGC()
       })
       .catch(err => {
         console.error('kernel boot failure', err)
