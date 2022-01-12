@@ -16,7 +16,7 @@ const production = !process.env.ROLLUP_WATCH
 export default {
   input: 'next/main.js',
   output: {
-    sourcemap: !production,
+    sourcemap: true, // !production, costs about ~2MB
     format: 'iife',
     name: 'app',
     file: 'public/build/bundle.js',

@@ -1,5 +1,5 @@
 <script>
-import { kernel, keychain, updateProfile, decodePk } from '../api'
+import { kernel, keychain, updateProfile, decodePk, purge, saveBackup } from '../api'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
 import ImageLoader from '../components/ImageLoader.svelte'
@@ -33,24 +33,6 @@ async function load () {
   $sk = await keychain.readIdentity()
   $pk = $sk.slice(32)
   return p
-}
-
-async function saveBackup () {
-  const b = new File(
-    [ $sk.toString('hex') ],
-    'idsqr-insecure-backup.txt',
-    { type: 'application/text' }
-  )
-  console.log('BFile', b)
-  const u = URL.createObjectURL(b)
-  window.open(u, '_blank')
-  // TODO: revokeObjectURL
-}
-async function purge () {
-  if (!window.confirm('Permanently wipe ALL data, you sure?')) return
-  await keychain.db.clear()
-  await kernel.db.clear()
-  window.location.reload()
 }
 
 let _loading = load()
@@ -110,7 +92,7 @@ let _loading = load()
         </div>
         <footer>
           <div class="row space-between">
-            <a role="button" on:click={purge}>purge</a>
+            <a role="button" on:click={() => purge(true)}>purge</a>
             <a role="button" on:click={saveBackup}>backup</a>
             <a role="button" on:click={() => $showKeyDialog = false}>close</a>
           </div>

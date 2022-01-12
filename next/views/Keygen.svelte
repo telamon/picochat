@@ -1,6 +1,6 @@
 <script>
 import { navigate } from '../router'
-import { keychain, keygen, decodePk, storeIdentity } from '../api'
+import { keychain, keygen, decodePk, storeIdentity, purge, saveBackup } from '../api'
 import { writable } from 'svelte/store'
 import Geohash from 'latlon-geohash'
 import Dialog from '../components/Dialog.svelte'
@@ -33,6 +33,7 @@ async function loadKeychain () {
 }
 
 async function roll (mode = 0) {
+  if ($secret) return // Refuse to roll while secret exists
   $progress = 0
   $unlucky = false
   let pair = null
@@ -72,6 +73,7 @@ async function autoGeohash () {
 async function validateImport () {
   console.error('TODO: not yet implemented')
 }
+
 </script>
 <keygen-view>
   <h1 on:click={() => $showAboutDialog = true}>
@@ -119,9 +121,9 @@ async function validateImport () {
         <div>
           <div class="row space-between xcenter">
             {#if $fails > 1}
-              <button on:click={roll.bind(null, 1)} disabled={$progress !== 100}>Give up</button>
+              <button on:click={() => roll(1)} disabled={$progress !== 100}>Give up</button>
             {/if}
-            <button on:click={roll.bind(null, 0)} disabled={$progress !== 100 || $secret}>Generate</button>
+            <button on:click={() => roll(0)} disabled={$progress !== 100 || $secret}>Generate</button>
           </div>
           {#if $unlucky}
             <danger>Sorry.. RNG0D ignored your prayers, please try again</danger>
@@ -140,8 +142,13 @@ async function validateImport () {
   </div>
   <div class="row end hpad">
     <small>
-      <a on:click={roll.bind(null, 2)}>Anonkey</a> |
-      <a on:click={() => $showImportDialog = true}>Import</a>
+      {#if $secret}
+        <a on:click={() => purge(true)}>Destroy</a> |
+        <a on:click={saveBackup}>Backup</a>
+      {:else}
+        <a on:click={() => roll(2)}>Anonkey</a> |
+        <a on:click={() => $showImportDialog = true}>Import</a>
+      {/if}
     </small>
   </div>
   <br/>

@@ -244,3 +244,26 @@ export async function enter () {
   }
   return connectSwarm()
 }
+
+export async function purge (purgeKeychain = false) {
+  const msg = purgeKeychain
+    ? 'You are about to burn your passport and everything with it... you sure about this?'
+    : 'Permanently wipe ALL data, you sure?'
+  if (!window.confirm(msg)) return
+  if (purgeKeychain) await keychain.db.clear()
+  await kernel.db.clear()
+  window.location.reload()
+}
+
+export async function saveBackup () {
+  const File = window.File
+  const secret = await keychain.readIdentity()
+  const b = new File(
+    [secret.toString('hex')],
+    'idsqr-insecure-backup.txt',
+    { type: 'application/text' }
+  )
+  const u = URL.createObjectURL(b)
+  window.open(u, '_blank')
+  // TODO: revokeObjectURL
+}

@@ -10,6 +10,7 @@ import {
   Profile,
   profilePicture,
   NotificationsCount,
+  purge
 } from './api'
 import Icon from './components/Icon.svelte'
 import Timer from './components/Timer.svelte'
@@ -31,12 +32,6 @@ async function inspectFeed () {
 async function reloadStores () {
   await kernel.store.reload()
   console.info('Internal cache`s cleared')
-}
-async function purge () {
-  if (!window.confirm('Permanently wipe your data, you sure?')) return
-  await kernel.db.clear()
-  // await keychain.db.clear()
-  window.location.reload()
 }
 
 function toggleTheme () {
@@ -87,7 +82,7 @@ function toggleAutoConnect() {
       <btn on:click={() => $showDebugSelector = true}>D</btn>
       <btn on:click={toggleTheme}>t</btn>
       <btn on:click={inspectFeed}>i</btn>
-      <btn class="danger" on:click={purge}>X</btn>
+      <btn class="danger" on:click={() => purge(false)}>X</btn>
     </div>
   </dev-bar>
   <DebugSelector open={showDebugSelector}/>
@@ -113,29 +108,29 @@ function toggleAutoConnect() {
   {#if $showBar}
   <!-- Bottom bar with phat buttons -->
   <bar class="flex row xcenter space-between">
-    <round class="flex column center xcenter" on:click={() => navigate('pub')}>
+    <round class="flex column center xcenter noselect" on:click={() => navigate('pub')}>
       <Icon id="gfx-vibe" nofill/>
     </round>
-    <round class="flex column center xcenter" on:click={() => navigate('shop')}>
+    <round class="flex column center xcenter noselect" on:click={() => navigate('shop')}>
       <Icon id="gfx-shop" nofill/>
     </round>
     {#if !$state.entered}
-      <stat class="flex column center xcenter outside" on:click={enterPub}>
+      <stat class="flex column center xcenter outside noselect" on:click={enterPub}>
         <h3 class="muted">--:--</h3>
         <h6 class="primary">enter</h6>
       </stat>
     {:else}
-      <stat class="flex column center xcenter inside">
+      <stat class="flex column center xcenter inside noselect">
         <h3 class="primary"><Timer expiresAt={$profile.expiresAt} /></h3>
         <h6 class="muted">exit</h6>
       </stat>
     {/if}
-    <round class="flex column center xcenter" on:click={() => navigate('msgs')}>
+    <round class="flex column center xcenter noselect" on:click={() => navigate('msgs')}>
       <Icon id="gfx-msgs" nofill/>
       <samp class="notifications-badge" class:zero={!$nCount}>{$nCount}</samp>
       <!-- TODO: read/unread messages tracking not yet implemented -->
     </round>
-    <round class="flex column center xcenter" on:click={() => navigate('profile')}>
+    <round class="flex column center xcenter noselect" on:click={() => navigate('profile')}>
       {#if !$profilePicture}
         <Icon id="gfx-profile" nofill/>
       {:else}

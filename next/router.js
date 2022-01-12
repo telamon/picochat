@@ -31,7 +31,7 @@ let current = null
 export function setView (path, id) {
   if (current && path === current) return false
   current = path
-  console.info('Rerouting to path:', path, 'id:', id)
+  // console.info('Rerouting to path:', path, 'id:', id)
   setName(path)
   setId(id)
 }

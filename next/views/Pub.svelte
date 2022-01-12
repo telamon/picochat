@@ -14,7 +14,7 @@ import Portrait from '../components/PeerPortrait.svelte'
 import Icon from '../components/Icon.svelte'
 const cooldowns = Cooldowns()
 const peers = Peers()
-const vibes = Vibes('Pub.svlt:$vibes')
+const vibes = Vibes()
 // Auto-connect to swarm-topic
 if (!$state.swarming) boot()
   .catch(console.error.bind(null, 'Auto-connect failed'))
@@ -26,7 +26,7 @@ function sendVibe (pk) {
 </script>
 <pub-view>
   <h1>PubName</h1>
-  <p> {$vibes.length}
+  <p>
     Pub description occupying a couple of lines
   </p>
   <h6>Peers {$peers.length}</h6>
