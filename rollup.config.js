@@ -14,7 +14,7 @@ import svgSprite from 'rollup-plugin-svg-sprite-deterministic'
 const production = !process.env.ROLLUP_WATCH
 
 export default {
-  input: 'next/main.js',
+  input: 'frontend/main.js',
   output: {
     sourcemap: true, // !production, costs about ~2MB
     format: 'iife',
