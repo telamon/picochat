@@ -148,7 +148,7 @@ module.exports = function VibesModule () {
 
 async function joinPeer (vibe) {
   try {
-    if (!vibe.peerId && vibe.initiator === 'local') {
+    if (!vibe.peerId && vibe.initiator) {
       // Attempt to remember who we sent what to.
       const key = Buffer.allocUnsafe(Feed.SIGNATURE_SIZE + 1)
       vibe.id.copy(key, 1)
@@ -174,7 +174,7 @@ function computeVibe (chatId, match, initiator, chat) {
     createdAt: match.createdAt,
     expiresAt: chat?.expiresAt || match.expiresAt,
     box: match.remoteBox,
-    initiator: initiator ? 'local' : 'remote',
+    initiator, // : initiator ? 'local' : 'remote',
     localRejected: initiator && match.state === 'rejected',
     remoteRejected: !initiator && match.state === 'rejected',
     a: match.a,
@@ -190,6 +190,17 @@ function computeVibe (chatId, match, initiator, chat) {
   else if (!initiator && !match.b) out.state = 'waiting_local'
   else if (initiator && !match.b) out.state = 'waiting_remote'
   else out.state = 'mental_error'
+
+  out.myTurn = out.state === 'match'
+    ? !chat
+        ? initiator
+        : !((chat.mLength % 2) ^ (initiator ? 0 : 1))
+    : out.state === 'waiting_local'
+  if (chat?.state === 'end') out.myTurn = false
+
+  out.health = !chat
+    ? 3
+    : Math.floor(chat.hp)
 
   if (
     ~['waiting_remote', 'waiting_local'].indexOf(out.state) &&
@@ -211,7 +222,9 @@ function computeVibe (chatId, match, initiator, chat) {
       remoteRejected: false,
       localRejected: false,
       a: null,
-      b: null
+      b: null,
+      myTurn: false,
+      health: -1
     }
   }
 }

@@ -172,3 +172,12 @@ test('Initiator can send vibe after chat end', async t => {
   t.ok(chatAC)
   // await alice.k._inspectChat(chatAC)
 })
+
+test.only('Kernel.$chats() contains list of own chats', async t => {
+  const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
+  const chatAB = await makeChat(alice, bob)
+  const chatAC = await makeChat(charlie, alice)
+  console.log('=================')
+  const chats = await next(alice.k.$chats(), 0)
+  t.equal(chats.length, 2)
+})

@@ -19,6 +19,13 @@ const { combine, mute, init, gate } = require('../nuro')
  */
 module.exports = function ChatModule () {
   return {
+    $chats () {
+      // For now just return list of vibes with 'match' state
+      return mute(this.$vibes(), vibes =>
+        vibes.filter(v => v.state === 'match')
+      )
+    },
+
     $chat (chatId) {
       chatId = toBuffer(chatId)
       let localPair = null
@@ -97,13 +104,10 @@ module.exports = function ChatModule () {
         chat.expiresAt = lChat ? lChat.expiresAt : vibe.expiresAt
         chat.peerId = vibe.peerId
         chat.peer = vibe.peer
-        chat.initiator = vibe.initiator === 'local' // TODO: remove 'local' string in vibe.mod
+        chat.initiator = vibe.initiator
+        chat.myTurn = vibe.myTurn
+        chat.health = vibe.health
 
-        if (!lChat && vibe.state === 'match') {
-          // First to vibe is first to write
-          chat.myTurn = vibe.initiator === 'local'
-        }
-        chat.health = 3
         if (!lChat) return chat
         chat.head = lChat.head
 
@@ -112,9 +116,6 @@ module.exports = function ChatModule () {
         if (chat.state === 'active' && chat.expiresAt < Date.now()) chat.state = 'expired'
 
         chat.mLength = lChat.mLength
-        chat.health = Math.floor(lChat.hp)
-        chat.myTurn = !((lChat.mLength % 2) ^ (this.pk.equals(lChat.b) ? 1 : 0))
-        if (chat.state === 'end') chat.myTurn = false
 
         // Skip message decryption if no new messages available
         if (chat.messages.length === lChat.messages.length) return chat
