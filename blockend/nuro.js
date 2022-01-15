@@ -74,13 +74,18 @@ function init (value, neuron) {
 }
 
 /**
- * Experimental async neuron that converts a promise
- * and fires once.
+ * Experimental promise to async neuron converter.
+ * Fires once
  */
 function when (promise) {
   if (!promise || typeof promise.then !== 'function') throw new Error('Expected a Promise')
   return function WhenResolved (syn) {
     promise.then(syn)
+      .catch(err => {
+        console.error('n:when() failed: ', err)
+        syn(ERROR, err)
+      })
+    return function NOOPunsub () {}
   }
 }
 
@@ -270,6 +275,7 @@ function combine (...neurons) {
     }
 
     return () => {
+      // for (const unsub of synapses) unsub()
       for (const unsub of synapses) unsub()
     }
 

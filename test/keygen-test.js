@@ -58,7 +58,7 @@ test('Geohash bitpacking', async t => {
   const n = packGeo(geohash)
   t.ok(Buffer.isBuffer(n))
   const o = unpackGeo(n)
-  t.equal(o, 'u120')
+  t.equal(o, 'u12') // update, unpackGeo now trims trailing zeroes
   t.equal(unpackGeo(packGeo('u6282svsrwjd'), 17), 'u628')
 })
 
