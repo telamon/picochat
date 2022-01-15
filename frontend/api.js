@@ -196,7 +196,12 @@ let modem = null // hardware is expensive, we can only afford a single modem for
 export async function connectSwarm () {
   const name = 'HardCode'
   if (!Modem56) throw new Error('Modem not available, did you load it?')
-  if (!modem) modem = new Modem56()
+  const devOpts = {
+    // Attempted to debug: https://github.com/RangerMauve/hyperswarm-web/issues/20
+    // announceLocalAddress: true,
+    // webrtcBootstrap: ['ws://localhost:4977/signal']
+  }
+  if (!modem) modem = new Modem56(null, devOpts)
   else return // already connected
   // else modem.leave()
 

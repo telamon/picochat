@@ -6,6 +6,28 @@
   window.crypto.getRandomValues(buf)
   return buf
 } */
+
+// Exports
+module.exports = {
+  // functions
+  binstr,
+  roundByte,
+  shift,
+  unshift,
+  countTrailingZeroes,
+  countOnes,
+  proximityOf,
+  mapOverlap,
+  packGeo,
+  unpackGeo,
+  gammaShift,
+  gammaUnshift,
+  dGapEncode,
+  decodeSL,
+  bitAt,
+  setBit
+}
+
 /*
 function countLeadingZeroes (p, SIZE = DEF_SIZE) {
   let n = 0
@@ -158,10 +180,13 @@ const GHSMAP = '0123456789bcdefghjkmnpqrstuvwxyz' // (geohash-specific) Base32 m
 const GHSUNMAP = GHSMAP.split('').reduce((h, l, i) => { h[l] = i; return h }, {})
 /**
  * Bitpacks a geohash string containing quintets to arbitrary bit-precision:
+ *
  *  'u120fw' <-- contains 6*5 bits accurate to ~1.2 Kilometers
- * Msb    LSB
+ * MSB    LSB
+ *
  *  'u' being is the most significant coordinate,
  *  'w' is the least significant coordinate.
+ *
  *  References:
  *  Format specification:  https://en.m.wikipedia.org/wiki/Geohash
  *  Bitdepthchart: https://www.ibm.com/docs/en/streams/4.3.0?topic=334-geohashes
@@ -169,20 +194,20 @@ const GHSUNMAP = GHSMAP.split('').reduce((h, l, i) => { h[l] = i; return h }, {}
  */
 function packGeo (str, nBits, buf) {
   if (!nBits) nBits = str.length * 5
-  // if (nBits > 32) throw new Error('unsupported precision')
+  // if (nBits > 64) throw new Error('unsupported precision')
   if (nBits < 5) throw new Error('precision has to be at least 5')
 
   // const nQuints = (nBits >> 2) + (nBits % 5 ? 1 : 0)
   const nBytes = roundByte(nBits)
   // This is horribly inefficient and ugly but i'm tired. have mercy.
-  if (!buf) buf = Buffer.alloc(nBytes)
+  if (!buf) buf = Buffer.alloc(nBytes) // Array.from(new Array(nBytes).map(() => 0)
   // buf[0] = 1
   const val = str
     .split('')
     .reverse()
     .reduce((sum, c, b) => sum + (GHSUNMAP[c] * (32 ** b)), 0)
   const bits = val.toString(2).slice(0, nBits).split('').reverse() // lsb
-  for (const bit of bits) {
+  for (const bit of bits) { // buf.writeUInt32BE(bits)
     shift(buf, bit === '0' ? 0 : 1) // msb
   }
   return buf
@@ -193,7 +218,7 @@ function packGeo (str, nBits, buf) {
  */
 function unpackGeo (buf, nBits = 16) {
   const nBytes = roundByte(nBits)
-  if (buf.length < nBytes) throw new Error('Buffer does not hold enough bits')
+  if (buf.length < nBytes) throw new Error('BufferUnderflow, dst buffer too small')
   const cpy = []
   for (let i = 0; i < nBytes; i++) cpy[i] = buf[i]
   let str = ''
@@ -207,7 +232,7 @@ function unpackGeo (buf, nBits = 16) {
     }
   }
   str += GHSMAP.charAt(tmp)
-  return str
+  return str.replace(/0+$/, '') // Truncate trailing zero-fields
 }
 
 // Elias gamma encoding
@@ -237,6 +262,12 @@ function gammaUnshift (buf) {
 
 function bitAt (buf, idx) {
   return (buf[idx >> 3] >> (idx % 8)) & 1
+}
+
+function setBit (buf, idx, v = 1) {
+  if (v) buf[idx >> 3] = (buf[idx >> 3] || 0) | (1 << (idx % 8)) // set
+  else buf[idx >> 3] = (buf[idx >> 3] || 0) & (~(1 << (idx % 8))) // clear
+  return buf
 }
 
 function dGapEncode (buf, cap) {
@@ -273,23 +304,4 @@ function proximityOf (a, b) {
     if (bitAt(a, n) !== bitAt(b, n)) break
   }
   return n
-}
-
-// Exports
-module.exports = {
-  // functions
-  binstr,
-  roundByte,
-  shift,
-  unshift,
-  countTrailingZeroes,
-  countOnes,
-  proximityOf,
-  mapOverlap,
-  packGeo,
-  unpackGeo,
-  gammaShift,
-  gammaUnshift,
-  dGapEncode,
-  decodeSL
 }

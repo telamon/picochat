@@ -1,4 +1,5 @@
 <script>
+import { onMount } from 'svelte'
 import { writable, derived } from 'svelte/store'
 import { view, id, setView, navigate, routeName } from './router'
 import {
@@ -55,6 +56,13 @@ function globReject (error) {
 function globError (error) {
   console.error('[GlobError]', error)
 }
+
+// Scroll top on route change
+onMount(() =>
+  view.subscribe(() => {
+    window.document.scrollingElement.scrollTo({ top: 0, left: 0})
+  })
+)
 </script>
 
 <root class={'view-' + $routeName}>

@@ -20,9 +20,9 @@ class Modem56 {
   // - hyperswarm
   // - hyperswarm-web
   // - hyper-simulator
-  constructor (swarm = null) {
+  constructor (swarm = null, swarmOpts) {
     D('[Modem56] Brrrrrr.. ptong ptong ptong ptong *whitenoise*')
-    this.swarm = swarm || hyperswarm()
+    this.swarm = swarm || hyperswarm(swarmOpts)
     // Initial release support only 1 topic due to design limitations
     this._topic = null
     this._spawnWire = null
