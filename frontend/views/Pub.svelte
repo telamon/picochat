@@ -41,7 +41,7 @@ function sendVibe (pk) {
           {#if !!$vibes.find(v => v.peerId?.equals(peer.pk)) }
             <Timer expiresAt={$vibes.find(v => v.peerId?.equals(peer.pk)).expiresAt} format="mm:ss" />
           {:else}
-            <a role="button" on:click={() => sendVibe(peer.pk)}>
+            <a role="button" class="nofill" on:click={() => sendVibe(peer.pk)}>
               <Icon id="gfx-vibe" />
             </a>
           {/if}
