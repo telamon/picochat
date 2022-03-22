@@ -11,14 +11,15 @@ A means to reaching longer lasting decentralization.
 At this point in time I honestly don't know if it will ever have a crypto-coin/token. And if it does it will most likely not be worth many dollars.
 
 The benefits of a **coinless blockchain** is that apps can be built
-ontop of it without having to suffer from transaction costs or denial-of-service due to market manipulation.
-As long as the mining ritual is tightly coupled with the the primary function
-the chain's value will equal the value of your application.
+ontop of it without having to suffer from transaction costs or denial-of-service due market manipulation.
+As long as the mining ritual is tightly coupled with the primary function
+the chain's value will always equal the value of your application.
 
-[The chain](https://github.com/telamon/picofeed) is written in JS, specifically targeting browsers.
+[The chain](https://github.com/telamon/picofeed) is entirely written in JS, specifically engineered to run in browsers.
 
 A **full node** runs on a low-end user device,
-now that.. is Decentralization.
+now that...
+_is_ Decentralization.
 
 ## Start
 
