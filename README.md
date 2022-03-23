@@ -2,24 +2,27 @@
 [`code style | standard`](https://standardjs.com/)
 # picochat
 
-This is an extremely young and experimental
-blockchain with a custom handwritten consensus.
+Picochat is a chat app that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
-I am developing it as an alternative to PoW and DPoS consensi.
-A means to reaching longer lasting decentralization.
 
-At this point in time I honestly don't know if it will ever have a crypto-coin/token. And if it does it will most likely not be worth many dollars.
+Picostack is an extremely young and experimental
+Web3 framework, allowing you to build applications without a central gorverning super node.
 
-The benefits of a **coinless blockchain** is that apps can be built
-ontop of it without having to suffer from transaction costs or denial-of-service due market manipulation.
-As long as the mining ritual is tightly coupled with the primary function
-the chain's value will always equal the value of your application.
 
-[The chain](https://github.com/telamon/picofeed) is entirely written in JS, specifically engineered to run in browsers.
+It's powered by a custom zero-cost blockchain
+that uses a functional-consensus.
 
-A **full node** runs on a low-end user device,
-now that...
+
+Meaning it dosen't waste energy such as PoW nor does it run corrupt such as DPoS.
+Boasting zero transaction costs it provides a means to reaching longer lasting decentralization.
+
+
+The entire stack is written in pure ES6. The kernel is designed to live within a browser-tab without external dependencies, it's very lightweight.
+
+
+A full node runs on a low-end user device, now that...
 _is_ Decentralization.
+
 
 ## Start
 
