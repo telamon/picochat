@@ -163,7 +163,7 @@ test('Store rejects sendVibe if previous has not timed out', async t => {
   t.equal(bVibes.length, 1)
 })
 
-test('Initiator can send vibe after chat end', async t => {
+test.only('Initiator can send vibe after chat end', async t => {
   const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
   const chatAB = await makeChat(alice, bob)
   t.ok(chatAB)
@@ -173,7 +173,7 @@ test('Initiator can send vibe after chat end', async t => {
   // await alice.k._inspectChat(chatAC)
 })
 
-test.only('Kernel.$chats() contains list of own chats', async t => {
+test.skip('Kernel.$chats() contains list of own chats', async t => {
   const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
   const chatAB = await makeChat(alice, bob)
   const chatAC = await makeChat(charlie, alice)

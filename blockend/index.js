@@ -50,13 +50,19 @@ function initialState () {
 }
 
 class Kernel {
-  constructor (db, opts = {}) {
+  constructor (db, config = {}) {
+    this.config = Object.freeze({
+      profile_ttl: config ?? 3 * 60 * 60000, // 3hours
+      vibe_ttl: config ?? 5 * 60000, // 5 minutes
+      chat_ttl: config ?? 30 * 60000, // 30minutes
+      now: config.now ?? (() => Date.now())
+    })
+
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
     this._state = initialState()
     // Process opts
-    this._now = opts.now || (() => Date.now())
     this._sk = null // Signing secret + public key
     this._vibeBox = null // Vibe box-pair
 
@@ -262,4 +268,3 @@ async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? merg
 }
 
 module.exports = Kernel
-

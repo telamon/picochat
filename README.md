@@ -19,7 +19,6 @@ Boasting zero transaction costs it provides a means to reaching longer lasting d
 
 The entire stack is written in pure ES6. The kernel is designed to live within a browser-tab without external dependencies, it's very lightweight.
 
-
 A full node runs on a low-end user device, now that...
 _is_ Decentralization.
 
