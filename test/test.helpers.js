@@ -107,10 +107,10 @@ async function doMatch (a, b) {
 
 // Returns chat reference
 async function turn (kernel, chatId) {
-    return await until(
-      kernel.$chat(chatId),
-      chat => chat.state === 'active' && chat.myTurn
-    )
+  return await until(
+    kernel.$chat(chatId),
+    chat => chat.state === 'active' && chat.myTurn
+  )
 }
 
 async function converse (kernelA, kernelB, chatId, nMessages = 3) {
