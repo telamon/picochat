@@ -6,11 +6,11 @@ const {
   PASS_TURN,
   PEACE, LOVE,
   UNDERSTANDING,
-  feedToGraph,
   seal,
   unseal,
   toBuffer
 } = require('../util')
+const { feedToGraph } = require('../game')
 
 const { combine, mute, init, gate } = require('../nuro')
 /* A reactive store whose value is conversation object

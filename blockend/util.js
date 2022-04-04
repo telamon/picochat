@@ -136,47 +136,6 @@ createDebug.formatters.H = v => {
   return v.toString('hex')
 }
 
-/**
- * And so the madness recurses upon itself
- */
-function feedToGraph (f) {
-  let graph = ''
-  let w = f.first.isGenesis ? f.first.key : null
-  for (const block of f.blocks()) {
-    switch (typeOfBlock(block.body)) {
-      case TYPE_PROFILE:
-        graph += 'P'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-        break
-      case TYPE_VIBE:
-        if (!w) w = block.key
-        graph += 'V'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-        break
-      case TYPE_VIBE_RESP: {
-        graph += 'V'
-        const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
-        if (r) graph += 'r'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-      } break
-      case TYPE_MESSAGE: {
-        const p = PASS_TURN.equals(decodeBlock(block.body).content)
-        graph += p ? 'P' : 'M'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-      } break
-      case TYPE_BYE:
-        graph += 'B'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-        break
-      case TYPE_BYE_RESP:
-        graph += 'B'
-        if (w) graph += block.key.equals(w) ? 'a' : 'b'
-        break
-    }
-    graph += '-'
-  }
-  return graph
-}
 module.exports = {
   KEY_SK,
   KEY_BOX_LIKES_PK,
@@ -206,6 +165,5 @@ module.exports = {
   boxPair,
   seal,
   unseal,
-  bufferReplacer,
-  feedToGraph
+  bufferReplacer
 }
