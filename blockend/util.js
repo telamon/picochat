@@ -154,15 +154,14 @@ function feedToGraph (f) {
         if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
       case TYPE_VIBE_RESP: {
-        graph += 'W'
+        graph += 'V'
         const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
         if (r) graph += 'r'
         if (w) graph += block.key.equals(w) ? 'a' : 'b'
       } break
       case TYPE_MESSAGE: {
-        graph += 'M'
         const p = PASS_TURN.equals(decodeBlock(block.body).content)
-        graph += p ? 'p' : 'm'
+        graph += p ? 'P' : 'M'
         if (w) graph += block.key.equals(w) ? 'a' : 'b'
       } break
       case TYPE_BYE:
@@ -170,10 +169,11 @@ function feedToGraph (f) {
         if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
       case TYPE_BYE_RESP:
-        graph += 'E'
+        graph += 'B'
         if (w) graph += block.key.equals(w) ? 'a' : 'b'
         break
     }
+    graph += '-'
   }
   return graph
 }

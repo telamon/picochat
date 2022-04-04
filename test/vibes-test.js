@@ -163,7 +163,7 @@ test('Store rejects sendVibe if previous has not timed out', async t => {
   t.equal(bVibes.length, 1)
 })
 
-test.only('Initiator can send vibe after chat end', async t => {
+test('Initiator can send vibe after chat end', async t => {
   const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
   const chatAB = await makeChat(alice, bob)
   t.ok(chatAB)

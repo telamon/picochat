@@ -36,7 +36,11 @@ module.exports = function ChatModule () {
         if (!pass && typeof message !== 'string') throw new Error('Message should be a string')
         if (!pass && !message.length) throw new Error('EmptyMessage')
         const pk = await this._getRemoteChatKey(chatId) // Remote Public Key
+
+        // Not sure which feed load is correct. loadFeed is def more efficient.
         const branch = await this.repo.loadFeed(cache.head)
+        // const branch = await this.loadChat(chatId) // await this.repo.loadFeed(cache.head)
+
         const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
         // console.log('Appending message to', feedToGraph(branch))
         await this._createBlock(branch, TYPE_MESSAGE, { content })
@@ -53,10 +57,11 @@ module.exports = function ChatModule () {
         if (!cache.myTurn) throw new Error('NotYourTurn')
         if (!~[PEACE, LOVE, UNDERSTANDING].indexOf(gesture)) throw new Error('InvalidGesture')
         if (!~['active', 'finalizing'].indexOf(cache.state)) throw new Error('InvalidState')
-        const branch = await this.repo.loadFeed(cache.head)
+
+        // loadFeed() fails tests. cached head seems outdated.
+        const branch = await this.loadChat(chatId) // await this.repo.loadFeed(cache.head)
         if (!branch) return console.error('branch dissapeared, expected head sig:', cache.head?.toString('hex'))
-        // console.log('bye() invoked current chainState:')
-        // branch.inspect()
+
         await this._createBlock(branch, cache.state === 'active' ? TYPE_BYE : TYPE_BYE_RESP,
           {
             gesture

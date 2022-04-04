@@ -72,11 +72,7 @@ async function makeChat (initiator, responder, reverseFarewell = false, nMessage
 
   D('makeChat() conversing')
   await converse(a, b, chatId, nMessages)
-  console.log('ChatA')
   await turn(a, chatId)
-  await a._inspectChat(chatId)
-  console.log('ChatB')
-  await b._inspectChat(chatId)
   await chatA.bye(0)
   D('makeChat() bye sent')
   const chatB = await until(b.$chat(chatId), chat => chat.myTurn)
