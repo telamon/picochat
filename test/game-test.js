@@ -6,14 +6,14 @@ const {
   rewrite
 } = require('../blockend/game')
 
-test.only('Conversations can be described as glyphs using graph-rewriting', async t => {
-  // Hey, Hello, u guud?, yes, ok good, yup, bye, bye.
+test('Conversations can be described as glyphs using graph-rewriting', async t => {
+  // Cold-talk: Hey -> Hello -> u guud? -> yes -> ok good -> yup -> bye -> bye.
   t.equal(rewrite('ᚲᛃᛖᛗᛖᛗᛖᛗᛒᛔ'), 'ᛄᚵᛖᛗᛸ', 'advance')
-  // Wanna taste my tuna? -> Pass -> Pass -> Pass
+  // GameOver: Wanna taste my tuna? -> Pass -> Pass -> Pass
   t.equal(rewrite('ᚲᛃᛖᚧᚦᚧ'), 'ᛄᛖᚷ', 'game over')
-
+  // Evade: U like aliens? -> Mean the little gray men? -> What you mind if I'm short and have a few specks gray? -> PASS
   t.equal(rewrite('ᚲᛃᛖᛗᛖᚧᛖᛗᛖᚧᛒᛔ'), 'ᛄᚠᚠᛸ', 'evade')
-
+  //
 })
 
 test('A chat can be reduced to points using graph rewriting', async t => {
@@ -25,10 +25,13 @@ test('A chat can be reduced to points using graph rewriting', async t => {
   t.ok(chatAC)
 })
 
-test('A conversation can be derived into scores 2 scores', async t => {
-  const convo = 'ᚲᛃᛖᛗᛖᛗᛖᛗᛒᛔ'
-  const [w, b] = scoreGraph(convo)
-  console.log('White: ', w, ' Black: ', b)
-  // t.equal(w, 3 + 5)
-  // t.equal(b, 3 + 3)
+test.only('A conversation can be derived into scores 2 scores', async t => {
+  let score = scoreGraph('ᚲᛃᛖᛗᛖᛗᛖᛗᛒᛔ')
+  t.deepEqual(score, [10, 7])
+
+  score = scoreGraph('ᚲᛃᛖᛗᛖᚧᛖᛗᛖᚧᛒᛔ')
+  t.deepEqual(score, [3, 9])
+
+  score = scoreGraph('ᚲᛃᛖᛗᛖᚧᛖᛗᛖᚧᚦᚧ')
+  t.deepEqual(score, [0, 0])
 })

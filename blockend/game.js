@@ -57,8 +57,8 @@ function feedToGraph (f) {
   | ᚹ | Profile    |    |    |                         |
   | ᚲ | Vibe       |    |    |                         |
   | ᛃ | VibeResp   |    |    |                         |
-  | ᛖ | W Msg      |    |    |                         |
-  | ᛗ | B Msg      |    |    |                         |
+  | ᛖ | W Msg      | +1 | +0 |                         |
+  | ᛗ | B Msg      | +0 | +1 |                         |
   | ᚦ | W Pass     |    |    |                         |
   | ᚧ | B Pass     |    |    |                         |
   | ᛒ | W End      |    |    |                         |
@@ -68,19 +68,19 @@ function feedToGraph (f) {
   |---+------------+----+----+-------------------------|
   | ᛄ | Lock/start |    |    | ᚲᛃ                      |
   | ᚷ | GameOver   |    |    | ᚦᚧᚦ, ᚧᚦᚧ                |
-  | ᚴ | W Advance  |    |    | ᛖᛗ                      |
-  | ᛐ | B Advance  |    |    | ᛗᛖ                      |
-  | ᚵ | W Combo    |    |    | ᚴᚴ                      |
-  | ᛑ | B Combo    |    |    | ᛐᛐ                      |
-  | ᛸ | W Unlock   |    |    | ᛒᛔ                      |
-  | ᛷ | B Unlock   |    |    | ᛔᛒ                      |
+  | ᚴ | W Advance  | +2 | +1 | ᛖᛗ                      |
+  | ᛐ | B Advance  | +1 | +2 | ᛗᛖ                      |
+  | ᚵ | W Combo    | +4 | +3 | ᚴᚴ                      |
+  | ᛑ | B Combo    | +3 | +4 | ᛐᛐ                      |
+  | ᛸ | W Unlock   | +5 | +3 | ᛒᛔ                      |
+  | ᛷ | B Unlock   | +2 | +4 | ᛔᛒ                      |
   | ᛆ | Miss       | -1 | +2 | ᛖᚧ                      |
   |---+------------+----+----+-------------------------|
   |   | TIER 2     |    |    |                         |
   |---+------------+----+----+-------------------------|
   | ᚺ | Engarde    |    |    | ᚧᚦ,ᚦᚧ                   |
   | ᚠ | Evade      | -1 | +3 | ᚴᛆ                      |
-  | ᛅ | Reposte    | +2 | +4 | ᚴᚦᛗ                     |
+  | ᛅ | Riposte    | +2 | +4 | ᚴᚦᛗ                     |
   | ᛰ | Block      | +1 | +3 | ᚴᚺ, White is vulnerable |
   | ᛈ | F.O.P      |    |    | ᚴᛖᛷ                     |
   |---+------------+----+----+-------------------------|
@@ -91,7 +91,38 @@ function feedToGraph (f) {
  */
 
 function scoreGraph (input) {
-  return [0, 0]
+  input = rewrite(input)
+  if (/ᚷ/.test(input)) return [0, 0]
+
+  const table = {
+    ᛄ: [0, 0],
+    ᛖ: [1, 0],
+    ᛗ: [0, 1],
+    ᛸ: [5, 3],
+    ᛷ: [2, 4],
+    ᚴ: [2, 1],
+    ᛐ: [0, 2],
+    ᚵ: [4, 3],
+    ᛑ: [2, 4],
+    ᛆ: [-1, 2],
+    ᚠ: [-1, +3],
+    ᛅ: [2, 4],
+    ᛰ: [1, 3],
+    ᛈ: [-1, 0]
+  }
+
+  let w = 0
+  let b = 0
+  for (const glyph of input.split('')) {
+    if (!table[glyph]) {
+      console.warn('Unscored glyph: ', glyph)
+      continue
+    }
+    w += table[glyph][0]
+    b += table[glyph][1]
+  }
+  console.log('Game:', input, `score W${w}/B${b}`)
+  return [w, b]
 }
 
 function rewrite (input) {
@@ -116,9 +147,9 @@ function rewrite (input) {
 
     // Tier 3
     [/ᛆᚦ/, 'ᚢ'], // W Retreat.
-    [/ᛆᛆᚦᛷ/, 'ᚤ'], // KO, w surrender.
+    [/ᛆᛆᚦᛷ/, 'ᚤᛷ'], // KO, w surrender.
     [/ᚴᛖᛷ/, 'ᛈ'], // FOP, w defeat.
-    [/ᚠᚠᛷ/, 'ᚸ'] // TKO, w defeat.
+    [/ᚠᚠᛷ/, 'ᚸᛷ'] // TKO, w defeat.
   ]
   let prev = null
   while (prev !== input) {
