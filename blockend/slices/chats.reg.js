@@ -8,6 +8,7 @@ const {
   PASS_TURN,
   decodeBlock
 } = require('../util')
+const { blockToGlyph } = require('../game')
 
 function ConversationCtrl (opts = {}) {
   const {
@@ -35,7 +36,8 @@ function ConversationCtrl (opts = {}) {
     b: null, // Peer id
     hp: InitialHealth, // Mana/ Conversation health
     aEnd: -1,
-    bEnd: -1
+    bEnd: -1,
+    graph: 'ᚲᛃ'
   })
 
   const mkStats = peerId => ({
@@ -131,6 +133,7 @@ function ConversationCtrl (opts = {}) {
       chat.updatedAt = data.date
       chat.mLength++ // Always availble compared to messages array that's only indexed for own conversations
       chat.expiresAt = chat.createdAt + ChatTimeout + (chat.mLength * BlockReward)
+      chat.graph += blockToGlyph(block, block.key.equals(chat.a))
 
       const authorId = block.key.toString('hex')
       let stats = state.stats[authorId]
@@ -200,22 +203,8 @@ function ConversationCtrl (opts = {}) {
 }
 
 /*
- * Note about the "pass-turn" mechanizm:
- * The original idea is that silence is an important human response with an implicit value.
- * In this game I would like to use it as a mechanic to detect a goodbye.
- * At first I thought that 3 consecutive passes from one party means that they've run out of words.
- * But writing that code made me realize how boring this feature would be;
- * So here's a crazy idea, what if the turn-pass would be seen as a shared resource that eventually
- * replenishes with conversation progress. It's just as important to dare using the pass as it is saving it.
- * Especially if we attach some kind of punishment like box-secrets being revealed when passTurn is exhausted.
- * *evil-imp-grin*
- *
- * Usecases for pass-turn:
- * - Alice wants to talk to Bob but is too shy to speak first, she initiates the match but then hits pass to let Bob lead the conversation.
- * - Bob is rewarded with a pass for an impolite remark.
- * - Alice is having a monologue (talks to much/ self centered)
- *
- * If you haven't noticed already noticed robots never know when to shut up.
+ * Some time has passed, the pass feature is decidedly
+ * silence, what's the meaning of silence? check game.js
  */
 
 module.exports = ConversationCtrl

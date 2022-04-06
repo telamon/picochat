@@ -25,7 +25,7 @@ test('A chat can be reduced to points using graph rewriting', async t => {
   t.ok(chatAC)
 })
 
-test.only('A conversation can be derived into scores 2 scores', async t => {
+test('A conversation can be derived into scores 2 scores', async t => {
   let score = scoreGraph('ᚲᛃᛖᛗᛖᛗᛖᛗᛒᛔ')
   t.deepEqual(score, [10, 7])
 

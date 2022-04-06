@@ -13,11 +13,11 @@ Anyway, [questions are appreciated](https://github.com/telamon/picochat/issues/n
 Other than that, I guess..
 ```
  .------------------.
-    $ Welcome To  -  
-  --      .         
- -       /©\   - -   
-      ~./___\,~    -  
-  🛆 Decent Labs 🛆   
+    $ Welcome To  -
+  --      .
+ -       /©\   - -
+      ~./___\,~    -
+  🛆 Decent Labs 🛆
  `------------------´
 ````
 We're a decentralized organization meaning:
@@ -103,9 +103,9 @@ const modem = new Modem56()
 modem.join(pubName, spawnWire) // hyperspace connected!
 ```
 
-## `k.$peers(console.info) // => unsub() function` 
+## `k.$peers(console.info) // => unsub() function`
 An output neuron/reactive-store, emits arrays of currently
-visible peers. Each peer is an object containing their 
+visible peers. Each peer is an object containing their
 profile and public key (peerId)
 
 Sample output:
@@ -120,7 +120,6 @@ Sample output:
     sex: 0,
     expiresAt: 1639003863745, // when peer will be evicted from network.
     state: "active",
-    exp: 0,
     score: 30
   }
 ]

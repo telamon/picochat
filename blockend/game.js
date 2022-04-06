@@ -1,53 +1,5 @@
 /**
  * What is the meaning of Silence?
- */
-
-const {
-  typeOfBlock,
-  TYPE_PROFILE,
-  TYPE_VIBE,
-  TYPE_VIBE_RESP,
-  TYPE_MESSAGE,
-  TYPE_BYE,
-  TYPE_BYE_RESP,
-  VIBE_REJECTED,
-  PASS_TURN,
-  decodeBlock
-} = require('./util')
-
-function feedToGraph (f) {
-  let graph = ''
-  let w = f.first.isGenesis ? f.first.key : null
-  for (const block of f.blocks()) {
-    const foreign = w && !block.key.equals(w)
-    switch (typeOfBlock(block.body)) {
-      case TYPE_PROFILE:
-        graph += 'ᚹ'
-        break
-      case TYPE_VIBE:
-        if (!w) w = block.key
-        graph += 'ᚲ'
-        break
-      case TYPE_VIBE_RESP: {
-        const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
-        graph += r ? 'ᛟ' : 'ᛃ'
-      } break
-      case TYPE_MESSAGE: {
-        const p = PASS_TURN.equals(decodeBlock(block.body).content)
-        graph += p
-          ? foreign ? 'ᚧ' : 'ᚦ' // 'ᚤ' : 'ᚢ'
-          : foreign ? 'ᛗ' : 'ᛖ'
-      } break
-
-      case TYPE_BYE:
-      case TYPE_BYE_RESP:
-        graph += foreign ? 'ᛔ' : 'ᛒ'
-        break
-    }
-  }
-  return graph
-}
-/**
  *
   |---+------------+----+----+-------------------------|
   |   | Name       | W  | B  | Note                    |
@@ -89,6 +41,62 @@ function feedToGraph (f) {
   | ᚸ | TKO        |    |    | ᚠᚠᛷ                     |
   |
  */
+
+const {
+  typeOfBlock,
+  TYPE_PROFILE,
+  TYPE_VIBE,
+  TYPE_VIBE_RESP,
+  TYPE_MESSAGE,
+  TYPE_BYE,
+  TYPE_BYE_RESP,
+  VIBE_REJECTED,
+  PASS_TURN,
+  PEACE,
+  LOVE,
+  UNDERSTANDING,
+  decodeBlock
+} = require('./util')
+
+function feedToGraph (f) {
+  let graph = ''
+  let wk = f.first.isGenesis ? f.first.key : null
+  for (const block of f.blocks()) {
+    // White is the initiator, they who sent the vibe.
+    if (typeOfBlock(block.body) === TYPE_VIBE && !wk) wk = block.key
+    const white = wk && block.key.equals(wk)
+    graph += blockToGlyph(block, white)
+  }
+  return graph
+}
+
+function blockToGlyph (block, white = true) {
+  switch (typeOfBlock(block.body)) {
+    case TYPE_PROFILE:
+      return 'ᚹ'
+    case TYPE_VIBE:
+      return 'ᚲ'
+    case TYPE_VIBE_RESP: {
+      const r = VIBE_REJECTED.equals(decodeBlock(block.body).box)
+      return r ? 'ᛟ' : 'ᛃ'
+    }
+    case TYPE_MESSAGE: {
+      const p = PASS_TURN.equals(decodeBlock(block.body).content)
+      return p
+        ? white ? 'ᚦ' : 'ᚧ'
+        : white ? 'ᛖ' : 'ᛗ'
+    }
+    case TYPE_BYE:
+    case TYPE_BYE_RESP: {
+      const plu = []
+      plu[PEACE] = 'ᛣ'
+      plu[LOVE] = 'ᛜ'
+      plu[UNDERSTANDING] = 'ᛯ'
+      // TODO: Think this through
+      return (white ? 'ᛒ' : 'ᛔ') // + plu[decodeBlock(block.body).gesture]
+    }
+  }
+}
 
 function scoreGraph (input) {
   input = rewrite(input)
@@ -162,6 +170,7 @@ function rewrite (input) {
 module.exports = {
   feedToGraph,
   scoreGraph,
+  blockToGlyph,
   rewrite
 }
 

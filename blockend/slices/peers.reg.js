@@ -1,7 +1,6 @@
-const {
-  TYPE_PROFILE,
-  decodeBlock
-} = require('../util')
+const { TYPE_PROFILE, EV_CHAT_END, decodeBlock } = require('../util')
+const { scoreGraph } = require('../game')
+
 const TTL = 30 * 60 * 1000 // 30min
 const emptyProfile = (pk = null) => ({
   name: null,
@@ -12,7 +11,8 @@ const emptyProfile = (pk = null) => ({
   sex: 2,
   sig: null,
   expiresAt: 0,
-  state: 'active'
+  state: 'active',
+  score: 0
 })
 
 function validateProfile (data) {
@@ -61,20 +61,29 @@ module.exports = () => ({
     state[key].expiresAt = state[key].date + TTL
     schedule('peer', block.key, state[key].expiresAt)
     return state // return new state
+  },
+
+  trap ({ code, payload, root, state }) {
+    switch (code) {
+      case EV_CHAT_END: {
+        const strkey = payload.toString('hex')
+        const chat = root.chats.chats[strkey]
+        const score = scoreGraph(chat.graph)
+        state[chat.a.toString('hex')].score += score[0]
+        state[chat.b.toString('hex')].score += score[1]
+      }
+    }
   }
 })
 
-// Experiment, attempt maintaining own profile as separate slice
+// Experimental: attempt maintaining own profile as separate slice
 // registering it as the first controller should ensure that all other slices
 // will run after it, making it possible to use as a dependency through rootState...
 module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
   let peerId = null
   return {
     name: 'peer',
-    initialValue: {
-      ...emptyProfile(),
-      exp: 0 // fck
-    },
+    initialValue: { ...emptyProfile() },
     filter ({ block }) {
       peerId = peerId || pubKeyGetter()
       if (!peerId) return 'Cannot process block without knowing own identity'
@@ -90,6 +99,18 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
       state.sig = block.sig // Store profile.pk as hexString
       state.expiresAt = state.date + TTL
       return state
+    },
+    trap ({ code, payload, root, state }) {
+      switch (code) {
+        case EV_CHAT_END: {
+          const strkey = payload.toString('hex')
+          const chat = root.chats.chats[strkey]
+          const white = peerId.equals(chat.a)
+          if (!white && !peerId.equals(chat.b)) return // not our chat
+          const score = scoreGraph(chat.graph)
+          state.score += score[white ? 0 : 1]
+        }
+      }
     }
   }
 }

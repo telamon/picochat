@@ -164,13 +164,11 @@ function computeProfile ([peer, chats]) {
   }
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
   const expiresAt = peer.expiresAt + extraTime
-  let score = Math.floor((expiresAt - peer.date) / 60000)
-  score += stats.nMessages * 2
+
   return {
     ...peer,
     stats,
     expiresAt,
-    score,
     state: expiresAt < Date.now() ? 'expired' : peer.state
   }
 }
