@@ -115,6 +115,8 @@ module.exports = function ChatModule () {
 
         if (!lChat) return chat
         chat.head = lChat.head
+        chat.graph = lChat.graph
+        // chat.hgraph = rewrite(lChat.graph) // rewrite where needed for now
 
         // Update headers
         chat.state = lChat.state
