@@ -163,6 +163,9 @@ function computeProfile ([peer, chats]) {
     nExhausted: 0
   }
   const extraTime = !stats ? 0 : stats.nEnded * (7 * 60 * 1000)
+  // TODO: bug, next line should be valid but score is 0
+  // const extraTime = peer.score * 60 * 1000
+  // console.info('PEEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
 
   return {

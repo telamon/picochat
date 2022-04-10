@@ -138,7 +138,7 @@ function rewrite (input) {
     // Tier 1
     [/ᚲᛃ/, 'ᛄ'], // Lock
     [/(ᚦᚧᚦ|ᚧᚦᚧ)/, 'ᚷ'], // Game over
-    [/([ᛄᚴᚵᚠ])ᛖᛗ/, '$1ᚴ'], // white advance
+    [/([ᛄᚴᚵᛆᚠ])ᛖᛗ/, '$1ᚴ'], // white advance
     [/([ᛰᛐᛑᛅ])ᛗᛖ/, '$1ᛐ'], // black advance
     [/ᚴᚴ/, 'ᚵ'], // WCombo
     [/ᛐᛐ/, 'ᛑ'], // BCombo

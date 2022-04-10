@@ -34,6 +34,7 @@ async function loadKeychain () {
 
 async function roll (mode = 0) {
   if ($secret) return // Refuse to roll while secret exists
+  console.info(`roll(${mode})`)
   $progress = 0
   $unlucky = false
   let pair = null
@@ -77,7 +78,7 @@ async function validateImport () {
 </script>
 <keygen-view>
   <h1 on:click={() => $showAboutDialog = true}>
-    Sign up
+    Step 1 of 2: Generate key
     <Icon id="icon-info" />
   </h1>
   <h5>Gender</h5>
@@ -113,17 +114,19 @@ async function validateImport () {
         <h1 aria-busy="true">%nbsp;</h1>
       {:then}
         {#if !$secret}
-        <h5 class="text-center">Mining OP</h5>
+        <h5 class="text-center">Keygen</h5>
         <div>
           <progress min="0" max="100" value={$progress}/>
-          <p>Finding a key might take a while, but you only have to do it once.</p>
+          <!-- <p>Finding a key might take a while, but you only have to do it once.</p>-->
+          <p>Press the generate button to create a unique personal key</p>
         </div>
         <div>
           <div class="row space-between xcenter">
             {#if $fails > 1}
               <button on:click={() => roll(1)} disabled={$progress !== 100}>Give up</button>
             {/if}
-            <button on:click={() => roll(0)} disabled={$progress !== 100 || $secret}>Generate</button>
+            <!-- Defaults to gender only; Geohash mining disabled for now -->
+            <button on:click={() => roll(1)} disabled={$progress !== 100 || $secret}>Generate</button>
           </div>
           {#if $unlucky}
             <danger>Sorry.. RNG0D ignored your prayers, please try again</danger>

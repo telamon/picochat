@@ -5,7 +5,7 @@ import { Chat } from '../api'
 import BinaryImage from '../components/BinaryImage.svelte'
 import Icon from '../components/Icon.svelte'
 import Timer from '../components/Timer.svelte'
-
+import { rewrite, scoreGraph } from '../../blockend/game'
 export let id
 
 let messagesElement
@@ -20,6 +20,26 @@ $: if ($chat.state === 'finalizing' && $chat.myTurn) end()
 const health = derived(chat, c =>
   Array.from(new Array(3)).map((_, n) => n < c.health)
 )
+
+const score = derived(chat, c => {
+  if (!c.graph) return [0, 0]
+  return c.initiator
+    ? scoreGraph(c.graph)
+    : scoreGraph(c.graph).reverse()
+})
+
+const preview = derived([chat, score], ([c, s]) => {
+  if (!c.graph) return [[0, 0], [0, 0], [0, 0]]
+  return [
+    c.initiator ? 'ᛒᛔ' : 'ᛔᛒ',
+    c.initiator ? 'ᛖ' : 'ᛗ',
+    c.initiator ? 'ᚦ' : 'ᚧ'
+  ].map(glyph => (c.initiator
+    ? scoreGraph(c.graph + glyph)
+    : scoreGraph(c.graph + glyph).reverse())
+        .map((p, i) => p - s[i])
+  )
+})
 
 // Auto-scroll
 afterUpdate(() => {
@@ -68,7 +88,10 @@ function onKeyPress ({ charCode }) {
     <div class="row">
       {#if $chat.peer}
         <portrait><BinaryImage src={$chat.peer.picture} size="70px" /></portrait>
-        <h1 class="hgap">{$chat.peer.name}</h1>
+        <div class="column">
+          <h1 class="hgap">{$chat.peer.name}</h1>
+          <samp>{$score.join(' / ')} {rewrite($chat.graph || '')}</samp>
+        </div>
       {:else}
         <placeholder aria-busy="true">&nbsp;</placeholder>
       {/if}
@@ -122,6 +145,11 @@ function onKeyPress ({ charCode }) {
           Waiting
         {/if}
     </h2>
+    <div class="row space-between">
+      <samp>{$preview[0].join('/')}</samp>
+      <samp>{$preview[1].join('/')}</samp>
+      <samp>{$preview[2].join('/')}</samp>
+    </div>
     <div class="row space-between">
       {#if !$showInput}
       <button class="hgap" disabled={!$chat.myTurn}

@@ -55,9 +55,10 @@ class Keychain {
   }
 
   static generate (gender, geohash, maxTries) {
+    console.info('generate(', gender, geohash, maxTries, ')')
     gender = gender ?? 666
     if (gender === 666 && !geohash) return Keychain.generateAnonymous()
-    if (!geohash) return prayFor(Buffer.from(gender), 1, maxTries)
+    if (!geohash) return prayFor(Buffer.from([gender]), 0b11, maxTries)
 
     const nBits = GEO_BITS + 1
     const buf = Buffer.allocUnsafe(roundByte(nBits))

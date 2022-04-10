@@ -77,7 +77,9 @@ module.exports = function GarbageCollectModule (store) {
           evicted.push(await this.repo.rollback(s.keys[0]))
         }
       } catch (err) {
-        console.warn('Rollback failed, already gone?', err)
+        if (err.message === 'FeedNotFound') {
+          D('RollbackFailed, Feed already gone', err)
+        } else console.error('Rollback failed', err)
       }
     }
     // notify all affected stores
