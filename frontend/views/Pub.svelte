@@ -25,13 +25,25 @@ function sendVibe (pk) {
 }
 </script>
 <pub-view>
-  <h1>PubName</h1>
+  <h1>🪩 Club Room</h1>
   <p>
-    Pub description occupying a couple of lines
+    This is the common room, see someone interesting?<br/>
+    Shoot!
   </p>
-  <h6>Peers {$peers.length}</h6>
+  {#if !$cooldowns.vibe}
+    <small>Your 〰️🔫 is primed and loaded!</small>
+  {:else}
+    <small>Vibe available in {$cooldowns.vibe}</small>
+  {/if}
+  <div class="row space-between xcenter">
+    <h6 class="nogap">Patrons {$peers.length}</h6>
+    <a role="button" class="outline hpad vgap">Filter</a>
+  </div>
   <peers class="column xcenter">
   {#each $peers as peer}
+    <!-- TODO: Make a small thumbnail cb style,
+      it's awkward to be up in someone's face, when you
+      enter a bar you wanna start out as part of a herd -->
     <Portrait peer={peer}>
       <div class="flex row space-between">
         <p class="hpad">

@@ -39,7 +39,7 @@ let _loading = load()
 </script>
 <profile-view>
   <div class="row space-between xstart">
-    <h1>Profile</h1>
+    <h1>🕶️ Profile</h1>
     <div class="row">
       <h2 on:click={() => $showKeyDialog = true}>
         <Icon id="icon-qr" />
@@ -57,7 +57,9 @@ let _loading = load()
   <label for="file">
     <h5>picture</h5>
     <ImageLoader output={picture} />
-    <small class="block text-center">{$picture?.length} B</small>
+    {#if $picture?.length}
+      <small class="block text-center">{$picture?.length} B</small>
+    {/if}
     <!--<img src={$pictureURI} alt="profile picture preview"/>-->
   </label>
 

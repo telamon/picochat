@@ -78,7 +78,7 @@ async function validateImport () {
 </script>
 <keygen-view>
   <h1 on:click={() => $showAboutDialog = true}>
-    Step 1 of 2: Generate key
+    Setup
     <Icon id="icon-info" />
   </h1>
   <h5>Gender</h5>
@@ -91,6 +91,7 @@ async function validateImport () {
     <label for="NB">NB</label>
   </fieldset>
   <br/>
+  <!--
   <h5>Location</h5>
   <div class="flex row">
     <div>
@@ -104,34 +105,36 @@ async function validateImport () {
         bind:value={$geohash} >
     </div>
   </div>
-  <h5>
-    IDSQR
-  </h5>
+  -->
+  <h5>IDSQR</h5>
 
   <div class="flex column xcenter">
-    <idsqr data-theme="dark" class="flex column space-between">
+    <idsqr data-theme="dark" class="flex column space-around">
       {#await loadKeychain()}
         <h1 aria-busy="true">%nbsp;</h1>
       {:then}
         {#if !$secret}
-        <h5 class="text-center">Keygen</h5>
-        <div>
-          <progress min="0" max="100" value={$progress}/>
-          <!-- <p>Finding a key might take a while, but you only have to do it once.</p>-->
-          <p>Press the generate button to create a unique personal key</p>
-        </div>
-        <div>
-          <div class="row space-between xcenter">
-            {#if $fails > 1}
-              <button on:click={() => roll(1)} disabled={$progress !== 100}>Give up</button>
+          <!--<h5 class="text-center">Keygen</h5>-->
+          <div>
+            {#if $progress === 100}
+              <p class="text-center">Press the button to generate your own unique passport</p>
+            {:else}
+              <progress min="0" max="100" value={$progress}/>
+              <!-- <p>Finding a key might take a while, but you only have to do it once.</p>-->
             {/if}
-            <!-- Defaults to gender only; Geohash mining disabled for now -->
-            <button on:click={() => roll(1)} disabled={$progress !== 100 || $secret}>Generate</button>
           </div>
-          {#if $unlucky}
-            <danger>Sorry.. RNG0D ignored your prayers, please try again</danger>
-          {/if}
-        </div>
+          <div>
+            <div class="row space-between xcenter">
+              {#if $fails > 1}
+                <button on:click={() => roll(1)} disabled={$progress !== 100}>Give up</button>
+              {/if}
+              <!-- Defaults to gender only; Geohash mining disabled for now -->
+              <button on:click={() => roll(1)} disabled={$progress !== 100 || $secret}>Create</button>
+            </div>
+            {#if $unlucky}
+              <danger>Sorry.. RNG0D ignored your prayers, please try again</danger>
+            {/if}
+          </div>
         {:else}
           <QRCode data={$secret.slice(32)} size={10}/>
         {/if}

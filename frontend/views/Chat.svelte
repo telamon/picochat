@@ -34,10 +34,10 @@ const preview = derived([chat, score], ([c, s]) => {
     c.initiator ? 'ᛒᛔ' : 'ᛔᛒ',
     c.initiator ? 'ᛖ' : 'ᛗ',
     c.initiator ? 'ᚦ' : 'ᚧ'
-  ].map(glyph => (c.initiator
-    ? scoreGraph(c.graph + glyph)
-    : scoreGraph(c.graph + glyph).reverse())
-        .map((p, i) => p - s[i])
+  ].map(glyph =>
+    c.initiator
+      ? scoreGraph(c.graph + glyph)
+      : scoreGraph(c.graph + glyph).reverse()
   )
 })
 

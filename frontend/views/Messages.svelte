@@ -22,7 +22,7 @@ function respondVibe (chatId, rejected) {
 }
 </script>
 <messages-view>
-  <h1>Peers</h1>
+  <h1>💌 Messages</h1>
   <h5>Vibes</h5>
   <vibes class="row xcenter">
   {#each $vibes as vibe}

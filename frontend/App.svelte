@@ -1,4 +1,5 @@
 <script>
+// ᚹᚽᚲᛜᚲᚻᚤᛏ
 import { onMount } from 'svelte'
 import { writable, derived } from 'svelte/store'
 import { view, id, setView, navigate, routeName } from './router'
@@ -19,8 +20,8 @@ import BinaryImage from './components/BinaryImage.svelte'
 import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
-const showBar = derived(state, s => s.hasKey)
-const showDev = writable(true)
+const showBar = derived(state, s => s.hasKey && s.hasProfile)
+const showDev = showBar // writable(true)
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
