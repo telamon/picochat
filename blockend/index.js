@@ -236,7 +236,8 @@ class Kernel {
 //
 // Vibe is an invitation to participate so: yes. (if it was adressed to you)
 // Message? "yes" if you were the one that was adressed.
-// Same thing with bye. There's identity checks in store-filters but
+// Same thing with bye.
+// There are identity checks in store-filters but
 // maybe should be handled on strategy level.
 async function mergeStrategy (block, repo) { // TODO: expose loudFail flag? mergStr(b, r, !dryMerge && loud)
   const content = decodeBlock(block.body)

@@ -13,6 +13,20 @@ const {
 const { feedToGraph } = require('../game')
 
 const { combine, mute, init, gate } = require('../nuro')
+
+/* Source of truth: Chat States
+ *
+  | STATE      | DESCRIPTION                           |
+  |------------+---------------------------------------|
+  | loading    | chat found, register join in progress |
+  | error      | Failed to produce neuron              |
+  | active     | Chat in progress                      |
+  | rejected   | Vibe was rejected                     |
+  | expired    | Chat ran out of time                  |
+  | finalizing | One of players has ended              |
+  | end        | Second player responded to bye        |
+ */
+
 /* A reactive store whose value is conversation object
  * containing all then necesarry tidbits and bound actions
  * to progress the conversation
@@ -103,7 +117,7 @@ module.exports = function ChatModule () {
 
         chat.head = vibe.head
         if (vibe.state === 'match') chat.state = 'active'
-        else if (vibe.state === 'rejected') chat.state = 'inactive'
+        else if (vibe.state === 'rejected') chat.state = 'rejected'
         chat.createdAt = lChat ? lChat.createdAt : vibe.createdAt
         chat.updatedAt = lChat ? lChat.updatedAt : vibe.updatedAt
         chat.expiresAt = lChat ? lChat.expiresAt : vibe.expiresAt

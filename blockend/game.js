@@ -129,7 +129,7 @@ function scoreGraph (input) {
     w += table[glyph][0]
     b += table[glyph][1]
   }
-  console.log('Game:', input, `score W${w}/B${b}`)
+  // console.log('Game:', input, `score W${w}/B${b}`)
   return [w, b]
 }
 
@@ -177,6 +177,7 @@ module.exports = {
 // Operates on arrays of tokens, if tokens in pattern are contained by
 // tokens in input, then they are replaced with tokens in replacement.
 // If pattern is not contained by input, then unmodified input is returned.
+// (Original code located in Xeno, written to allow unordered graph-rewrites)
 function uRewrite (input, pattern, replacement) {
   if (typeof input === 'string') input = input.split('')
   if (typeof pattern === 'string') pattern = pattern.split('')

@@ -175,13 +175,13 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@telamon/picostore@^1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.6.0.tgz#fa1f3da9f97b5a43cbcd5d07f9084a86d0fa4736"
-  integrity sha512-tP0/hB5VgkRcPD0NGcqNJGfWJmIo0OvP8A50WCZfXEFRlXJeRetIhJ7oKeWeqCd5V9q4Paiz6hiNPEVMsuxqOQ==
+"@telamon/picostore@^1.6.2":
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.6.2.tgz#539fef8f58a2c6bb2351022c80ae6cf60bbe7120"
+  integrity sha512-eTv2P+Lm2VRmq7Y6oaXbfJbWvlHS8EsVkRbiPjCTut886eHdWqpvMcjMBhjHQg/fMgUCcMMGdvLCsq59OJp57A==
   dependencies:
     msgpackr "^1.5.1"
-    picorepo "^1.2.1"
+    picorepo "^1.2.2"
 
 "@types/estree@*":
   version "0.0.50"
@@ -3676,10 +3676,10 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
-picofeed@^3.3.2:
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/picofeed/-/picofeed-3.3.2.tgz#4e1d88ebece1395bab0247bcc17005bfecc3b34c"
-  integrity sha512-5CiwJnBbnRRQZ1ODCHG+2FQetG8n/pcgltCLR4HFiJNNQtZrPMv1bHbAYVo6FpP5t8A2yLlfO/DAihLd7OhiTQ==
+picofeed@^3.3.3:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/picofeed/-/picofeed-3.3.3.tgz#b494366ad80385d22af236e114e9416ebe010034"
+  integrity sha512-ee2SmAQ7up3M7/te1lIRhEna9+Y3tscifiMZSel7nnN90SjUYJMbwtKQAU/vqN6JGDVOLp5FfmNta0xpPupHUA==
   dependencies:
     inspect-custom-symbol "^1.1.1"
     sodium-universal "^3.0.2"
@@ -3699,12 +3699,12 @@ piconet@^3.1.0:
   resolved "https://registry.yarnpkg.com/piconet/-/piconet-3.1.1.tgz#3a8c0774f29574ef53aebf90060e91a057fd0be3"
   integrity sha512-O8Kjyg1if/zyhguR0OLo3ZVEEaYMiTP4cK5F5H0V56OjntBkvU1YLz0qUW7WZWoZWZTGhULFWT1ZZqaDMrtipg==
 
-picorepo@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.2.1.tgz#631e8e1f8c1870954b5efb07d0a6b620f8fb03ee"
-  integrity sha512-NJrvVnL0HsPw8DeMG1/6M7y6nJ0YYMLwiYzpdbTR8vRiHMNEHnTe4o3zfF6pSpUL+fbJLNp8T9bPheK2pYzbOg==
+picorepo@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.2.2.tgz#842a69af74891ecd7f86522e9c3531de4391f9b0"
+  integrity sha512-2tz+Ngyt1iVnJxXieuOisjRsXXKRf9NEgI8MrYj22SR66978wN2aPuOmZsllzqrakPxurR0amwkRWNXOAqrrnA==
   dependencies:
-    picofeed "^3.3.2"
+    picofeed "^3.3.3"
 
 pify@^3.0.0:
   version "3.0.0"

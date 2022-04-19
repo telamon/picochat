@@ -30,8 +30,8 @@ async function spawnPeer (name, kOpts = {}) {
   await app.register({
     name,
     tagline: `${name} is awesome!`,
-    sex: Math.floor(Math.random() * 3), // \("v")/
-    age: Math.floor(Math.random() * 18 + 50),
+    sex: kOpts.sex ?? Math.floor(Math.random() * 3), // \("v")/
+    age: kOpts.age ?? Math.floor(Math.random() * 18 + 50),
     picture: ':|'
   })
   const spawnWire = await app.enter('Abyss')
