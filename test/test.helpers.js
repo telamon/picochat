@@ -113,6 +113,13 @@ async function turn (kernel, chatId) {
   )
 }
 
+async function sees (peerA, peerB) {
+  return until(
+    peerA.k.$peers(),
+    peers => peers.find(p => p.pk.equals(peerB.k.pk))
+  )
+}
+
 async function converse (kernelA, kernelB, chatId, nMessages = 3) {
   // Conversation time
   for (let i = 0; i < nMessages; i++) {
@@ -135,5 +142,6 @@ module.exports = {
   spawnSwarm,
   makeDatabase,
   makeChat,
+  sees,
   D
 }

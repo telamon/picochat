@@ -55,7 +55,7 @@ export function Vibes (dbg) {
 export function NotificationsCount () {
   return svlt(
     mute(
-      combine(kernel.$vibes(), $chats),
+      combine(kernel.$vibes(), kernel.$chats()),
       ([vibes, chats]) => vibes.reduce(
         (sum, v) => v.state === 'waiting_local' ? sum + 1 : sum,
         0
@@ -68,21 +68,12 @@ export function NotificationsCount () {
   )
 }
 
-// TODO: kernel.$chats() neuron
-const $chats = mute(
-  kernel.$vibes(),
-  vibes => vibes.filter(
-    v => v.state === 'match'
-  )
-)
 export function Chats () {
-  return svlt($chats)
+  return svlt(kernel.$chats())
 }
 
 export function Cooldowns () {
-  return svlt(
-    init({ vibe: 0 })
-  )
+  return svlt(kernel.$cooldowns())
 }
 
 export function Connections () {

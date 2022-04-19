@@ -13,6 +13,7 @@ const BufferedRegistry = require('./mod/buffered-registry.mod')
 const GarbageCollector = require('./mod/gc.mod')
 const PeersModule = require('./mod/peers.mod')
 const VibesModule = require('./mod/vibes.mod')
+const MonitorModule = require('./mod/monitor.mod')
 
 // Util
 const {
@@ -67,13 +68,14 @@ class Kernel {
     this.store.register(ConversationCtrl())
     // this.store.register(StatsCtrl())
 
-    // Load Mixins
+    // Load Mixins/ Kernel Modules
     Object.assign(this, PeersModule())
     Object.assign(this, VibesModule())
     Object.assign(this, ChatModule())
     Object.assign(this, BufferedRegistry())
     Object.assign(this, Network(this))
     Object.assign(this, GarbageCollector(this.store))
+    Object.assign(this, MonitorModule())
   }
 
   get state () { return get(this._state[0]) }

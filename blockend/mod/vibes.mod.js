@@ -33,6 +33,7 @@ module.exports = function VibesModule () {
       }
       const msgBox = boxPair()
       const peer = await this.profileOf(peerId)
+      if (peer.state === 'error') throw new Error(peer.errorMessage)
       const sealedMessage = seal(msgBox.pk, peer.box)
       const convo = await this._createBlock(TYPE_VIBE, {
         box: sealedMessage

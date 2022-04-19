@@ -35,8 +35,9 @@ module.exports = function ChatModule () {
   return {
     $chats () {
       // For now just return list of vibes with 'match' state
-      return mute(this.$vibes(), vibes =>
-        vibes.filter(v => v.state === 'match')
+      return mute(
+        this.$vibes(),
+        vibes => vibes.filter(v => v.state === 'match')
       )
     },
 
