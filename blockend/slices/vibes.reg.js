@@ -84,6 +84,7 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
       if (parentType !== TYPE_VIBE) return `InvalidParent: ${parentType}`
       // TODO: return 'Expired' if match.expiresAt < now()
     }
+    D('Accepting Vibe %h', block.sig)
     return false // All good, accept block
   }
 
@@ -96,7 +97,7 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
     const rejected = VIBE_REJECTED.equals(vibe.box)
 
     if (type === TYPE_VIBE) {
-      D('%s reducing vibe: %o %h %h', root.peer.name, !!state.matches[key], block.key, block.sig)
+      D('%s reducing vibe: %o %h', root.peer.name, !!state.matches[key], block.sig)
       if (state.matches[key]) throw new Error('InternalError: Vibe already registered')
       // Set lookup reference
       state.seen[block.key.toString('hex')] = chatId

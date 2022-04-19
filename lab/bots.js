@@ -1,6 +1,7 @@
-const { spawnPeer } = require('../test/test.helpers.js')
+const { spawnPeer } = require('../test/test.helpers')
 const Modem56 = require('../modem56.js')
-const { rewrite } = require('../blockend/game')
+const { rewrite, feedToGraph } = require('../blockend/game')
+const { combine } = require('../blockend/nuro')
 // const { settle, next } = require('../blockend/nuro')
 const FAILFAST = !!process.env.FAILFAST
 class PicoBot {
@@ -22,12 +23,17 @@ class PicoBot {
 
   async boot (ctx, done, topic = 'PicoBotnet') {
     if (!ctx.signal) ctx.signal = console.info
+    this.ctx = ctx
     const { swarm, signal, name } = ctx
     if (!done) done = () => console.log(`<${name}> färdig!`)
     const { k: kernel, spawnWire } = await spawnPeer(name, this.mkProfile())
     this.kernel = kernel
     this.signal = signal
     this.name = name
+
+    ctx.ontick(tick => {
+      // kernel._collectGarbage(ctx.simulator.time)
+    })
 
     const modem = new Modem56(swarm)
 
@@ -41,33 +47,35 @@ class PicoBot {
     const ph = this.onPeers.bind(this)
     const vh = this.onVibe.bind(this)
     const th = this.onTurn.bind(this)
-    let vibeSent = 0
-    kernel.$peers()(peers => {
-      // ctx.version = peers.length
-      // const vibeState = kernel.store.state.vibes
 
-      // const canVibe = !kernel.store.state.vibes.seen[kernel.pk.toString('hex')]
-      /*
-      const canVibe = !vibeState.own.find(v => {
-        const vibe = vibeState.matches[v.toString('hex')]
-        return vibe.a.equals(kernel.pk) // this is silly, use get(kernel.$vibes()) instead
+    combine(
+      kernel.$peers(),
+      kernel.$cooldowns()
+    )(
+      ([peers, cooldowns]) => {
+        if (cooldowns.state === 'loading') return
+        const canVibe = cooldowns.canVibe
+        signal(`$PC ${name} ${canVibe}`)
+        if (!canVibe) return
+        ph(peers, peer => {
+          const key = peer?.pk || peer
+          // console.log('SendVibe()', canVibe, kernel.pk.hexSlice(0, 6), ' => ', key.hexSlice(0, 6))
+          kernel.sendVibe(key)
+            .then(cid => subscribeChat(cid))
+            .catch(err => {
+              signal('sendVibe() Error')
+              console.error('sendVibe() failed:', err)
+              if (FAILFAST) {
+                kernel.feed()
+                  .then(f => {
+                    f.inspect()
+                    console.error('journey: ', feedToGraph(f))
+                    process.exit(-1)
+                  })
+              }
+            })
+        })
       })
-      */
-      const canVibe = !vibeSent
-
-      ph(peers, canVibe, peer => {
-        const key = peer?.pk || peer
-        console.log('SendVibe()', canVibe, kernel.pk.hexSlice(0, 6), ' => ', key.hexSlice(0, 6))
-        vibeSent++
-        kernel.sendVibe(key)
-          .then(cid => subscribeChat(cid))
-          .catch(err => {
-            signal('sendVibe() Error')
-            console.error('sendVibe() failed:', err)
-            if (FAILFAST) process.exit(-1)
-          })
-      })
-    })
 
     const chatSubs = {}
     kernel.$vibes()(vibes => {
@@ -91,13 +99,13 @@ class PicoBot {
 
     function subscribeChat (cid) {
       if (chatSubs[cid.toString('hex')]) return
-      signal('ChatSubscribed')
+      signal(`${name} ChatSubscribed`)
       chatSubs[cid.toString('hex')] = kernel.$chat(cid)(chat => {
         if (chat.state === 'loading') return
         if (chat.state === 'finalizing' && chat.myTurn) return chat.bye(0).catch(console.error)
         if (chat.state === 'end') unsubscribeChat(cid, chat)
         if (chat.state === 'exhausted') {
-          signal('game over')
+          signal('game over/timeprison')
           unsubscribeChat(cid, chat)
         }
         if (chat.state === 'active' && chat.myTurn) return onturn(chat)
@@ -115,7 +123,6 @@ class PicoBot {
       signal('ChatEnd: ' + rewrite(chat.graph))
       if (!unsub) return
       delete chatSubs[cid.toString('hex')]
-      vibeSent = 0
       unsub()
     }
 
@@ -147,8 +154,8 @@ class Alice extends PicoBot {
   }
 
   async onTurn (chat) {
-    const patience = (chat.messages.length + Math.random()) / 12
-    const bubble = (chat.messages.length + Math.random()) / 4
+    const patience = (chat.messages.length + this.ctx.random()) / 12
+    const bubble = (chat.messages.length + this.ctx.random()) / 4
 
     if (bubble > 1) {
       this.signal('B pass')
@@ -176,14 +183,16 @@ class Bob extends PicoBot {
     return { sex: 0 }
   }
 
-  async onPeers (peers, vibeReady, sendVibe) {
-    for (const peer of peers.sort(() => -0.5 + Math.random())) {
-      if (vibeReady && peer.sex === 0) return sendVibe(peer.pk)
-    }
+  async onPeers (peers, sendVibe) {
+    const peer = peers
+      .sort(() => -0.5 + this.ctx.random())
+      .find(p => p.sex === 0)
+
+    if (peer) sendVibe(peer.pk)
   }
 
   async onTurn (chat) {
-    const pressure = (chat.health + this.guts) - (Math.random() * 0.5)
+    const pressure = (chat.health + this.guts) - (this.ctx.random() * 0.5)
     if (pressure < 0) {
       this.signal('W bye')
       await chat.bye(0)

@@ -7,7 +7,7 @@ const {
   seal,
   boxPair
 } = require('../util')
-const { mute, combine, gate, init } = require('../nuro')
+const { mute, combine, gate, init, until } = require('../nuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
 const D = require('debug')('picochat:mod:vibes')
 
@@ -31,6 +31,10 @@ module.exports = function VibesModule () {
           return this.respondVibe(match.chatId)
         }
       }
+
+      const cd = await until(this.$cooldowns(), cd => cd.state !== 'loading')
+      if (!cd.canVibe) throw new Error('VibeNotReady')
+
       const msgBox = boxPair()
       const peer = await this.profileOf(peerId)
       if (peer.state === 'error') throw new Error(peer.errorMessage)

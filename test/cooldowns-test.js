@@ -25,14 +25,19 @@ test('kernel.$cooldowns() keeps track of vibe counter', async t => {
   )
   // TODO: Alice politely rejects charlies vibe,
   // that should reduce the time of charlie's cooldown.
+})
 
-  cd = await next(bob.k.$cooldowns())
+test('kernel.$cooldowns() emits on chat end', async t => {
+  const [alice, bob] = await spawnSwarm('Alice', 'Bob', 'Charlie')
+  let cd = await next(bob.k.$cooldowns())
   t.equal(cd.canVibe, true, 'Bob can vibe')
-  const cid = await makeChat(alice, bob)
+  // const unsub = bob.k.$cooldowns()(console.error)
+  const cid = await makeChat(bob, alice)
   const chat = await next(bob.k.$chat(cid))
   cd = await next(bob.k.$cooldowns())
   t.equal(chat.state, 'end', 'when chat ends')
   t.equal(cd.canVibe, true, 'Bob can vibe again')
+  // unsub()
 })
 
 test('kernel.$cooldowns() active chat', async t => {

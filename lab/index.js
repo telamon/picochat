@@ -17,7 +17,7 @@ async function main () {
       spawnBob(ctx, done)
     )
   }
-  return sim.run(1, 200)
+  return sim.run(1, 100)
 }
 
 main()

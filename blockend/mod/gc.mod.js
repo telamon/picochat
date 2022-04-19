@@ -34,9 +34,9 @@ module.exports = function GarbageCollectModule (store) {
       }
     },
 
-    startGC (inteval = 3 * 1000) {
+    startGC (interval = 3 * 1000) {
       if (!this.ready || timerId) return
-      timerId = setInterval(this._collectGarbage.bind(this), inteval)
+      timerId = setInterval(this._collectGarbage.bind(this), interval)
     },
 
     stopGC () {
