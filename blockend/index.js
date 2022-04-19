@@ -50,14 +50,7 @@ function initialState () {
 }
 
 class Kernel {
-  constructor (db, config = {}) {
-    this.config = Object.freeze({
-      profile_ttl: config ?? 3 * 60 * 60000, // 3hours
-      vibe_ttl: config ?? 5 * 60000, // 5 minutes
-      chat_ttl: config ?? 30 * 60000, // 30minutes
-      now: config.now ?? (() => Date.now())
-    })
-
+  constructor (db) {
     this.db = db
     this.repo = new Repo(db)
     this.store = new Store(this.repo, mergeStrategy)
