@@ -22,10 +22,10 @@ class PicoBot {
   }
 
   async boot (ctx, done, topic = 'PicoBotnet') {
+    if (!done) done = () => console.log(`<${name}> färdig!`)
     if (!ctx.signal) ctx.signal = console.info
     this.ctx = ctx
     const { swarm, signal, name } = ctx
-    if (!done) done = () => console.log(`<${name}> färdig!`)
     const { k: kernel, spawnWire } = await spawnPeer(name, this.mkProfile())
     this.kernel = kernel
     this.signal = signal
@@ -55,7 +55,8 @@ class PicoBot {
       ([peers, cooldowns]) => {
         if (cooldowns.state === 'loading') return
         const canVibe = cooldowns.canVibe
-        signal(`$PC ${name} ${canVibe}`)
+        // const wait = cooldowns.vibe - Date.now()
+        // signal(`$PC ${name} ${canVibe}`)
         if (!canVibe) return
         ph(peers, peer => {
           const key = peer?.pk || peer
@@ -105,8 +106,9 @@ class PicoBot {
         if (chat.state === 'finalizing' && chat.myTurn) return chat.bye(0).catch(console.error)
         if (chat.state === 'end') unsubscribeChat(cid, chat)
         if (chat.state === 'exhausted') {
-          signal('game over/timeprison')
+          signal('timeprison')
           unsubscribeChat(cid, chat)
+          // if (chat.initiator) done()
         }
         if (chat.state === 'active' && chat.myTurn) return onturn(chat)
         if (chat.state === 'error') {
@@ -157,14 +159,22 @@ class Alice extends PicoBot {
     const patience = (chat.messages.length + this.ctx.random()) / 12
     const bubble = (chat.messages.length + this.ctx.random()) / 4
 
+    if (chat.health < 2 && bubble > 1) {
+      // Passing now would imprison white
+      // ending the game in a LOSE/LOSE
+      const roll = this.ctx.random() * 3
+      if (roll > 2) return await chat.send('Good night')
+      if (roll > 1) return await chat.bye(0)
+    }
+
     if (bubble > 1) {
-      this.signal('B pass')
+      // this.signal('B pass')
       await chat.pass()
     } else if (patience > 1) {
-      this.signal('B bye')
+      // this.signal('B bye')
       await chat.bye(0)
     } else {
-      this.signal('B msg')
+      // this.signal('B msg')
       await chat.send('Yup')
     }
   }
@@ -174,11 +184,6 @@ class Alice extends PicoBot {
  * Bob finds sends vibes, and talks...
  */
 class Bob extends PicoBot {
-  constructor () {
-    super()
-    this.guts = Math.random() * 2
-  }
-
   mkProfile () {
     return { sex: 0 }
   }
@@ -192,12 +197,13 @@ class Bob extends PicoBot {
   }
 
   async onTurn (chat) {
-    const pressure = (chat.health + this.guts) - (this.ctx.random() * 0.5)
-    if (pressure < 0) {
-      this.signal('W bye')
+    const pressure = (3 - chat.health) + (0.25 - this.ctx.random() * 0.5)
+    // this.signal(`Gamble ${pressure}`)
+    if (pressure >= 2) {
+      // this.signal('W bye')
       await chat.bye(0)
     } else {
-      this.signal('W msg')
+      // this.signal('W msg')
       await chat.send('Weather is good')
     }
   }

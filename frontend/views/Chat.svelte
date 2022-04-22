@@ -83,14 +83,17 @@ function onKeyPress ({ charCode }) {
   }
 }
 </script>
-<chat class:player1={$chat.initiator} class:player2={!$chat.initiator}>
-  <header class="row space-between nogap">
+<chat class:white={$chat.initiator} class:black={!$chat.initiator}>
+  <header class="row space-between">
     <div class="row">
       {#if $chat.peer}
         <portrait><BinaryImage src={$chat.peer.picture} size="70px" /></portrait>
         <div class="column">
           <h1 class="hgap">{$chat.peer.name}</h1>
-          <samp>{$score.join(' / ')} {rewrite($chat.graph || '')}</samp>
+          <div class="hgap">
+            <pill><black>{$score[1]}</black><white>{$score[0]}</white></pill>
+            {rewrite($chat.graph || '')}
+          </div>
         </div>
       {:else}
         <placeholder aria-busy="true">&nbsp;</placeholder>
@@ -124,9 +127,11 @@ function onKeyPress ({ charCode }) {
                 (!$chat.initiator && message.type === 'received')
             }
               <samp>PASS</samp>
-              <Icon id="pass_resp" tag="p1" />
+              ᚦ
+              <!--<Icon id="pass_resp" tag="white" />-->
             {:else}
-              <Icon id="pass_resp" tag="p2" />
+              <!--<Icon id="pass_resp" tag="black" />-->
+              ᚧ
               <samp>PASS</samp>
             {/if}
           </sym>
@@ -136,7 +141,6 @@ function onKeyPress ({ charCode }) {
       </msg>
     {/each}
   </messages>
-
   {#if $chat.state === 'active'}
     <h2 class="text-center nogap">
         {#if $chat.myTurn}
@@ -146,8 +150,12 @@ function onKeyPress ({ charCode }) {
         {/if}
     </h2>
     <div class="row space-between">
+
       <samp>{$preview[0].join('/')}</samp>
-      <samp>{$preview[1].join('/')}</samp>
+      <samp>
+      {$preview[1].join('/')}
+        <div class="☯">&nbsp;</div>
+      </samp>
       <samp>{$preview[2].join('/')}</samp>
     </div>
     <div class="row space-between">
@@ -176,9 +184,9 @@ function onKeyPress ({ charCode }) {
   {:else if $chat.state === 'end'}
     <h1 class="text-center nogap">
       {#if $chat.messages % 2} <!-- ended by responder -->
-        <Icon id="bye_resp" tag="p2" /><Icon id="bye_res_init" tag="p1" />
+        <Icon id="bye_resp" tag="black" /><Icon id="bye_res_init" tag="white" />
       {:else} <!-- ended by initator -->
-        <Icon id="bye_init" tag="p1" /><Icon id="bye_res_resp" tag="p2" />
+        <Icon id="bye_init" tag="white" /><Icon id="bye_res_resp" tag="black" />
       {/if}
     </h1>
     <h2 class="text-center nogap">Conversion ended</h2>
@@ -188,6 +196,7 @@ function onKeyPress ({ charCode }) {
 </chat>
 <style>
 header h1, header h2, header h3 { margin-bottom: unset; }
+header { margin-top: 1em; }
 portrait {
   border-radius: 4px;
   overflow: hidden;
@@ -197,7 +206,7 @@ portrait {
 }
 messages {
   display: block;
-  height: 70vh;
+  height: 59vh;
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -210,16 +219,16 @@ msg txt {
   margin-bottom: 0.4em;
 }
 /* White */
-.player1 msg.local txt, .player2 msg.remote txt {
-  color: var(--p2fg);
-  background-color: var(--p1fg);
-  border: 2px solid var(--p2fg);
+.white msg.local txt, .black msg.remote txt {
+  color: var(--p2);
+  background-color: var(--p1);
+  border: 1.4px solid var(--p2);
 }
 /* Black */
-.player1 msg.remote txt, .player2 msg.local txt {
-  color: var(--p1fg);
-  background-color: var(--p2fg);
-  border: 2px solid var(--p1fg);
+.white msg.remote txt, .black msg.local txt {
+  color: var(--p1);
+  background-color: var(--p2);
+  border: 1.4px solid var(--p1);
 }
 msg sym { font-size: x-large; }
 </style>

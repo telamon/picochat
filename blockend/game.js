@@ -33,6 +33,7 @@
   | ᚺ | Engarde    |    |    | ᚧᚦ,ᚦᚧ                   |
   | ᚠ | Evade      | -1 | +3 | ᚴᛆ                      |
   | ᛅ | Riposte    | +2 | +4 | ᚴᚦᛗ                     |
+  | ᚯ | D. Riposte | +2 | +5 | ᚵᚦᛗ                     |
   | ᛰ | Block      | +1 | +3 | ᚴᚺ, White is vulnerable |
   | ᛈ | F.O.P      |    |    | ᚴᛖᛷ                     |
   |---+------------+----+----+-------------------------|
@@ -115,6 +116,7 @@ function scoreGraph (input) {
     ᛆ: [-1, 2],
     ᚠ: [-1, +3],
     ᛅ: [2, 4],
+    ᚯ: [2, 5],
     ᛰ: [1, 3],
     ᛈ: [-1, 0]
   }
@@ -138,7 +140,7 @@ function rewrite (input) {
     // Tier 1
     [/ᚲᛃ/, 'ᛄ'], // Lock
     [/(ᚦᚧᚦ|ᚧᚦᚧ)/, 'ᚷ'], // Game over
-    [/([ᛄᚴᚵᛆᚠ])ᛖᛗ/, '$1ᚴ'], // white advance
+    [/([ᛄᚴᚵᛆᚠᚯ])ᛖᛗ/, '$1ᚴ'], // white advance
     [/([ᛰᛐᛑᛅ])ᛗᛖ/, '$1ᛐ'], // black advance
     [/ᚴᚴ/, 'ᚵ'], // WCombo
     [/ᛐᛐ/, 'ᛑ'], // BCombo
@@ -150,7 +152,7 @@ function rewrite (input) {
     [/(ᚦᚧ|ᚧᚦ)/, 'ᚺ'], // Engarde
     [/ᚴᛆ/, 'ᚠ'], // Evade
     [/ᚴᚦᛗ/, 'ᛅ'], // Reposte
-    [/ᚵᚦᛗ/, 'ᚯ'], // Brutal reposte
+    [/ᚵᚦᛗ/, 'ᚯ'], // Deadly reposte
     [/ᚴᚺ/, 'ᛰ'], // Block, reversal.
 
     // Tier 3

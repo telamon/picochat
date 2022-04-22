@@ -5,7 +5,6 @@ import {
   state,
   kernel,
   boot,
-  connectSwarm,
   Peers,
   Cooldowns,
   Vibes,
@@ -29,15 +28,19 @@ function sendVibe (pk) {
 }
 </script>
 <pub-view>
-  <h1>🪩 Club Room</h1>
+  <h1 class="view-header">🪩 Club Room</h1>
   <p>
     This is the common room, see someone interesting?<br/>
     Shoot!
   </p>
-  {#if !$cooldowns.vibe}
-    <small>Your 〰️🔫 is primed and loaded!</small>
+  {#if !$state.entered}
+    Press the <strong>Enter</strong> button to play.
   {:else}
-    <small>Vibe available in {$cooldowns.vibe}</small>
+    {#if !$cooldowns.vibe}
+      <small>Your 〰️🔫 is primed and loaded!</small>
+    {:else}
+      <small>Vibe available in <Timer expiresAt={$cooldowns.vibe} format="mm:ss" /></small>
+    {/if}
   {/if}
   <div class="row space-between xcenter">
     <h6 class="nogap">Patrons {$peers.length}</h6>
@@ -106,4 +109,7 @@ function sendVibe (pk) {
   {/if}
 </pub-view>
 <style>
+.view-header {
+  border-bottom: 1px solid var(--wizardry);
+}
 </style>

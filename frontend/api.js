@@ -171,6 +171,7 @@ export function boot () {
  * } = useChat(id) // <-- same id as vibeId
  */
 export function Chat (chatId, d) {
+  if (chatId === 'mock') return svlt(mockChat())
   return svlt(kernel.$chat(chatId), d)
 }
 
@@ -262,4 +263,38 @@ export async function saveBackup () {
   const u = URL.createObjectURL(b)
   window.open(u, '_blank')
   // TODO: revokeObjectURL
+}
+
+function mockChat () {
+  return init({
+    peer: {
+      name: 'Alice',
+      picture: '',
+      tagline: 'mock tag',
+      date: Date.now(),
+      sex: 0,
+      score: 99,
+      age: 23
+    },
+    myTurn: true,
+    initiator: true,
+    state: 'active',
+    graph: 'ᚲᛃᛖᛗᛖᛗᚦᛗᛖᛗ',
+    health: 2,
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    async send () {},
+    async pass () {},
+    async bye () {},
+    mLength: 8,
+    messages: [
+      { type: 'sent', content: 'Hello', pass: false },
+      { type: 'received', content: 'Hi', pass: false },
+      { type: 'sent', content: 'Weather\'s nice!', pass: false },
+      { type: 'received', content: 'You\'re joking right?', pass: false },
+      { type: 'sent', content: '', pass: true },
+      { type: 'received', content: 'There\'s a thunderstorm going on!', pass: false },
+      { type: 'sent', content: 'No way! That\'s so cool!', pass: false },
+      { type: 'received', content: 'The roof is gone!!!', pass: false }
+    ]
+  })
 }

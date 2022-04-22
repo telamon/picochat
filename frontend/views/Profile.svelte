@@ -38,7 +38,7 @@ async function load () {
 let _loading = load()
 </script>
 <profile-view>
-  <div class="row space-between xstart">
+  <div class="row space-between xstart view-header">
     <h1>🕶️ Profile</h1>
     <div class="row">
       <h2 on:click={() => $showKeyDialog = true}>
@@ -108,3 +108,8 @@ let _loading = load()
     </Dialog>
   {/if}
 </profile-view>
+<style>
+.view-header {
+  border-top: 1px solid var(--leaf);
+}
+</style>

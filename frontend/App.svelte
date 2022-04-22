@@ -21,7 +21,7 @@ import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
 const showBar = derived(state, s => s.hasKey && s.hasProfile)
-const showDev = showBar // writable(true)
+const showDev = writable(true)
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
@@ -130,7 +130,7 @@ onMount(() =>
       <Icon id="gfx-shop" nofill/>
     </round>
     {#if !$state.entered}
-      <stat class="flex column center xcenter outside noselect" on:click={enterPub}>
+      <stat class="flex column center xcenter outside noselect btn-enter" on:click={enterPub}>
         <h3 class="muted">--:--</h3>
         <h6 class="primary">enter</h6>
       </stat>

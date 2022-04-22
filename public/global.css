@@ -16,13 +16,13 @@
 }
 
 [data-theme="light"],:root:not([data-theme="dark"]) {
-  --p1fg: var(--bone);
-  --p2fg: var(--pitch);
+  --p1: var(--bone); /* white */
+  --p2: var(--pitch); /* black */
 }
 
 [data-theme="dark"] {
-  --p1fg: var(--ash);
-  --p2fg: var(--blood);
+  --p1: var(--ash); /* white */
+  --p2: var(--blood); /* black */
 }
 
 /* Theme overrides for pico-css.
@@ -74,7 +74,7 @@ root [data-theme="dark"] {
 /*-- END OF Pico-css config --*/
 
 /* Typography */
-h1, h2, h3 { font-weight: 100; }
+h1, h2, h3 { font-weight: 300; }
 h4, h5, h6, button, a[role=button] {
   font-weight: bold;
   text-transform: uppercase;
@@ -127,7 +127,6 @@ bar round:nth-child(1):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(-
 bar round:nth-child(2):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--sorcery); }
 bar round:nth-child(4):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--blood); }
 bar round:nth-child(5):hover { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--leaf); }
-
 bar stat { display: block; line-height: 0; }
 bar stat h3, bar stat h6 {
   color: var(--chalk);
@@ -138,6 +137,23 @@ bar stat h3, bar stat h6 {
 bar stat h6 {
   font-size: smaller;
   margin-top: 4px;
+}
+.view-pub bar stat.btn-enter {
+  padding: 4px;
+  border-radius: 10px;
+  animation: 4s linear 0s infinite both stat-pulse;
+}
+
+@keyframes stat-pulse {
+  0% { box-shadow: 0 0 calc(var(--blurSize) * 0.5) var(--wizardry); }
+  12% { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--wizardry); }
+  25% { box-shadow: 0 0 calc(var(--blurSize) * 0.5) var(--sorcery); }
+  37% { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--sorcery); }
+  50% { box-shadow: 0 0 calc(var(--blurSize) * 0.5) var(--blood); }
+  62% { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--blood); }
+  75% { box-shadow: 0 0 calc(var(--blurSize) * 0.5) var(--leaf); }
+  87% { box-shadow: 0 0 calc(var(--blurSize) * 2.5) var(--leaf); }
+  100% { box-shadow: 0 0 calc(var(--blurSize) * 0.5) var(--wizardry); }
 }
 /** end of bottom-navbar */
 
@@ -250,11 +266,11 @@ article.peer dot.vibing {
 chat svg.icon {
   margin: -0.2em;
 }
-svg.icon.p1:not(.nofill) {
+svg.icon.white:not(.nofill) {
   fill: var(--p1fg);
   color: var(--p2fg);
 }
-svg.icon.p2:not(.nofill) {
+svg.icon.black:not(.nofill) {
   fill: var(--p2fg);
   color: var(--p1fg);
 }
@@ -289,4 +305,21 @@ logo svg.icon {
   --size: 80vw;
   width: var(--size);
   height: var(--size);
+}
+
+/** experimental/css-warmup **/
+
+pill white {
+  background-color: var(--p1);
+  color: var(--p2);
+  border: 1px solid var(--p2);
+  border-radius: 0 100% 100% 0;
+  padding: 2px;
+}
+pill black {
+  background-color: var(--p2);
+  color: var(--p1);
+  border: 1px solid var(--p2);
+  border-radius: 100% 0 0 100%;
+  padding: 2px;
 }
