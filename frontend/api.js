@@ -266,35 +266,57 @@ export async function saveBackup () {
 }
 
 function mockChat () {
-  return init({
-    peer: {
-      name: 'Alice',
-      picture: '',
-      tagline: 'mock tag',
-      date: Date.now(),
-      sex: 0,
-      score: 99,
-      age: 23
-    },
-    myTurn: true,
-    initiator: true,
-    state: 'active',
-    graph: 'ᚲᛃᛖᛗᛖᛗᚦᛗᛖᛗ',
-    health: 2,
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
-    async send () {},
-    async pass () {},
-    async bye () {},
-    mLength: 8,
-    messages: [
-      { type: 'sent', content: 'Hello', pass: false },
-      { type: 'received', content: 'Hi', pass: false },
-      { type: 'sent', content: 'Weather\'s nice!', pass: false },
-      { type: 'received', content: 'You\'re joking right?', pass: false },
-      { type: 'sent', content: '', pass: true },
-      { type: 'received', content: 'There\'s a thunderstorm going on!', pass: false },
-      { type: 'sent', content: 'No way! That\'s so cool!', pass: false },
-      { type: 'received', content: 'The roof is gone!!!', pass: false }
-    ]
-  })
+  const $initiator = init(true)
+
+  const $msgs = init([
+    'Hello',
+    'Hi',
+    'Weather\'s nice! 🔥',
+    'You\'re joking right?',
+    undefined,
+    'There\'s a thunderstorm going on!',
+    'No way! That\'s so cool!',
+    'The roof is gone 🥲',
+    'Is your pants still on?',
+    undefined,
+    'Please tell me you\'re not stroking yourself during a hurricane',
+    'Yup!'
+  ])
+
+  return mute(
+    combine($initiator, $msgs),
+    ([initiator, msgs]) => {
+      let graph = 'ᚲᛃ'
+      const messages = msgs.map((m, i) => {
+        const remote = (i % 2) ^ !initiator
+        graph += m // TODO: bug, remote is not derivable from initator.
+          ? remote ? 'ᛗ' : 'ᛖ'
+          : remote ? 'ᚧ' : 'ᚦ'
+        return { type: remote ? 'received' : 'sent', content: m || '', pass: !m }
+      })
+
+      return {
+        peer: {
+          name: 'Alice',
+          picture: '',
+          tagline: 'mock tag',
+          date: Date.now(),
+          sex: 0,
+          score: 99,
+          age: 23
+        },
+        myTurn: true,
+        initiator,
+        state: 'active',
+        graph,
+        health: 2,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+        async send () {},
+        async pass () {},
+        async bye () {},
+        mLength: messages.length,
+        messages
+      }
+    }
+  )
 }

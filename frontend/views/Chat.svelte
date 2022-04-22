@@ -30,16 +30,18 @@ const score = derived(chat, c => {
 
 const preview = derived([chat, score], ([c, s]) => {
   if (!c.graph) return [[0, 0], [0, 0], [0, 0]]
+  if (!c.initiator) s = s.reverse()
   return [
     c.initiator ? 'ᛒᛔ' : 'ᛔᛒ',
     c.initiator ? 'ᛖ' : 'ᛗ',
     c.initiator ? 'ᚦ' : 'ᚧ'
-  ].map(glyph =>
-    c.initiator
-      ? scoreGraph(c.graph + glyph)
-      : scoreGraph(c.graph + glyph).reverse()
-  )
+  ].map(glyph => {
+    const path = scoreGraph(c.graph + glyph).map((n, i) => n - s[i])
+      .map(n => nf(n))
+    return c.initiator ? path : path.reverse()
+  })
 })
+function nf (n) { return  n > 0 ? `+${n}` : n }
 
 // Auto-scroll
 afterUpdate(() => {
@@ -89,10 +91,11 @@ function onKeyPress ({ charCode }) {
       {#if $chat.peer}
         <portrait><BinaryImage src={$chat.peer.picture} size="70px" /></portrait>
         <div class="column">
-          <h1 class="hgap">{$chat.peer.name}</h1>
-          <div class="hgap">
-            <pill><black>{$score[1]}</black><white>{$score[0]}</white></pill>
+          <h1 class="hgap">
+            {$chat.peer.name}
             {rewrite($chat.graph || '')}
+          </h1>
+          <div class="hgap">
           </div>
         </div>
       {:else}
@@ -140,7 +143,11 @@ function onKeyPress ({ charCode }) {
         {/if}
       </msg>
     {/each}
+    <msg class="row xcenter center">
+      <balance><black>{$score[1]}</black><white>{$score[0]}</white></balance>
+    </msg>
   </messages>
+  <ctrls>
   {#if $chat.state === 'active'}
     <h2 class="text-center nogap">
         {#if $chat.myTurn}
@@ -150,12 +157,8 @@ function onKeyPress ({ charCode }) {
         {/if}
     </h2>
     <div class="row space-between">
-
       <samp>{$preview[0].join('/')}</samp>
-      <samp>
-      {$preview[1].join('/')}
-        <div class="☯">&nbsp;</div>
-      </samp>
+      <samp>{$preview[1].join('/')}</samp>
       <samp>{$preview[2].join('/')}</samp>
     </div>
     <div class="row space-between">
@@ -193,10 +196,12 @@ function onKeyPress ({ charCode }) {
   {:else}
     <h2 class="text-center nogap">{$chat.state}</h2>
   {/if}
+  </ctrls>
+  <dead></dead>
 </chat>
 <style>
 header h1, header h2, header h3 { margin-bottom: unset; }
-header { margin-top: 1em; }
+/* header { margin-top: 1em; }*/
 portrait {
   border-radius: 4px;
   overflow: hidden;
@@ -206,7 +211,7 @@ portrait {
 }
 messages {
   display: block;
-  height: 59vh;
+  /* height: 59vh;*/
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -223,6 +228,9 @@ msg txt {
   color: var(--p2);
   background-color: var(--p1);
   border: 1.4px solid var(--p2);
+  border: 1.4px solid #ffc1c1;
+  box-shadow: 0 0 2px var(--wizardry);
+  margin: 2px;
 }
 /* Black */
 .white msg.remote txt, .black msg.local txt {
