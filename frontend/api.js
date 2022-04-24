@@ -210,7 +210,7 @@ export function encodeImage (url) {
 }
 
 export function decodeImage (buf) {
-  return 'data:image/jpeg;base64,' + buf.toString('base64')
+  return 'data:image/jpeg;base64,' + buf?.toString('base64')
 }
 
 export async function updateProfile (profile) {
@@ -266,8 +266,8 @@ export async function saveBackup () {
 }
 
 function mockChat () {
-  const $initiator = init(true)
-
+  const [$initiator, setInitiator] = write(true)
+  const [$turn, setTurn] = write(true)
   const $msgs = init([
     'Hello',
     'Hi',
@@ -284,36 +284,47 @@ function mockChat () {
   ])
 
   return mute(
-    combine($initiator, $msgs),
-    ([initiator, msgs]) => {
+    combine($initiator, $turn, $msgs, $profilePicture),
+    ([initiator, myTurn, msgs, picture]) => {
       let graph = 'ᚲᛃ'
       const messages = msgs.map((m, i) => {
-        const remote = (i % 2) ^ !initiator
-        graph += m // TODO: bug, remote is not derivable from initator.
+        const remote = i % 2
+        const type = remote ^ initiator ? 'sent' : 'received'
+        graph += m
           ? remote ? 'ᛗ' : 'ᛖ'
           : remote ? 'ᚧ' : 'ᚦ'
-        return { type: remote ? 'received' : 'sent', content: m || '', pass: !m }
+        return { type, content: m || '', pass: !m }
       })
 
       return {
         peer: {
           name: 'Alice',
-          picture: '',
+          picture,
           tagline: 'mock tag',
           date: Date.now(),
           sex: 0,
           score: 99,
           age: 23
         },
-        myTurn: true,
+        myTurn,
         initiator,
         state: 'active',
         graph,
         health: 2,
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
         async send () {},
-        async pass () {},
-        async bye () {},
+        async pass () {
+          setTurn(false)
+          return new Promise(resolve => {
+            setTimeout(() => {
+              setTurn(true)
+              resolve()
+            }, 1000)
+          })
+        },
+        async bye () {
+          setInitiator(!initiator)
+        },
         mLength: messages.length,
         messages
       }

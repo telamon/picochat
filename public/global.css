@@ -12,6 +12,7 @@
   --poison: #77ff37;
   --slate: rgb(65, 84, 98);
   --leaf: #48ad19;
+  --reef: #ffc1c1;
   --blurSize: 10px;
 }
 
@@ -266,15 +267,16 @@ article.peer dot.vibing {
 /*-- Chat view --*/
 chat {
   display: grid;
-  height: 100vh;
-  grid-template-rows: 80px auto 8em var(--bar-height);
+  grid-template-rows: 80px auto 8em /*var(--bar-height)*/;
   grid-template-areas:
     "header"
     "messages"
-    "ctrls"
-    "dead";
+    "ctrls";
+    /*"dead";*/
+  height: calc(100vh - var(--bar-height));
 }
-main.has-dev chat { height: calc(100vh - 1em); }
+main.has-dev chat { height: calc(100vh - 1em - var(--bar-height)); }
+
 chat svg.icon {
   margin: -0.2em;
 }
@@ -294,6 +296,8 @@ button svg.icon.not(.nofill), a[role=button] svg.icon {
   font-size: 1.6rem;
   margin: -0.5em -0.4em;
 }
+
+/*** END of Chat view ***/
 
 /*** About page ***/
 logo {
@@ -319,7 +323,7 @@ logo svg.icon {
   height: var(--size);
 }
 
-/** experimental/css-warmup **/
+/** css-warmup **/
 balance {
   --d: 4em;
   display: flex;
@@ -330,6 +334,9 @@ balance {
   box-shadow: 0 0 5px var(--wizardry);
   border: 4px solid var(--p2);
   margin: 5px;
+}
+balance.inv{
+  background: linear-gradient(var(--p1) 50%, var(--p2) 0);
 }
 balance white, balance black {
   text-align: center;

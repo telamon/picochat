@@ -198,6 +198,7 @@ function mute (neuron, fn) {
     return neuron(input => {
       const output = fn(input)
       if (
+        output &&
         typeof output.then === 'function' &&
         typeof output.catch === 'function'
       ) {

@@ -64,6 +64,7 @@ function sendMessage () {
 }
 
 function end (gesture = 0) {
+  console.log('Bye button pressed')
   $chat.bye(gesture)
     .then(() => console.info('Bye published'))
     .catch(err => console.error('Failed publishing Bye', err))
@@ -87,7 +88,7 @@ function onKeyPress ({ charCode }) {
 </script>
 <chat class:white={$chat.initiator} class:black={!$chat.initiator}>
   <header class="row space-between">
-    <div class="row">
+    <div class="row xcenter">
       {#if $chat.peer}
         <portrait><BinaryImage src={$chat.peer.picture} size="70px" /></portrait>
         <div class="column">
@@ -127,16 +128,15 @@ function onKeyPress ({ charCode }) {
         {#if message.pass}
           <sym class="hgap">
             {#if ($chat.initiator && message.type === 'sent') ||
-                (!$chat.initiator && message.type === 'received')
+              (!$chat.initiator && message.type === 'received')
             }
-              <samp>PASS</samp>
               ᚦ
-              <!--<Icon id="pass_resp" tag="white" />-->
+              <!--🔥-->
             {:else}
-              <!--<Icon id="pass_resp" tag="black" />-->
               ᚧ
-              <samp>PASS</samp>
+              <!--❤️-->
             {/if}
+
           </sym>
         {:else}
           <txt>{message.content}</txt>
@@ -144,7 +144,15 @@ function onKeyPress ({ charCode }) {
       </msg>
     {/each}
     <msg class="row xcenter center">
-      <balance><black>{$score[1]}</black><white>{$score[0]}</white></balance>
+      <balance class:inv={!$chat.initiator}>
+        {#if $chat.initiator}
+          <black>{$score[1]}</black>
+          <white>{$score[0]}</white>
+        {:else}
+          <white>{$score[0]}</white>
+          <black>{$score[1]}</black>
+        {/if}
+      </balance>
     </msg>
   </messages>
   <ctrls>
@@ -157,14 +165,9 @@ function onKeyPress ({ charCode }) {
         {/if}
     </h2>
     <div class="row space-between">
-      <samp>{$preview[0].join('/')}</samp>
-      <samp>{$preview[1].join('/')}</samp>
-      <samp>{$preview[2].join('/')}</samp>
-    </div>
-    <div class="row space-between">
       {#if !$showInput}
       <button class="hgap" disabled={!$chat.myTurn}
-        on:click={end.bind(null, 0)}>end</button>
+        on:click={() => end(0)}>end</button>
 
       <button class="hgap"
         disabled={!$chat.myTurn}
@@ -184,6 +187,11 @@ function onKeyPress ({ charCode }) {
           on:blur={() => $showInput = !!$line.length} />
       {/if}
     </div>
+    <div class="row space-between">
+      <samp>{$preview[0].join('/')}</samp>
+      <samp>{$preview[1].join('/')}</samp>
+      <samp>{$preview[2].join('/')}</samp>
+    </div>
   {:else if $chat.state === 'end'}
     <h1 class="text-center nogap">
       {#if $chat.messages % 2} <!-- ended by responder -->
@@ -197,7 +205,6 @@ function onKeyPress ({ charCode }) {
     <h2 class="text-center nogap">{$chat.state}</h2>
   {/if}
   </ctrls>
-  <dead></dead>
 </chat>
 <style>
 header h1, header h2, header h3 { margin-bottom: unset; }
@@ -216,21 +223,26 @@ messages {
   overflow-x: hidden;
 }
 /* Common */
+msg {
+  margin-bottom: 0.4em;
+}
 msg txt {
   border-radius: 2em;
   display: inline-block;
   padding: 0.2em 1.5em;
   max-width: 65%;
-  margin-bottom: 0.4em;
 }
 /* White */
 .white msg.local txt, .black msg.remote txt {
   color: var(--p2);
   background-color: var(--p1);
-  border: 1.4px solid var(--p2);
-  border: 1.4px solid #ffc1c1;
-  box-shadow: 0 0 2px var(--wizardry);
+  border: 1.6px solid var(--reef);
+
+  /*
+  border: 1.4px solid var(--reef);
+  box-shadow: 0 0 3px var(--wizardry);
   margin: 2px;
+  */
 }
 /* Black */
 .white msg.remote txt, .black msg.local txt {
@@ -238,5 +250,32 @@ msg txt {
   background-color: var(--p2);
   border: 1.4px solid var(--p1);
 }
-msg sym { font-size: x-large; }
+
+
+msg sym {
+  --sz: 1.6em;
+  display: inline-block;
+  line-height: calc(var(--sz) * 0.93);
+  width: var(--sz);
+  height: var(--sz);
+  font-size: calc(var(--sz) * 0.8);
+  border-radius: 50%;
+  vertical-align: middle;
+  text-align: center;
+}
+/* White Ev/Glyph/Pass */
+.white msg.local sym, .black msg.remote sym {
+  color: var(--pool);
+  background-color: var(--p1);
+  border: 1.4px solid var(--wizardry);
+  box-shadow: 0 0 5px var(--ember);
+}
+
+/* Black Ev/Glyph/Pass */
+.white msg.remote sym, .black msg.local sym {
+  color: var(--p1);
+  background-color: var(--p2);
+  border: 1.4px solid var(--wizardry); /*var(--p1);*/
+  box-shadow: 0 0 5px var(--blood);
+}
 </style>
