@@ -1,13 +1,14 @@
 <script>
 import Icon from '../components/Icon.svelte'
 </script>
-<about>
+<about class="block container">
+  <small>__ENV__</small>
   <div class="column xcenter vgap">
     <logo>
       <Icon id="dl-logo-red" />
     </logo>
   </div>
-  <h1>Picochat <samp>2.x</samp></h1>
+  <h1>Picochat <samp>3.x</samp></h1>
   <p>
     Where ever we're going, we'll get there eventually.
     Meanwhile, come say hi!

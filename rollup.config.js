@@ -10,6 +10,7 @@ import json from '@rollup/plugin-json'
 import yaml from '@rollup/plugin-yaml'
 import svelte from 'rollup-plugin-svelte'
 import svgSprite from 'rollup-plugin-svg-sprite-deterministic'
+import replace from '@rollup/plugin-replace'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -29,6 +30,9 @@ export default {
         // enable run-time checks when not in production
         dev: !production
       }
+    }),
+    replace({
+      __ENV__: production ? 'production' : 'dev'
     }),
     // we'll extract any component CSS out into
     // a separate file - better for performance

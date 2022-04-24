@@ -27,7 +27,7 @@ function sendVibe (pk) {
     .catch(err => console.error('Failed sending vibe', err))
 }
 </script>
-<pub-view>
+<pub-view class="block container">
   <h1 class="view-header">🪩 Club Room</h1>
   <p>
     This is the common room, see someone interesting?<br/>

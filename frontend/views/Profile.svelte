@@ -37,7 +37,7 @@ async function load () {
 
 let _loading = load()
 </script>
-<profile-view>
+<profile-view class="block container">
   <div class="row space-between xstart">
     <h1>🕶️ Profile</h1>
     <div class="row">

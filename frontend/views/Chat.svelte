@@ -94,7 +94,6 @@ function onKeyPress ({ charCode }) {
         <div class="column">
           <h1 class="hgap">
             {$chat.peer.name}
-            {rewrite($chat.graph || '')}
           </h1>
           <div class="hgap">
           </div>
@@ -143,6 +142,8 @@ function onKeyPress ({ charCode }) {
         {/if}
       </msg>
     {/each}
+
+    <p class="text-center">{rewrite($chat.graph || '')}</p>
     <msg class="row xcenter center">
       <balance class:inv={!$chat.initiator}>
         {#if $chat.initiator}

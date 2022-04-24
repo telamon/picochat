@@ -21,7 +21,7 @@ function respondVibe (chatId, rejected) {
     .catch(err => console.error('Vibe response failed', err))
 }
 </script>
-<messages-view>
+<messages-view class="block container">
   <h1>💌 Messages</h1>
   <h5>Vibes</h5>
   <vibes class="row xcenter">

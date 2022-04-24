@@ -2,9 +2,10 @@
 import inventory from '../inventory.yaml'
 </script>
 <shop-view data-theme="dark">
-    <splash class="column xcenter">
-      <img src="/gfx/shop.jpg" alt="The Bar"/>
-    </splash>
+  <splash class="column xcenter">
+    <img src="/gfx/shop.jpg" alt="The Bar"/>
+  </splash>
+  <section class="block container">
     <h1 class="text-center">Drinks</h1>
     <drinks>
       {#each inventory.drinks as drink}
@@ -27,6 +28,7 @@ import inventory from '../inventory.yaml'
       {/each}
     </drinks>
     <h1 class="text-center">Gear</h1>
+  </section>
 </shop-view>
 <style>
   splash { margin-bottom: -3em; }

@@ -104,7 +104,8 @@ onMount(() =>
   {/if}
 
   <!-- Main container -->
-  <main class={`container ${$showDev && 'has-dev'} ${$showBar && 'has-bar'}`}>
+  <main class:has-dev={$showDev}
+        class:has-bar={$showBar}>
     {#await _loading}
       <div class="column center xcenter" style="height: 100%">
         <h5 aria-busy="true">Booting up...</h5>

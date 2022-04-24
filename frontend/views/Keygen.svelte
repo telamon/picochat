@@ -76,7 +76,7 @@ async function validateImport () {
 }
 
 </script>
-<keygen-view>
+<keygen-view class="block container">
   <h1 on:click={() => $showAboutDialog = true}>
     Setup
     <Icon id="icon-info" />

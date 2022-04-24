@@ -298,7 +298,7 @@ function mockChat () {
 
       return {
         peer: {
-          name: 'Alice',
+          name: !initiator ? 'Whitemane' : 'Blackie',
           picture,
           tagline: 'mock tag',
           date: Date.now(),
