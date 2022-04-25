@@ -58,7 +58,7 @@ async function roll (mode = 0) {
   }
   $progress = 100
 }
-
+/* Geolocation is being moved to profile */
 function fetchPosition (options) {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) reject(new Error('Browser does not support geolocation APIs'))
@@ -70,6 +70,7 @@ async function autoGeohash () {
   console.log(res)
   const { latitude: lat, longitude: lng } = res.coords
   $geohash = Geohash.encode(lat, lng, 6)
+
 }
 async function validateImport () {
   console.error('TODO: not yet implemented')

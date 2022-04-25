@@ -217,6 +217,7 @@ function spawnAlice (ctx, done) {
       console.error('spawnAlice() failed:', err)
       process.exit(-1)
     })
+  return a
 }
 
 function spawnBob (ctx, done) {
@@ -227,5 +228,27 @@ function spawnBob (ctx, done) {
       console.error('spawnAlice() failed:', err)
       process.exit(-1)
     })
+  return a
 }
 module.exports = { spawnAlice, spawnBob, PicoBot }
+
+/** Silly attempt to run a bot on web-swarm via moe-proxy.
+ * think it's better to do the reverse and patch browser wire into
+ * sim-swarm
+ */
+if (require.main === module) {
+  const swarm = require('hyperswarm')()
+  const ctx = {
+    name: 'RoboAlice',
+    swarm,
+    signal: console.info.bind(null, 'SIG '),
+    ontick: () => {}
+  }
+  const a = new Alice()
+  a.boot(ctx, () => console.log('Done'), 'picochat-testnet')
+    .catch(err => {
+      ctx.signal('BootFailure')
+      console.error('spawnAlice() failed:', err)
+      process.exit(-1)
+    })
+}

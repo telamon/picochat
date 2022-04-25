@@ -7,6 +7,7 @@ import { readable } from 'svelte/store'
 import { mute, gate, init, write, combine, get, nfo } from '../blockend/nuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
+const TOPIC = 'picochat-testnet'
 
 /**
  * Pico::N(e)uro -> svelte adapter
@@ -186,7 +187,6 @@ export function Chat (chatId, d) {
 let modem = null // hardware is expensive, we can only afford a single modem for now.
 // Helper to wire up modem56 to kernel and enter a pub in a single action.
 export async function connectSwarm () {
-  const name = 'HardCode'
   if (!Modem56) throw new Error('Modem not available, did you load it?')
   const devOpts = {
     // Attempted to debug: https://github.com/RangerMauve/hyperswarm-web/issues/20
@@ -197,8 +197,8 @@ export async function connectSwarm () {
   else return // already connected
   // else modem.leave()
 
-  const spawnWire = await kernel.enter(name) // TODO, kernel.leave()
-  modem.join(name, spawnWire)
+  const spawnWire = await kernel.enter(TOPIC) // TODO, kernel.leave()
+  modem.join(TOPIC, spawnWire)
   setSwarming(true)
 }
 

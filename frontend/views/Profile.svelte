@@ -2,6 +2,7 @@
 import { kernel, keychain, updateProfile, decodePk, purge, saveBackup } from '../api'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
+import Geohash from 'latlon-geohash'
 import ImageLoader from '../components/ImageLoader.svelte'
 import Icon from '../components/Icon.svelte'
 import Dialog from '../components/Dialog.svelte'
@@ -10,6 +11,7 @@ import QRCode from '../components/QRCode.svelte'
 const name = writable()
 const tagline = writable()
 const picture = writable()
+const geohash = writable()
 const pk = writable()
 const sk = writable()
 const showKeyDialog = writable(false)
@@ -20,7 +22,8 @@ async function save () {
     tagline: $tagline,
     age: 99,
     sex: 0,
-    picture: $picture
+    picture: $picture,
+    geohash: $geohash
   })
 }
 
@@ -32,7 +35,28 @@ async function load () {
   $picture = p.picture
   $sk = await keychain.readIdentity()
   $pk = $sk.slice(32)
+  $geohash = p.geohash
+  if (!$geohash) {
+    try {
+      $geohash = await getCurrentGeohash()
+    } catch (err) {
+      console.log('BrowserLocation failed, let user set manually', err)
+    }
+  }
   return p
+}
+
+async function getCurrentGeohash () {
+  const res = await fetchPosition()
+  // console.log(res)
+  const { latitude: lat, longitude: lng } = res.coords
+  return Geohash.encode(lat, lng, 6)
+  function fetchPosition (options) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) reject(new Error('Browser does not support geolocation APIs'))
+      else navigator.geolocation.getCurrentPosition(resolve, reject, options)
+    })
+  }
 }
 
 let _loading = load()
@@ -49,10 +73,6 @@ let _loading = load()
       </h2>
     </div>
   </div>
-  <label for="name">
-    <h5>name</h5>
-    <input type="text" bind:value={$name} placeholder="You got a street name?" id="name" name="name">
-  </label>
 
   <label for="file">
     <h5>picture</h5>
@@ -63,6 +83,10 @@ let _loading = load()
     <!--<img src={$pictureURI} alt="profile picture preview"/>-->
   </label>
 
+  <label for="name">
+    <h5>name</h5>
+    <input type="text" bind:value={$name} placeholder="You got a street name?" id="name" name="name">
+  </label>
   <label for="tagline">
     <h5>spark</h5>
     <input type="text" bind:value={$tagline} placeholder="what's on your mind?" id="tagline" name="tagline">

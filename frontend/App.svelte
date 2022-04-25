@@ -21,7 +21,7 @@ import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
 const showBar = derived(state, s => s.hasKey && s.hasProfile)
-const showDev = writable(false)
+const showDev = writable(true)
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
