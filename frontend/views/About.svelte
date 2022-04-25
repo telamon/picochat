@@ -2,13 +2,15 @@
 import Icon from '../components/Icon.svelte'
 </script>
 <about class="block container">
-  <small>__ENV__</small>
   <div class="column xcenter vgap">
     <logo>
       <Icon id="dl-logo-red" />
     </logo>
   </div>
-  <h1>Picochat <samp>3.x</samp></h1>
+  <h1>
+    Picochat
+    <samp>{'__VERSION__'.replace(/^(\d+).+/, '$1')}</samp>
+  </h1>
   <p>
     Where ever we're going, we'll get there eventually.
     Meanwhile, come say hi!
@@ -21,6 +23,7 @@ import Icon from '../components/Icon.svelte'
   <h5>Legalities</h5>
   <table>
     <tdata>
+      <tr><td>build</td><td>__ENV__-__VERSION__-{'__COMMIT__'.substr(0, 8)}</td></tr>
       <tr><td>Cookies</td><td>none, zilch, zero</td></tr>
       <tr><td>GDPR</td><td>All blocks are automatically erased when timers hit <code>00:00</code></td></tr>
       <tr><td>User</td><td>We have absolutley no control over p2p interactions, apply common sense, be polite</td></tr>

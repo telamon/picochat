@@ -87,7 +87,7 @@ function onKeyPress ({ charCode }) {
 }
 </script>
 <chat class:white={$chat.initiator} class:black={!$chat.initiator}>
-  <header class="row space-between">
+  <header class="container row space-between">
     <div class="row xcenter">
       {#if $chat.peer}
         <portrait><BinaryImage src={$chat.peer.picture} size="70px" /></portrait>
@@ -115,8 +115,8 @@ function onKeyPress ({ charCode }) {
       <h3><Timer expiresAt={$chat.expiresAt} format="mm:ss" /></h3>
     </div>
   </header>
-  <messages bind:this={messagesElement}
-    class="nogap">
+  <messages bind:this={messagesElement} class="container">
+    <p class="text-center">{rewrite($chat.graph || '')}</p>
     {#each $chat.messages as message}
       <msg
         class="row xcenter"
@@ -142,8 +142,6 @@ function onKeyPress ({ charCode }) {
         {/if}
       </msg>
     {/each}
-
-    <p class="text-center">{rewrite($chat.graph || '')}</p>
     <msg class="row xcenter center">
       <balance class:inv={!$chat.initiator}>
         {#if $chat.initiator}
@@ -209,6 +207,10 @@ function onKeyPress ({ charCode }) {
 </chat>
 <style>
 header h1, header h2, header h3 { margin-bottom: unset; }
+.black header, .black header h1, .black header h2, .black header h3 {
+  background-color: var(--p2);
+  color: var(--ash);
+}
 /* header { margin-top: 1em; }*/
 portrait {
   border-radius: 4px;
@@ -237,7 +239,7 @@ msg txt {
 .white msg.local txt, .black msg.remote txt {
   color: var(--p2);
   background-color: var(--p1);
-  border: 1.6px solid var(--reef);
+  border: 1.6px solid var(--ash);
 
   /*
   border: 1.4px solid var(--reef);
@@ -266,9 +268,9 @@ msg sym {
 }
 /* White Ev/Glyph/Pass */
 .white msg.local sym, .black msg.remote sym {
-  color: var(--pool);
+  color: var(--p2);
   background-color: var(--p1);
-  border: 1.4px solid var(--wizardry);
+  border: 1.4px solid gold;
   box-shadow: 0 0 5px var(--ember);
 }
 

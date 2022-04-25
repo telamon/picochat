@@ -1,6 +1,6 @@
 {
   "name": "picochat",
-  "version": "0.5.0",
+  "version": "3.0.0",
   "description": "Decentralized chat and single purpose blockchain",
   "main": "blockend/index.js",
   "keywords": [

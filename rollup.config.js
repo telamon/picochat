@@ -13,6 +13,10 @@ import svgSprite from 'rollup-plugin-svg-sprite-deterministic'
 import replace from '@rollup/plugin-replace'
 
 const production = !process.env.ROLLUP_WATCH
+const version = JSON.parse(require('fs').readFileSync('./package.json')).version
+const commit = require('child_process')
+  .execSync('git rev-parse HEAD')
+  ?.toString('utf8').trim()
 
 export default {
   input: 'frontend/main.js',
@@ -32,7 +36,10 @@ export default {
       }
     }),
     replace({
-      __ENV__: production ? 'production' : 'dev'
+      preventAssignment: true,
+      __ENV__: production ? 'production' : 'dev',
+      __VERSION__: version,
+      __COMMIT__: commit
     }),
     // we'll extract any component CSS out into
     // a separate file - better for performance
