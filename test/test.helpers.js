@@ -142,6 +142,7 @@ module.exports = {
   spawnSwarm,
   makeDatabase,
   makeChat,
+  turn,
   sees,
   D
 }

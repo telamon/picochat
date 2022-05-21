@@ -21,12 +21,19 @@ class PicoBot {
     return {}
   }
 
+  // Override to spawn non minimal kernels.
+  // The spawnPeer from helpers is used for testing,
+  // does not have have pictures or other configurables.
+  async spawnPeer (name) {
+    return await spawnPeer(name, this.mkProfile())
+  }
+
   async boot (ctx, done, topic = 'PicoBotnet') {
     if (!done) done = () => console.log(`<${name}> färdig!`)
     if (!ctx.signal) ctx.signal = console.info
     this.ctx = ctx
     const { swarm, signal, name } = ctx
-    const { k: kernel, spawnWire } = await spawnPeer(name, this.mkProfile())
+    const { k: kernel, spawnWire } = await this.spawnPeer(name)
     this.kernel = kernel
     this.signal = signal
     this.name = name

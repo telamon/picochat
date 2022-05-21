@@ -1,5 +1,5 @@
 /*
- * Contains minimal rpc, and it's message definitions.
+ * Contains ~~minimal~~(it grew :/) rpc, and it's message definitions.
  * actual logic resides in kernel.js
  */
 const Hub = require('piconet')
@@ -67,6 +67,7 @@ class RPC {
     this._controller(node, msg, reply) // redirect to controller
   }
 
+  // Shares blocks to all connected peers
   async shareBlocks (feeds, filter) {
     if (Feed.isFeed(feeds)) feeds = [feeds]
     feeds = [...feeds]
@@ -85,6 +86,8 @@ class RPC {
     }
   }
 
+  // Recursively upload next feed until array is empty or aborted by
+  // other end
   _uploadFeeds (sink, feeds) {
     if (!feeds || !feeds.length) {
       return sink(encodeMsg(K_EMPTY))
