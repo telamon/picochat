@@ -1,4 +1,4 @@
-const { mute, combine } = require('../nuro')
+const { mute, combine } = require('piconuro')
 module.exports = function MonitorModule () {
   return {
     $cooldowns () {

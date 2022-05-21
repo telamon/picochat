@@ -7,7 +7,7 @@ const {
   seal,
   boxPair
 } = require('../util')
-const { mute, combine, gate, init, until } = require('../nuro')
+const { mute, combine, gate, init, until } = require('piconuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
 const D = require('debug')('picochat:mod:vibes')
 

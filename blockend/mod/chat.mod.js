@@ -12,7 +12,7 @@ const {
 } = require('../util')
 const { feedToGraph } = require('../game')
 
-const { combine, mute, init, gate } = require('../nuro')
+const { combine, mute, init, gate } = require('piconuro')
 
 /* Source of truth: Chat States
  *

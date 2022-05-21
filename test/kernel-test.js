@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next, isSync } = require('../blockend/nuro')
+const { next, isSync } = require('piconuro')
 const Kernel = require('../blockend/')
 const Feed = require('picofeed')
 const {

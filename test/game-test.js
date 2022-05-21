@@ -1,6 +1,6 @@
 const test = require('tape')
 const { spawnSwarm, makeChat } = require('./test.helpers')
-const { next } = require('../blockend/nuro')
+const { next } = require('piconuro')
 const {
   feedToGraph,
   scoreGraph,

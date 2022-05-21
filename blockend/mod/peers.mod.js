@@ -8,7 +8,7 @@ const {
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK
 } = require('../util')
-const { mute, combine, init, gate, when } = require('../nuro')
+const { mute, combine, init, gate, when } = require('piconuro')
 
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })

@@ -1,6 +1,6 @@
 const levelup = require('levelup')
 const memdown = require('memdown')
-const { next, until } = require('../blockend/nuro')
+const { next, until } = require('piconuro')
 const Kernel = require('../blockend/')
 const D = require('debug')('picochat:test')
 

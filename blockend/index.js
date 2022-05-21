@@ -33,7 +33,7 @@ const {
 } = require('./util')
 const debug = require('debug')
 const D = debug('picochat:kernel')
-const { writable, combine, get } = require('./nuro')
+const { writable, combine, get } = require('piconuro')
 // debug.enable('pico*')
 
 function initialState () {

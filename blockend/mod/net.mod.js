@@ -1,6 +1,6 @@
 const D = require('debug')('picochat:mod:net')
 const { RPC } = require('../rpc')
-const { writable } = require('../nuro')
+const { writable } = require('piconuro')
 // const { randomBytes } = require('crypto')
 const randomBytes = n => Buffer.from(
   Array.from(new Array(n))
