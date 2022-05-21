@@ -56,7 +56,7 @@ For now read the `blockend/`-source or just [ask](https://github.com/telamon/pic
 | |  | |/ _ \/ __/ _ \ '_ \| __| |    / _` | '_ \/ __| / __|/ _ \
 | |__| |  __/ (_|  __/ | | | |_| |___| (_| | |_) \__ \_\__ \  __/
 |_____/ \___|\___\___|_| |_|\__|______\__,_|_.__/|___(_)___/\___|
-Discord: https://discord.gg/K5XjmZx
+Discord: https://discord.gg/8RMRUPZ9RS
 
 If you're reading this it means that the docs are missing or in a bad state.
 
