@@ -18,8 +18,8 @@ const {
  */
 test('kernel.$profile', async t => {
   const app = new Kernel(makeDatabase())
-  const loggedIn = await app.load()
-  t.equal(loggedIn, false, 'Not logged in on first run')
+  const hasProfile = await app.boot()
+  t.equal(hasProfile, false, 'No profile first run')
 
   // Create a new profile
   await app.register({

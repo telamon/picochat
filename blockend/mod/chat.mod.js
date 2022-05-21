@@ -58,7 +58,7 @@ module.exports = function ChatModule () {
 
         const content = pass ? PASS_TURN : seal(Buffer.from(message), pk)
         // console.log('Appending message to', feedToGraph(branch))
-        await this._createBlock(branch, TYPE_MESSAGE, { content })
+        await this.createBlock(branch, TYPE_MESSAGE, { content })
         // Branch "hopefully" contains new block, if not use return of createBlock() in future
         if (!pass) await this._setMessageBody(branch.last.sig, Buffer.from(message))
       }
@@ -77,7 +77,7 @@ module.exports = function ChatModule () {
         const branch = await this.loadChat(chatId) // await this.repo.loadFeed(cache.head)
         if (!branch) return console.error('branch dissapeared, expected head sig:', cache.head?.toString('hex'))
 
-        await this._createBlock(branch, cache.state === 'active' ? TYPE_BYE : TYPE_BYE_RESP,
+        await this.createBlock(branch, cache.state === 'active' ? TYPE_BYE : TYPE_BYE_RESP,
           {
             gesture
             // TBD

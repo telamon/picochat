@@ -39,7 +39,7 @@ module.exports = function VibesModule () {
       const peer = await this.profileOf(peerId)
       if (peer.state === 'error') throw new Error(peer.errorMessage)
       const sealedMessage = seal(msgBox.pk, peer.box)
-      const convo = await this._createBlock(TYPE_VIBE, {
+      const convo = await this.createBlock(TYPE_VIBE, {
         box: sealedMessage
       })
       const chatId = convo.last.sig
@@ -73,7 +73,7 @@ module.exports = function VibesModule () {
 
       const block = await this.repo.readBlock(chatId)
       if (!block) throw new Error('Vibe no longer exists')
-      const convo = await this._createBlock(Feed.from(block), TYPE_VIBE_RESP, {
+      const convo = await this.createBlock(Feed.from(block), TYPE_VIBE_RESP, {
         box: !like ? VIBE_REJECTED : sealedMessage,
         link: this.store.state.peer.sig // Weak-ref to own checkpoint
       })

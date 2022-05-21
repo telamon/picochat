@@ -25,19 +25,19 @@ async function makeMatch (kOpts = {}) {
 
 // Guy walks into a bar
 async function spawnPeer (name, kOpts = {}) {
-  const app = new Kernel(makeDatabase(), kOpts)
-  await app.load()
-  await app.register({
+  const k = new Kernel(makeDatabase(), kOpts)
+  await k.boot()
+  await k.register({
     name,
     tagline: `${name} is awesome!`,
     sex: kOpts.sex ?? Math.floor(Math.random() * 3), // \("v")/
     age: kOpts.age ?? Math.floor(Math.random() * 18 + 50),
     picture: ':|'
   })
-  const spawnWire = await app.enter('Abyss')
+  const spawnWire = () => k.spawnWire()
 
   return {
-    k: app,
+    k,
     spawnWire
   }
 }

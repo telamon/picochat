@@ -25,7 +25,7 @@ module.exports = function PeersModule () {
     async register (profile, sk) {
       sk = sk || Feed.signPair().sk
       // Signing identity
-      this._sk = sk
+      this._secret = sk
 
       // A box for love-letters
       const box = boxPair()
@@ -62,7 +62,7 @@ module.exports = function PeersModule () {
      * Creates a new profile-block
      */
     async updateProfile (profile) {
-      return await this._createBlock(TYPE_PROFILE, {
+      return await this.createBlock(TYPE_PROFILE, {
         ...profile,
         box: this._vibeBox.pk
       })
@@ -129,7 +129,7 @@ module.exports = function PeersModule () {
      */
     $profile () {
       const $chats = s => this.store.on('chats', s)
-      const $loaded = when(this.load())
+      const $loaded = when(this.boot())
       return gate(init(PEER_PLACEHOLDER,
         mute(
           combine(

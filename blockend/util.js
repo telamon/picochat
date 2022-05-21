@@ -10,6 +10,7 @@ const {
 /* eslint-enable camelcase */
 const createDebug = require('debug')
 const { pack, unpack } = require('msgpackr')
+const { SimpleKernel } = require('picostack')
 
 // Global registry names (used as session variables)
 const KEY_SK = 'reg/sk'
@@ -43,31 +44,7 @@ const G_R = 3 // Robots are people too
 // It's silly to waste
 const GEO_BITS = 17
 
-/**
- * Convert Object to buffer
- */
-function encodeBlock (type, seq, payload) {
-  return pack({
-    ...payload,
-    type,
-    seq,
-    date: new Date().getTime()
-  })
-  // return JSON.stringify(o)
-}
-
-/**
- * Converts buffer to Object
- */
-function decodeBlock (body, offset = 0) {
-  return unpack(body)
-  // return JSON.parse(body, bufferReplacer)
-}
-
-function typeOfBlock (body) {
-  return decodeBlock(body).type
-  // return body[0]
-}
+const { encodeBlock, decodeBlock, typeOfBlock } = SimpleKernel
 
 function bufferReplacer (k, o) {
   return (o && typeof o === 'object' && o.type === 'Buffer') ? Buffer.from(o.data) : o

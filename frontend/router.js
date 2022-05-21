@@ -1,4 +1,4 @@
-import { writable, gate, mute } from '../blockend/nuro'
+import { writable, gate, mute } from 'piconuro'
 import { svlt } from './api'
 
 // Import Views

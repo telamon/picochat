@@ -4,7 +4,7 @@ import Geohash from 'latlon-geohash'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
 import { readable } from 'svelte/store'
-import { mute, gate, init, write, combine, get, nfo } from '../blockend/nuro'
+import { mute, gate, init, write, combine, get, nfo } from 'piconuro'
 import { navigate } from './router'
 const Modem56 = window.Modem56
 const TOPIC = 'picochat-testnet'
@@ -115,6 +115,7 @@ const $state = combine({
 export const state = svlt($state)
 export const profilePicture = svlt($profilePicture)
 
+/* Bootloader */
 export function boot () {
   if (!tryBoot) {
     tryBoot = keychain.readIdentity()
@@ -125,7 +126,7 @@ export function boot () {
       .then(pTemplate => {
         setHasProfile(!!pTemplate)
         if (pTemplate?.picture) setProfilePicture(pTemplate.picture)
-        return kernel.load()
+        return kernel.boot()
       })
       .then(entered => {
         setEntered(entered)
@@ -196,9 +197,7 @@ export async function connectSwarm () {
   if (!modem) modem = new Modem56(null, devOpts)
   else return // already connected
   // else modem.leave()
-
-  const spawnWire = await kernel.enter(TOPIC) // TODO, kernel.leave()
-  modem.join(TOPIC, spawnWire)
+  modem.join(TOPIC, kernel.spawnWire.bind(kernel))
   setSwarming(true)
 }
 
