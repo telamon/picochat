@@ -62,10 +62,14 @@ function respondVibe (chatId, rejected) {
       <p>{$vibeDetail.peer.tagline}</p>
       <h6 class="text-center no-margin">Vibe Expires in</h6>
       <h2 class="text-center timer"><Timer expiresAt={$vibeDetail.expiresAt} format="mm:ss"/></h2>
-      <div class="text-center">
-        <a role="button" class="reject" on:click={() => respondVibe($vibeDetail.id, true)}>reject</a>
-        <a role="button" class="accept" on:click={() => respondVibe($vibeDetail.id)}>accept</a>
-      </div>
+      {#if !$vibeDetail.initiator}
+        <div class="text-center">
+          <a role="button" class="reject" on:click={() => respondVibe($vibeDetail.id, true)}>reject</a>
+          <a role="button" class="accept" on:click={() => respondVibe($vibeDetail.id)}>accept</a>
+        </div>
+      {:else}
+        <div class="text-center">Waiting for player2</div>
+      {/if}
       <br/>
     </PeerPortrait>
   </Dialog>

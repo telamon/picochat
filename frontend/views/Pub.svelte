@@ -13,6 +13,7 @@ import Timer from '../components/Timer.svelte'
 import Portrait from '../components/PeerPortrait.svelte'
 import Icon from '../components/Icon.svelte'
 import Dialog from '../components/Dialog.svelte'
+
 const cooldowns = Cooldowns()
 const peers = Peers()
 const vibes = Vibes()
@@ -50,7 +51,7 @@ function sendVibe (pk) {
       Filter
     </a>
   </div>
-  <peers class="column xcenter">
+  <peers class="row wrap space-between">
   {#each $peers as peer}
     <!-- TODO: Make a small thumbnail cb style,
       it's awkward to be up in someone's face, when you
@@ -62,9 +63,12 @@ function sendVibe (pk) {
         </p>
         <div>
           {#if !!$vibes.find(v => v.peerId?.equals(peer.pk)) }
+            <small>Waiting</small>
             <Timer expiresAt={$vibes.find(v => v.peerId?.equals(peer.pk)).expiresAt} format="mm:ss" />
           {:else}
-            <a role="button" class="nofill" on:click={() => sendVibe(peer.pk)}>
+            <a role="button"
+              class="nofill nopad"
+              on:click={() => sendVibe(peer.pk)}>
               <Icon id="gfx-vibe" />
             </a>
           {/if}

@@ -1,7 +1,7 @@
 const { spawnPeer } = require('../test/test.helpers')
 const Modem56 = require('../modem56.js')
 const { rewrite, feedToGraph } = require('../blockend/game')
-const { combine } = require('../blockend/nuro')
+const { combine } = require('piconuro')
 // const { settle, next } = require('../blockend/nuro')
 const FAILFAST = !!process.env.FAILFAST
 class PicoBot {

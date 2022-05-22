@@ -19,7 +19,7 @@ if (kernel.pk) {
           <h2>{peer.name}</h2>
         </div>
         <div style="grid-area: se; align-self: end; justify-self: end;" class="end">
-          <h2>[b]</h2>
+          <h2>🍹</h2>
         </div>
       </overlay>
       <BinaryImage src={peer.picture}/>

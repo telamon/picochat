@@ -20,7 +20,7 @@ function validateProfile (data) {
   if (!data.picture) return 'Profile Picture missing'
   if (Buffer.isBuffer(data.picture)) { // webp support
     // TODO: validate webp headers && bitmap offsets?
-    if (data.picture.length > 15000) return 'Picture should be less than 15kB'
+    if (data.picture.length > 21000) return 'Picture should be less than 21kB'
   } else if (typeof data.picture !== 'string' || data.picture.length > 10) {
     return 'Picture should be an emoji'
   }
