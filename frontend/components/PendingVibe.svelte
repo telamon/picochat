@@ -18,14 +18,20 @@ const progress = readable(1, set => {
 
 </script>
 <vibe>
-  <tint style={`width: ${$progress * 100}px;`}>&nbsp;</tint>
+  <mask><tint style={`width: ${$progress * 100}px;`}>&nbsp;</tint></mask>
   <portrait><BinaryImage src={vibe.peer.picture}/></portrait>
 </vibe>
 <style>
-vibe tint {
+vibe mask {
   z-index: 3;
   display: block;
   position: absolute;
+  border-radius: 100%;
+  height: 100px;
+  overflow: hidden;
+}
+vibe tint {
+  display: block;
   background-color: var(--wizardry);
   opacity: 0.5;
   height: 100px;

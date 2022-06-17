@@ -2,26 +2,23 @@
 [`code style | standard`](https://standardjs.com/)
 # picochat
 
-Picochat is a chat app that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
+**Picochat** is a metaverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
+**Picostack** is an extremely young and experimental
+Web3 framework that focuses on smartcontracts instead of currency.
 
-Picostack is an extremely young and experimental
-Web3 framework, allowing you to build applications without a central gorverning super node.
-
-
-It's powered by a custom zero-cost blockchain
+What you get is a custom zero-cost blockchain
 that uses a functional-consensus.
-
 
 Meaning it dosen't waste energy such as PoW nor does it run corrupt such as DPoS.
 Boasting zero transaction costs it provides a means to reaching longer lasting decentralization.
 
-
 The entire stack is written in pure ES6. The kernel is designed to live within a browser-tab without external dependencies, it's very lightweight.
 
-A full node runs on a low-end user device, now that...
-_is_ Decentralization.
+A full node runs on a low-end user device without using any centralized
+technology as proxy.
 
+User equals Node
 
 ## Start
 
@@ -49,30 +46,26 @@ Proper docs will emerge when the time requires it.
 For now read the `blockend/`-source or just [ask](https://github.com/telamon/picochat/issues).
 
 ## credits
-
 ```ad
 |  __ \   Help Wanted!     | | | |         | |
 | |  | | ___  ___ ___ _ __ | |_| |     __ _| |__  ___   ___  ___
 | |  | |/ _ \/ __/ _ \ '_ \| __| |    / _` | '_ \/ __| / __|/ _ \
 | |__| |  __/ (_|  __/ | | | |_| |___| (_| | |_) \__ \_\__ \  __/
 |_____/ \___|\___\___|_| |_|\__|______\__,_|_.__/|___(_)___/\___|
-Discord: https://discord.gg/8RMRUPZ9RS
 
 If you're reading this it means that the docs are missing or in a bad state.
 
 Writing and maintaining friendly and useful documentation takes
-effort and time. In order to do faster releases
-I will from now on provide documentation relational to project activity.
+effort and time.
 
   __How_to_Help____________________________________.
  |                                                 |
- |  - Open an issue if you have questions! :)      |
+ |  - Open an issue if you have questions!         |
  |  - Star this repo if you found it interesting   |
  |  - Fork off & help document <3                  |
+ |  - Say Hi! :) https://discord.gg/8RMRUPZ9RS     |
  |.________________________________________________|
 ```
-
-
 ## Changelog
 
 ### 0.1.0 first release

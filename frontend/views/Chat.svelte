@@ -192,13 +192,13 @@ function onKeyPress ({ charCode }) {
       <samp>{$preview[2].join('/')}</samp>
     </div>
   {:else if $chat.state === 'end'}
-    <h1 class="text-center nogap">
-      {#if $chat.messages % 2} <!-- ended by responder -->
-        <Icon id="bye_resp" tag="black" /><Icon id="bye_res_init" tag="white" />
-      {:else} <!-- ended by initator -->
-        <Icon id="bye_init" tag="white" /><Icon id="bye_res_resp" tag="black" />
+    <!-- depricated end-game glyph, cool if-logic
+      {#if $chat.messages % 2}
+        ended by responder
+      {:else}
+        ended by initator
       {/if}
-    </h1>
+    -->
     <h2 class="text-center nogap">Conversion ended</h2>
   {:else}
     <h2 class="text-center nogap">{$chat.state}</h2>

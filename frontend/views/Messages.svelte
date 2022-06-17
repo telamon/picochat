@@ -36,7 +36,7 @@ function respondVibe (chatId, rejected) {
   <h5>Conversations</h5>
   <conversations>
   {#each $chats as chat}
-    <chat class="row space-between"
+    <div class="row space-between"
       on:click={() => navigate('/chat/' + chat.id.toString('hex'))}>
       <div class="row xcenter">
         <BinaryImage src={chat.peer.picture} size="80px"/>
@@ -47,13 +47,17 @@ function respondVibe (chatId, rejected) {
       </div>
       <div class="columns xcenter gap">
         <health>
-          <Icon id="heal_resp" tag="full" />
-          <Icon id="heal_resp" tag="full" />
-          <Icon id="heal_resp" tag="full" />
+          {#each [0, 1, 2] as n}
+            {#if n < chat.health}
+              <Icon id="heal_resp" tag="full" />
+            {:else}
+              <Icon id="heal_resp" tag="empty" />
+            {/if}
+          {/each}
         </health>
         <h3 class="no-margin"><Timer expiresAt={chat.expiresAt} format="mm:ss" /></h3>
       </div>
-    </chat>
+    </div>
   {/each}
   </conversations>
   {#if $vibeDetail}

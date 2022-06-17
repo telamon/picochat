@@ -267,7 +267,7 @@ article.peer dot.vibing {
 }
 
 /*-- Chat view --*/
-chat {
+.view-chat chat {
   display: grid;
   grid-template-rows: 80px auto 8em /*var(--bar-height)*/;
   grid-template-areas:
@@ -277,7 +277,7 @@ chat {
     /*"dead";*/
   height: calc(100vh - var(--bar-height));
 }
-main.has-dev chat { height: calc(100vh - 1em - var(--bar-height)); }
+.view-chat main.has-dev chat { height: calc(100vh - 1em - var(--bar-height)); }
 
 chat svg.icon {
   margin: -0.2em;
@@ -292,7 +292,7 @@ svg.icon.black:not(.nofill) {
 }
 health svg.icon.full { fill: var(--blood); }
 health svg.icon.empty { fill: var(--grave); }
-button svg.icon.not(.nofill), a[role=button] svg.icon {
+.view-chat button svg.icon.not(.nofill), a[role=button] svg.icon {
   color: var(--bone);
   fill: var(--blood);
   font-size: 1.6rem;

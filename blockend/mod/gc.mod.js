@@ -130,7 +130,7 @@ module.exports = function GarbageCollectModule (store) {
       if (del) drop(head, id) // id: chatId, head: lastBlock on chat
     } else if (gcType === 'peer') {
       const { peers } = rootState
-      const isSelf = rootState.peer.pk.equals(id)
+      const isSelf = rootState.peer.pk?.equals(id)
       if (isSelf && rootState.peer.expiresAt < now) {
         rootState.peer.state = 'expired' // Not sure if should delete.
         didMutate('peer')
