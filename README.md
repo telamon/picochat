@@ -5,7 +5,7 @@
 **Picochat** is a metaverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
 **Picostack** is an extremely immature and experimental
-Web3 framework that focuses on smartcontracts instead of crypto.
+Web3 framework that focuses on contracts instead of crypto.
 
 A custom zero-cost blockchain
 that uses a functional-consensus.
