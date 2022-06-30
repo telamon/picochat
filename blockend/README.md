@@ -2,47 +2,12 @@
 
 ## > 403 - "/blockend" off limits!
 
-This is my workplace and as much as it feels wierd to let you go through my stuff I have to admit it's also kinda fun.
-
-If you're deadly curious then fork-off politely,
-and you will have your own stuff to play with.
-But you gotta follow the [rules](../LICENSE) so we can work out our issues.
-
-Anyway, [questions are appreciated](https://github.com/telamon/picochat/issues/new?title=Noobtrooper%20reporting%20in!) but don't demand an answer.
-
-Other than that, I guess..
-```
- .------------------.
-    $ Welcome To  -
-  --      .
- -       /©\   - -
-      ~./___\,~    -
-  🛆 Decent Labs 🛆
- `------------------´
-````
-We're a decentralized organization meaning:
-_"Nobody knows who's in it or who gets paid when for what."_
-
-But I believe we're doing something truly amazing. (also [we're hiring..](https://discord.gg/K5XjmZx))
-
-**What's so cool about Picochat?**
-
-> It's a _coinless_ blockchain.
->
-> Instead of [burning world resources](https://digiconomist.net/bitcoin-energy-consumption)
-> shuffling monetary transactions to and fro creating good-for-nothing phat-nodes
-> "and then" attempt to latch application logic onto some silly belief..
->
-> Our network's consensus and mining ritual **IS** the application logic... The chain's value **equals** the value of the application.
->
-> Give it some time to settle
-
-For the record - my code is n33t.
-Enjoy!
+If you're reading this, then i think it's wierd that you don't have anything better to do.
+The internet is vast, go explore =)
 
 # Kernel API Documentation
 
-If you're using react, then consider scavenging the custom hooks located [here](/src/frontend/db.js)
+Using react, check custom hooks located [here](/src/frontend/db.js)
 
 ## `const k = new Kernel(leveldb, opts)`
 Initiates a new Kernel instance require's you to pass an instance of `levelup`
