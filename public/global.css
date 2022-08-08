@@ -76,7 +76,7 @@ root [data-theme="dark"] {
 
 /* Typography */
 h1, h2, h3 { font-weight: 300; }
-h4, h5, h6, button, a[role=button] {
+h4, h5, h6, button, *[role=button] {
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -195,9 +195,9 @@ idsqr {
 .row, .column, .col { display: flex; } /* TODO: move this rule to flexi.css */
 /*---- Pico CSS unpad/repad ----*/
 .no-margin, .nogap { margin: unset; }
-.nopad, a[role=button] { padding: 0; }
+.nopad, *[role=button] { padding: 0; }
 .pad { padding: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
-.hpad, a[role=button]:not(.nopad) { padding: 0 var(--block-spacing-horizontal); }
+.hpad, *[role=button]:not(.nopad) { padding: 0 var(--block-spacing-horizontal); }
 .vpad { padding: var(--block-spacing-vertical) 0; }
 .gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 .vgap { margin: var(--block-spacing-vertical) 0; }
@@ -292,7 +292,7 @@ svg.icon.black:not(.nofill) {
 }
 health svg.icon.full { fill: var(--blood); }
 health svg.icon.empty { fill: var(--grave); }
-.view-chat button svg.icon.not(.nofill), a[role=button] svg.icon {
+.view-chat button svg.icon.not(.nofill), *[role=button] svg.icon {
   color: var(--bone);
   fill: var(--blood);
   font-size: 1.6rem;

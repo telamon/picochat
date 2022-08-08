@@ -18,6 +18,8 @@ const commit = require('child_process')
   .execSync('git rev-parse HEAD')
   ?.toString('utf8').trim()
 
+const PORT = 5000
+
 export default {
   input: 'frontend/main.js',
   output: {
@@ -46,11 +48,6 @@ export default {
     css({ output: 'bundle.css', sourceMap: false }),
     json(),
     yaml(),
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration -
-    // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       browser: true,
       dedupe: ['svelte', 'sodium-universal'],
@@ -65,16 +62,8 @@ export default {
     svgSprite({
       outputFolder: 'public/build'
     }),
-    // In dev mode, call `npm run start` once
-    // the bundle has been generated
     !production && serve(),
-
-    // Watch the `public` directory and refresh the
-    // browser on changes when not in production
     !production && livereload('public'),
-
-    // If we're building for production (npm run build
-    // instead of npm run dev), minify
     production && terser()
   ],
   watch: {
@@ -94,7 +83,7 @@ function serve () {
       if (server) return
       server = require('child_process').spawn('npm',
         [
-          'run', 'start', '--', '--dev', '--host 0.0.0.0'
+          'run', 'start', '--', '--dev', '--host 0.0.0.0', `--port ${PORT}`
         ],
         {
           stdio: ['ignore', 'inherit', 'inherit'],

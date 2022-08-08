@@ -9,7 +9,6 @@ const {
 } = require('sodium-universal')
 /* eslint-enable camelcase */
 const createDebug = require('debug')
-const { pack, unpack } = require('msgpackr')
 const { SimpleKernel } = require('picostack')
 
 // Global registry names (used as session variables)

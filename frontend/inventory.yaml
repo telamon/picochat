@@ -1,27 +1,52 @@
 drinks:
-  - name: Lager
+  - id: 0xD001
+    name: Lager
     time: 20
     short: Cold, quenching
-    price: 2€
-  - name: Kosmo
+    price: 200
+
+  - id: 0xD002
+    name: Kosmo
     time: 18
     short: Tasty
-    price: 3€
+    price: 300
     mod: Random perk
-  - name: Ale
+
+  - id: 0xD003
+    name: Ale
     time: 22
     short: Slightly different
-    price: 3.2€
-  - name: Stout
+    price: 320
+
+  - id: 0xD004
+    name: Stout
     time: 30
-    price: 5€
+    price: 500
     mod: silence
     short: Liquid darkness
-  - name: Sparkly Wine
+
+  - id: 0xD005
+    name: Sparkly Wine
     time: 15
     mod: 1.5X Rewards
-    price: 6€
+    price: 600
     short: Proof of Prestige
 
+misc:
+  - id: 0xD000
+    name: Tip
 
+gear:
+  - id: 0xD200
+    name: B.A.B.
+    slot: head
+    price: 1200
+    mod: 1.1X Rewards per win (max 5 stacks), 0.5X if lose
+    short: Never leave home without it
+  - id: 0xD201
+    name: Fades
+    slot: eyes
+    price: 3800
+    mod: Silenced, Timestrech 3X
+    short: Lean back and enjoy your stay
 

@@ -199,7 +199,7 @@ async function tickQuery (db, now) {
     }
   }
   await new Promise((resolve, reject) => {
-    iter.end(err => err ? reject(err) : resolve())
+    iter.close(err => err ? reject(err) : resolve())
   })
   return result
 }

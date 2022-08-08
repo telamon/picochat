@@ -1,5 +1,7 @@
 <script>
+export let q
 import { kernel, keychain, updateProfile, decodePk, purge, saveBackup } from '../api'
+import { requestVerificationStamp } from '../capi'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
 import Geohash from 'latlon-geohash'
@@ -15,6 +17,11 @@ const geohash = writable()
 const pk = writable()
 const sk = writable()
 const showKeyDialog = writable(false)
+const dirty = writable(true)
+
+// Email verification
+const showVerifyDialog = writable(!!q?.verifyEmail)
+const email = writable('')
 
 async function save () {
   await updateProfile({
@@ -25,6 +32,7 @@ async function save () {
     picture: $picture,
     geohash: $geohash
   })
+  $dirty = false
 }
 
 async function load () {
@@ -59,6 +67,11 @@ async function getCurrentGeohash () {
   }
 }
 
+async function requestStamp () {
+  console.log('Verify')
+  return await requestVerificationStamp($email)
+}
+let _waitRequestStamp = writable(Promise.resolve(''))
 let _loading = load()
 </script>
 <profile-view class="block container">
@@ -94,7 +107,7 @@ let _loading = load()
   {#await _loading}
     Loading...
   {:then}
-  <button on:click={() => _loading = save()}>save</button>
+  <button disabled={!$dirty} on:click={() => _loading = save()}>save</button>
   {:catch error}
     <danger>Loading profile failed {error.message}</danger>
     <pre>{error.stack}</pre>
@@ -123,9 +136,35 @@ let _loading = load()
         </div>
         <footer>
           <div class="row space-between">
-            <a role="button" on:click={() => purge(true)}>purge</a>
-            <a role="button" on:click={saveBackup}>backup</a>
-            <a role="button" on:click={() => $showKeyDialog = false}>close</a>
+            <a href="#" role="button" on:click={() => purge(true)}>purge</a>
+            <a href="#" role="button" on:click={saveBackup}>backup</a>
+            <a href="#" role="button" on:click={() => $showKeyDialog = false}>close</a>
+          </div>
+        </footer>
+      </article>
+    </Dialog>
+  {/if}
+
+  {#if $showVerifyDialog}
+    <Dialog open={true} on:fade={() => $showVerifyDialog = false}>
+      <article>
+        <header><h5>Verify Profile</h5></header>
+        <label for="email">
+          <h5>email</h5>
+          <input type="email" bind:value={$email} placeholder="email@host.tld" id="email" name="email">
+        </label>
+
+          {#await $_waitRequestStamp}
+            ...
+          {:then message}
+            {message}
+          {:catch err}
+            <error>{err.message}</error>
+          {/await}
+        <footer>
+          <div class="row space-between">
+            <b role="button" on:click={() => $showVerifyDialog = false}>close</b>
+            <b role="button" on:click={$_waitRequestStamp = requestStamp()}>verify</b>
           </div>
         </footer>
       </article>

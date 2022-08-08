@@ -2,7 +2,7 @@
 // ᚹᚽᚲᛜᚲᚻᚤᛏ
 import { onMount } from 'svelte'
 import { writable, derived } from 'svelte/store'
-import { view, id, setView, navigate, routeName } from './router'
+import { view, id, setView, navigate, routeName, q } from './router'
 import {
   boot,
   enter,
@@ -111,7 +111,11 @@ onMount(() =>
         <h5 aria-busy="true">Booting up...</h5>
       </div>
     {:then}
-      {#if $id}
+      {#if $id && $q}
+        <svelte:component this={$view} id={$id} q={$q} />
+      {:else if $q}
+        <svelte:component this={$view} q={$q} />
+      {:else if $id}
         <svelte:component this={$view} id={$id} />
       {:else}
         <svelte:component this={$view} />

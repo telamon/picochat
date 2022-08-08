@@ -8,6 +8,9 @@ import inventory from '../inventory.yaml'
   <section class="block container">
     <h1 class="text-center">Drinks</h1>
     <drinks>
+      <a href="#/profile/?verifyEmail=true" class="row xcenter center">
+        <div>Verify your profile to buy drinks</div>
+      </a>
       {#each inventory.drinks as drink}
         <item class="drink row xcenter">
           <iimage>img</iimage>
@@ -22,12 +25,32 @@ import inventory from '../inventory.yaml'
             <short>{drink.short}</short>
           </description>
           <buy class="column center">
-            <button>{drink.price}</button>
+            <button>{Math.ceil(drink.price / 100)}€</button>
           </buy>
         </item>
       {/each}
     </drinks>
-    <h1 class="text-center">Gear</h1>
+
+    <h2 class="text-center nogap">Gear</h2>
+    <gear>
+      {#each inventory.gear as item}
+        <item class="item row xcenter">
+          <iimage>img</iimage>
+          <description class="column xstart grow2 space-between">
+            <h3>{item.name}</h3>
+            <h6>{item.short}</h6>
+            <short>
+              {#if item.mod}
+                {item.mod}
+              {/if}
+            </short>
+          </description>
+          <buy class="column center">
+            <button>{Math.ceil(item.price / 100)}t</button>
+          </buy>
+        </item>
+      {/each}
+    </gear>
   </section>
 </shop-view>
 <style>
@@ -37,7 +60,7 @@ import inventory from '../inventory.yaml'
     margin-bottom: 7px;
     padding-bottom: 7px;
   }
-  drinks item:last-child { border-bottom: none; }
+  gear item, drinks item:last-child { border-bottom: none; }
 
   item iimage {
     display: block;

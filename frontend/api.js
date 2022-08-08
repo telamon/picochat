@@ -1,5 +1,4 @@
-import levelup from 'levelup'
-import leveljs from 'level-js'
+import { BrowserLevel } from 'browser-level'
 import Geohash from 'latlon-geohash'
 import Kernel from '../blockend/'
 import Keychain from '../blockend/keychain'
@@ -19,8 +18,8 @@ export function svlt (neuron, dbg) {
       : nfo(neuron, dbg)(set)
   )
 }
-const DB = levelup(leveljs('picochat')) // Open IndexedDB
-const personalBucket = levelup(leveljs('keychain')) // Open IndexedDB
+const DB = new BrowserLevel('PC', { valueEncoding: 'buffer' })
+const personalBucket = DB.sublevel('KC', { valueEncoding: 'buffer' }) // Open IndexedDB
 export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
 
