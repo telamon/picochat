@@ -1,4 +1,5 @@
 const D = require('debug')('picochat:mod:gc')
+const { EXPIRED } = require('../slices/peers.reg.js')
 const REG_TIMER = 116 // 't'
 
 module.exports = function GarbageCollectModule (store) {
@@ -132,12 +133,12 @@ module.exports = function GarbageCollectModule (store) {
       const { peers } = rootState
       const isSelf = rootState.peer.pk?.equals(id)
       if (isSelf && rootState.peer.expiresAt < now) {
-        rootState.peer.state = 'expired' // Not sure if should delete.
+        rootState.peer.state = EXPIRED // Not sure if should delete.
         didMutate('peer')
       }
       const peer = peers[id.toString('hex')]
       if (peer && peer.expiresAt < now) {
-        peer.state = 'expired'
+        peer.state = EXPIRED
         didMutate('peers')
         if (!isSelf) {
           delete peers[id.toString('hex')]

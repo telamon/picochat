@@ -8,6 +8,7 @@ const {
 } = require('./test.helpers')
 
 test('kernel.$cooldowns() keeps track of vibe counter', async t => {
+  // eslint-disable-next-line no-unused-vars
   const [alice, bob, charlie] = await spawnSwarm('Alice', 'Bob', 'Charlie')
   await sees(charlie, alice)
   let cd = await next(charlie.k.$cooldowns())

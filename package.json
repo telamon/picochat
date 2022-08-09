@@ -71,6 +71,6 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "picostack": "^1.5.0"
+    "picostack": "^1.5.2"
   }
 }

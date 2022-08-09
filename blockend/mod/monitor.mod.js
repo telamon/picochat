@@ -1,4 +1,6 @@
 const { mute, combine } = require('piconuro')
+const { ACTIVE } = require('../slices/peers.reg')
+
 module.exports = function MonitorModule () {
   return {
     $cooldowns () {
@@ -10,24 +12,21 @@ module.exports = function MonitorModule () {
         ),
         ([profile, vibes, chats]) => {
           const cd = {
-            canVibe: false,
+            canVibe: profile.state === ACTIVE,
             vibe: -1
           }
-
           if (profile.state === 'loading') return { state: 'loading', ...cd }
 
           // Peer has a sent vibe
           const sent = vibes.seen[profile.pk.toString('hex')]
           if (!sent) {
             cd.vibe = 0
-            cd.canVibe = true
             return cd
           }
 
           // Peer is initiating a conversation
           const match = vibes.matches[sent.toString('hex')]
           if (!match) throw new Error('MentalError')
-          cd.canVibe = false
           cd.vibe = match.expiresAt
 
           // Peer is having an conversation

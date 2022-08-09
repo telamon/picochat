@@ -1,5 +1,14 @@
-const { TYPE_PROFILE, EV_CHAT_END, decodeBlock } = require('../util')
+const {
+  TYPE_PROFILE,
+  EV_CHAT_END,
+  decodeBlock
+} = require('../util')
 const { scoreGraph } = require('../game')
+
+const ACTIVE = 'active'
+const PENDING = 'pending' // Waiting for vibe-resp
+const LOCKED = 'locked' // Locked in convo
+const EXPIRED = 'expired' // GC-candy
 
 const TTL = 30 * 60 * 1000 // 30min
 const emptyProfile = (pk = null) => ({
@@ -11,7 +20,8 @@ const emptyProfile = (pk = null) => ({
   sex: 2,
   sig: null,
   expiresAt: 0,
-  state: 'active',
+
+  state: ACTIVE,
   score: 0
 })
 
@@ -105,12 +115,38 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
         case EV_CHAT_END: {
           const strkey = payload.toString('hex')
           const chat = root.chats.chats[strkey]
+          // Apply Scores
           const white = peerId.equals(chat.a)
           if (!white && !peerId.equals(chat.b)) return // not our chat
           const score = scoreGraph(chat.graph)
           state.score += score[white ? 0 : 1]
-        }
+        } break
       }
     }
   }
 }
+
+/**
+ * Low-level state helper,
+ * tradeoff signaling for realtime computation
+ */
+function stateOfPeer (peer, vibes, chats) {
+  if (peer.state === EXPIRED) return EXPIRED
+  if (peer.state !== ACTIVE) throw new Error(`InvalidState: ${peer.state}`)
+  const pid = peer.pk.toString('hex')
+  const cid = vibes.seen[pid]?.toString('hex')
+  if (!cid) return ACTIVE
+  const match = vibes.matches[cid]
+  if (!match) throw new Error('MentalError')
+  if (match.state === 'rejected') return ACTIVE
+  if (match.state !== 'match') return PENDING
+  const chat = chats.chats[cid]
+  if (chat && chat.state === 'end') return ACTIVE
+  return LOCKED
+}
+
+module.exports.stateOfPeer = stateOfPeer
+module.exports.ACTIVE = ACTIVE
+module.exports.PENDING = PENDING
+module.exports.LOCKED = LOCKED
+module.exports.EXPIRED = EXPIRED

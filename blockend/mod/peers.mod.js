@@ -9,7 +9,7 @@ const {
   KEY_BOX_LIKES_SK
 } = require('../util')
 const { mute, combine, init, gate, when } = require('piconuro')
-
+const { EXPIRED, stateOfPeer } = require('../slices/peers.reg.js')
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
 
@@ -92,9 +92,11 @@ module.exports = function PeersModule () {
         s => this.store.on('peers', s),
         peers => peers[id.toString('hex')] || ERR_PEER_NOT_FOUND
       )
-      const _chats = s => this.store.on('chats', s)
+      const $chats = s => this.store.on('chats', s)
+      const $vibes = s => this.store.on('vibes', s)
+      const $inv = s => this.store.on('inv', s)
       return mute(
-        combine($peer, _chats),
+        combine($peer, $vibes, $chats, $inv),
         computeProfile
       )
     },
@@ -111,14 +113,15 @@ module.exports = function PeersModule () {
           : Object.values(peerMap)
       )
       const $chats = this.store.on.bind(this.store, 'chats')
-
+      const $vibes = s => this.store.on('vibes', s)
+      const $inv = s => this.store.on('inv', s)
       // Higher level profiles neuron
       const $profiles = gate(init([],
         mute(
-          combine($peers, $chats),
-          ([peers, chats]) => peers
-            .map(peer => computeProfile([peer, chats]))
-            .filter(p => p.state !== 'expired')
+          combine($peers, $vibes, $chats, $inv),
+          stores => stores[0] // store[0]: peers
+            .map(peer => computeProfile(stores))
+            .filter(p => p.state !== EXPIRED)
         )
       ))
       return $profiles
@@ -129,6 +132,8 @@ module.exports = function PeersModule () {
      */
     $profile () {
       const $chats = s => this.store.on('chats', s)
+      const $vibes = s => this.store.on('vibes', s)
+      const $inv = s => this.store.on('inv', s)
       const $loaded = when(this.boot())
       return gate(init(PEER_PLACEHOLDER,
         mute(
@@ -140,7 +145,9 @@ module.exports = function PeersModule () {
                 return peer
               }
             ),
+            $vibes,
             $chats,
+            $inv,
             $loaded
           ),
           computeProfile
@@ -150,12 +157,13 @@ module.exports = function PeersModule () {
   }
 }
 
-function computeProfile ([peer, chats]) {
+function computeProfile ([peer, vibes, chats, inv]) {
   if (!peer) return ERR_PEER_NOT_FOUND // TODO: most likely redundant
   if (peer.date === null) return PEER_PLACEHOLDER // when neuron invoked pre-kernel load.
   if (peer.state === 'error') return peer
   if (!peer.pk) throw new Error('kernel.$peers invoked before kernel.load() finished?')
-  const stats = chats.stats[peer.pk.toString('hex')] || {
+  const pid = peer.pk.toString('hex')
+  const stats = chats.stats[pid] || {
     nEnded: 0,
     nStarted: 0,
     nMessages: 0,
@@ -167,11 +175,13 @@ function computeProfile ([peer, chats]) {
   // const extraTime = peer.score * 60 * 1000
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
+  const inventory = Object.values(inv[pid]) || []
   return {
     ...peer,
     stats,
     expiresAt,
-    state: expiresAt < Date.now() ? 'expired' : peer.state
+    state: expiresAt < Date.now() ? EXPIRED : stateOfPeer(peer, vibes, chats),
+    inventory
   }
 }
 
