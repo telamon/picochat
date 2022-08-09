@@ -19,7 +19,16 @@ if (kernel.pk) {
           <h2>{peer.name}</h2>
         </div>
         <div style="grid-area: se; align-self: end; justify-self: end;" class="end">
-          <h2>🍹</h2>
+          <h2>
+            {#each peer.inventory as item}
+              <!-- TODO: lookup inventory.yaml for:
+                attr:title = item.short
+                img = item.gfx
+                on:click => $showItemPopup(item.id) ?
+              -->
+              <code>{item.id}</code>
+            {/each}
+          </h2>
         </div>
       </overlay>
       <BinaryImage src={peer.picture}/>

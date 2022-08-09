@@ -178,7 +178,8 @@ function computeProfile ([peer, vibes, chats, inv]) {
   // const extraTime = peer.score * 60 * 1000
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
-  const inventory = Object.values(inv[pid] || {})
+  console.info(inv[pid], 'fail')
+  const inventory = Object.values(inv[pid]?.items || {})
   return {
     ...peer,
     stats,

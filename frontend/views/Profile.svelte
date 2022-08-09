@@ -1,6 +1,15 @@
 <script>
 export let q
-import { kernel, keychain, updateProfile, decodePk, purge, saveBackup } from '../api'
+import {
+  kernel,
+  keychain,
+  updateProfile,
+  Profile,
+  decodePk,
+  reloadStore,
+  purge,
+  saveBackup
+} from '../api'
 import { requestVerificationStamp } from '../capi'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
@@ -9,6 +18,7 @@ import ImageLoader from '../components/ImageLoader.svelte'
 import Icon from '../components/Icon.svelte'
 import Dialog from '../components/Dialog.svelte'
 import QRCode from '../components/QRCode.svelte'
+import PeerPortrait from '../components/PeerPortrait.svelte'
 
 const name = writable()
 const tagline = writable()
@@ -19,6 +29,9 @@ const sk = writable()
 const showKeyDialog = writable(false)
 const dirty = writable(true)
 
+// Profile preview dialogue
+const profile = Profile(true)
+const showPreviewDialog = writable(false)
 // Email verification
 const showVerifyDialog = writable(!!q?.verifyEmail)
 const email = writable('')
@@ -76,7 +89,7 @@ let _loading = load()
 </script>
 <profile-view class="block container">
   <div class="row space-between xstart">
-    <h1>🕶️ Profile</h1>
+    <h1 on:click={() => $showPreviewDialog = true}>🕶️ Profile</h1>
     <div class="row">
       <h2 on:click={() => $showKeyDialog = true}>
         <Icon id="icon-qr" />
@@ -136,9 +149,10 @@ let _loading = load()
         </div>
         <footer>
           <div class="row space-between">
-            <a href="#" role="button" on:click={() => purge(true)}>purge</a>
-            <a href="#" role="button" on:click={saveBackup}>backup</a>
-            <a href="#" role="button" on:click={() => $showKeyDialog = false}>close</a>
+            <b role="button" on:click={() => purge(true)}>purge</b>
+            <b role="button" on:click={() => reloadStore()}>reload</b>
+            <b role="button" on:click={saveBackup}>backup</b>
+            <b role="button" on:click={() => $showKeyDialog = false}>close</b>
           </div>
         </footer>
       </article>
@@ -165,6 +179,18 @@ let _loading = load()
             <b role="button" on:click={() => $showVerifyDialog = false}>close</b>
             <b role="button" on:click={$_waitRequestStamp = requestStamp()}>verify</b>
           </div>
+        </footer>
+      </article>
+    </Dialog>
+  {/if}
+
+  {#if $showPreviewDialog}
+    <Dialog open={true} on:fade={() => $showPreviewDialog = false}>
+      <article>
+        <header><h5>Preview</h5></header>
+        <PeerPortrait peer={$profile} />
+        <footer>
+            <button on:click={() => $showPreviewDialog = false}>close</button>
         </footer>
       </article>
     </Dialog>

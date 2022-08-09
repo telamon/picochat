@@ -10,7 +10,7 @@ import { mute, init } from 'piconuro'
 import { nId, navigate } from '../router'
 import { svlt, kernel } from '../api'
 
-const block = svlt(
+const merge = svlt(
   init({ loading: true },
     mute(nId, async pickle => {
       if (!pickle) return { loading: true }
@@ -37,7 +37,7 @@ const block = svlt(
         loading: false,
         imported,
         error,
-        blocks: foreign
+        feed: foreign
       }
     })
   )
@@ -47,16 +47,17 @@ const block = svlt(
 <append class="block container">
   <div class="flex column xcenter center">
     <h1>&nbsp;</h1>
-    {#if $block.loading}
+    {#if $merge.loading}
       <h3>Reading blocks...</h3>
       <h1 aria-busy="true"></h1>
-    {:else if !$block.imported}
+    {:else if !$merge.imported}
       <h3>Not imported</h3>
-      <danger>{$block.error}</danger>
+      <danger>{$merge.error}</danger>
     {:else}
       <h3>Done!</h3>
-      <a href={`#/explore/${$block.last.sig}`}>Explore blocks</a>
       <button on:click={() => navigate('/')}>done</button>
     {/if}
+    <!-- {#for block of $merge.feed}-->
+    <!--  <a href={`#/explore/${$block.blocks.last.sig}`}>Explore blocks</a> -->
   </div>
 </append>

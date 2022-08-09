@@ -26,7 +26,6 @@ function InventorySlice () {
       if (data.type !== TYPE_ITEMS) return true
 
       const pid = HEAD.toString('hex')
-      console.log('HEAD', pid)
       const peer = root.peers[pid]
       const pState = stateOfPeer(peer, root.vibes, root.chats)
       const hasBarItems = data.items.find(i => i.id < 0xD200)
@@ -42,12 +41,9 @@ function InventorySlice () {
       // initialize peer inventory
       const inv = state[pid] = state[pid] || mkInventory(HEAD)
       for (const item of data.items) {
-        const slot = inv[item.id] || mkSlot(item.id)
-        inv[item.id] = {
-          ...slot,
-          ...item,
-          qty: slot.qty++
-        }
+        const slot = inv.items[item.id] = inv.items[item.id] || mkSlot(item.id)
+        slot.qty++
+        slot.expiresAt = item.expiresAt
         // TODO: schedule perishables
         /*
         if (item.expiresAt) {
@@ -64,7 +60,8 @@ function mkSlot (id) {
   return {
     id, // item id
     qty: 0,
-    activatedAt: -1
+    activatedAt: -1,
+    expiresAt: -1
   }
 }
 

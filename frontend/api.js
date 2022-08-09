@@ -18,7 +18,10 @@ export function svlt (neuron, dbg) {
       : nfo(neuron, dbg)(set)
   )
 }
-const DB = new BrowserLevel('PC', { valueEncoding: 'buffer' })
+const DB = new BrowserLevel('PC', {
+  keyEncoding: 'buffer',
+  valueEncoding: 'buffer'
+})
 const personalBucket = DB.sublevel('KC', { valueEncoding: 'buffer' })
 export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
@@ -247,6 +250,11 @@ export async function purge (purgeKeychain = false) {
   if (!window.confirm(msg)) return
   if (purgeKeychain) await keychain.db.clear()
   await kernel.db.clear()
+  window.location.reload()
+}
+
+export async function reloadStore () {
+  await kernel.store.reload()
   window.location.reload()
 }
 
