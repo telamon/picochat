@@ -4,21 +4,18 @@
 
 **Picochat** is a metaverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
-**Picostack** is an extremely young and experimental
-Web3 framework that focuses on smartcontracts instead of currency.
+**Picostack** is an extremely immature and experimental
+Web3 framework that focuses on contracts instead of crypto.
 
-What you get is a custom zero-cost blockchain
+A custom zero-cost blockchain
 that uses a functional-consensus.
 
-Meaning it dosen't waste energy such as PoW nor does it run corrupt such as DPoS.
+It dosen't waste energy such as PoW nor does it run corrupt same way as DPoS.
 Boasting zero transaction costs it provides a means to reaching longer lasting decentralization.
 
 The entire stack is written in pure ES6. The kernel is designed to live within a browser-tab without external dependencies, it's very lightweight.
 
-A full node runs on a low-end user device without using any centralized
-technology as proxy.
-
-User equals Node
+A full node runs on a low-end user device without depending on a central service.
 
 ## Start
 
