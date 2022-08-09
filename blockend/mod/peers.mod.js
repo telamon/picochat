@@ -8,7 +8,7 @@ const {
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK
 } = require('../util')
-const { mute, combine, init, gate, when } = require('piconuro')
+const { mute, combine, init, gate, when, nfo } = require('piconuro')
 const { EXPIRED, stateOfPeer } = require('../slices/peers.reg.js')
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
@@ -108,9 +108,12 @@ module.exports = function PeersModule () {
       // TODO: make LRU-backed $profiles singleton-neuron
       const $peers = mute( // filter own profile.
         this.store.on.bind(this.store, 'peers'),
-        peerMap => this.pk
-          ? Object.values(peerMap).filter(p => !this.pk.equals(p.pk))
-          : Object.values(peerMap)
+        peerMap => {
+          const list = Object.values(peerMap)
+          return this.pk
+            ? list.filter(p => !this.pk.equals(p.pk))
+            : list
+        }
       )
       const $chats = this.store.on.bind(this.store, 'chats')
       const $vibes = s => this.store.on('vibes', s)
@@ -119,8 +122,8 @@ module.exports = function PeersModule () {
       const $profiles = gate(init([],
         mute(
           combine($peers, $vibes, $chats, $inv),
-          stores => stores[0] // store[0]: peers
-            .map(peer => computeProfile(stores))
+          ([peers, vibes, chats, inv]) => peers
+            .map(p => computeProfile([p, vibes, chats, inv]))
             .filter(p => p.state !== EXPIRED)
         )
       ))
@@ -175,7 +178,7 @@ function computeProfile ([peer, vibes, chats, inv]) {
   // const extraTime = peer.score * 60 * 1000
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
-  const inventory = Object.values(inv[pid]) || []
+  const inventory = Object.values(inv[pid] || {})
   return {
     ...peer,
     stats,
