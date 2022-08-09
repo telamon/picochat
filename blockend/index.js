@@ -1,9 +1,9 @@
 const { SimpleKernel } = require('picostack')
-const Feed = require('picofeed')
 // Lowlevel registers that hold block-state
 const PeerCtrl = require('./slices/peers.reg')
 const VibeCtrl = require('./slices/vibes.reg')
 const ConversationCtrl = require('./slices/chats.reg')
+const InventoryCtrl = require('./slices/inv.reg')
 // const StatsCtrl = require('./slices/stats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
@@ -44,6 +44,7 @@ class Kernel extends SimpleKernel {
     this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
     this.store.register(ConversationCtrl())
+    this.store.register(InventoryCtrl())
     // this.store.register(StatsCtrl())
 
     // Load Mixins/ Kernel Modules

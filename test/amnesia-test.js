@@ -9,7 +9,7 @@ const {
 test('Profile expires', async t => {
   const peers = await spawnSwarm('alice', 'bob', 'charlie', 'daphne')
   const [alice] = peers
-  let profiles = Object.values(await next(s => alice.k.store.on('peers', s), 2))
+  let profiles = Object.values(await next(s => alice.k.store.on('peers', s), 1))
   t.equal(profiles.length, 4)
   await alice.k._collectGarbage(Date.now() + 86400000)
   profiles = Object.values(await next(s => alice.k.store.on('peers', s), 0))

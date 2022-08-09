@@ -46,7 +46,7 @@ import inventory from '../inventory.yaml'
             </short>
           </description>
           <buy class="column center">
-            <button>{Math.ceil(item.price / 100)}t</button>
+            <button>{Math.ceil(item.price / 100)}¤</button>
           </buy>
         </item>
       {/each}

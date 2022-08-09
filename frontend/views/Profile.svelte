@@ -153,14 +153,13 @@ let _loading = load()
           <h5>email</h5>
           <input type="email" bind:value={$email} placeholder="email@host.tld" id="email" name="email">
         </label>
-
-          {#await $_waitRequestStamp}
-            ...
-          {:then message}
-            {message}
-          {:catch err}
-            <error>{err.message}</error>
-          {/await}
+        {#await $_waitRequestStamp}
+          ...
+        {:then message}
+          {message}
+        {:catch err}
+          <error>{err.message}</error>
+        {/await}
         <footer>
           <div class="row space-between">
             <b role="button" on:click={() => $showVerifyDialog = false}>close</b>

@@ -47,6 +47,7 @@ export function setView (path, id, search) {
   setId(id)
   setQ(search)
 }
+
 function apply () {
   if (window.location.hash === '') return setView('pub', null, new URLSearchParams())
   const virt = new URL(

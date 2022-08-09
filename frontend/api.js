@@ -19,7 +19,7 @@ export function svlt (neuron, dbg) {
   )
 }
 const DB = new BrowserLevel('PC', { valueEncoding: 'buffer' })
-const personalBucket = DB.sublevel('KC', { valueEncoding: 'buffer' }) // Open IndexedDB
+const personalBucket = DB.sublevel('KC', { valueEncoding: 'buffer' })
 export const kernel = new Kernel(DB)
 export const keychain = new Keychain(personalBucket)
 

@@ -50,7 +50,7 @@
     "hypercore-protocol": "^8.0.7",
     "hyperswarm-web": "^2.2.0",
     "latlon-geohash": "^2.0.0",
-    "memdown": "^6.1.1",
+    "memory-level": "^1.0.0",
     "picoflex": "^1.0.0",
     "qrcode-generator": "^1.4.4",
     "rollup": "^2.77.2",
@@ -71,7 +71,6 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "piconet": "^3.1.0",
-    "picostack": "^1.4.0"
+    "picostack": "^1.5.0"
   }
 }

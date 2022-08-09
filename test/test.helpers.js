@@ -1,5 +1,4 @@
-const levelup = require('levelup')
-const memdown = require('memdown')
+const { MemoryLevel } = require('memory-level')
 const { next, until } = require('piconuro')
 const Kernel = require('../blockend/')
 const D = require('debug')('picochat:test')
@@ -58,7 +57,10 @@ async function spawnSwarm (...actors) {
 }
 
 function makeDatabase () {
-  return levelup(memdown())
+  return new MemoryLevel('test', {
+    keyEncoding: 'buffer',
+    valueEncoding: 'buffer'
+  })
 }
 
 // Assumes peerA and peerB are already wired up.

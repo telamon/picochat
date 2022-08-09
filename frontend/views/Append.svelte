@@ -10,10 +10,6 @@ import { mute, init } from 'piconuro'
 import { nId, navigate } from '../router'
 import { svlt, kernel } from '../api'
 
-// This goes into stamp slice
-// const DLABS_PK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
-// const isTrusted = DLABS_PK.equals(foreign.last.key)
-
 const block = svlt(
   init({ loading: true },
     mute(nId, async pickle => {
