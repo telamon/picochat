@@ -5,6 +5,7 @@ import Keychain from '../blockend/keychain'
 import { readable } from 'svelte/store'
 import { mute, gate, init, write, combine, get, nfo } from 'piconuro'
 import { navigate } from './router'
+import inventory from './inventory.yaml'
 const Modem56 = window.Modem56
 const TOPIC = 'picochat-testnet'
 
@@ -254,7 +255,8 @@ export async function purge (purgeKeychain = false) {
 }
 
 export async function reloadStore () {
-  await kernel.store.reload()
+  const m = await kernel.store.reload()
+  console.info('Stores refreshed', m)
   window.location.reload()
 }
 
@@ -270,6 +272,16 @@ export async function saveBackup () {
   window.open(u, '_blank')
   // TODO: revokeObjectURL
 }
+
+// Flatten product catalog into a LUT
+export const ITEMS = Object.keys(inventory)
+  .reduce((p, category) => {
+    for (const item of inventory[category]) {
+      item.category = category
+      p[item.id] = item
+    }
+    return p
+  }, {})
 
 function mockChat () {
   const [$initiator, setInitiator] = write(true)

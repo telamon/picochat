@@ -8,7 +8,7 @@ const {
   KEY_BOX_LIKES_PK,
   KEY_BOX_LIKES_SK
 } = require('../util')
-const { mute, combine, init, gate, when, nfo } = require('piconuro')
+const { mute, combine, init, gate, when } = require('piconuro')
 const { EXPIRED, stateOfPeer } = require('../slices/peers.reg.js')
 const ERR_PEER_NOT_FOUND = Object.freeze({ state: 'error', errorMessage: 'PeerNotFound' })
 const PEER_PLACEHOLDER = Object.freeze({ state: 'loading' })
@@ -178,12 +178,13 @@ function computeProfile ([peer, vibes, chats, inv]) {
   // const extraTime = peer.score * 60 * 1000
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
-  console.info(inv[pid], 'fail')
-  const inventory = Object.values(inv[pid]?.items || {})
+  const inventory = Object.values(inv[pid] || {})
+  const hasBadge = !!inventory[0xD001]
   return {
     ...peer,
     stats,
     expiresAt,
+    hasBadge,
     state: expiresAt < Date.now() ? EXPIRED : stateOfPeer(peer, vibes, chats),
     inventory
   }

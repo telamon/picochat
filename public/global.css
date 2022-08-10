@@ -351,7 +351,7 @@ balance black {
   background-color: var(--p2);
   color: var(--p1);
 }
-
+error { color: var(--blood); }
 /* Chromatic pearl effect
  *margin: 5px;
   box-shadow: 0 0 5px var(--wizardry);

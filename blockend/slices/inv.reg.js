@@ -39,9 +39,9 @@ function InventorySlice () {
       const pid = HEAD.toString('hex')
       const data = decodeBlock(block.body)
       // initialize peer inventory
-      const inv = state[pid] = state[pid] || mkInventory(HEAD)
+      const inv = state[pid] = state[pid] || {}
       for (const item of data.items) {
-        const slot = inv.items[item.id] = inv.items[item.id] || mkSlot(item.id)
+        const slot = inv[item.id] = inv[item.id] || mkSlot(item.id)
         slot.qty++
         slot.expiresAt = item.expiresAt
         // TODO: schedule perishables
@@ -62,13 +62,6 @@ function mkSlot (id) {
     qty: 0,
     activatedAt: -1,
     expiresAt: -1
-  }
-}
-
-function mkInventory (id) {
-  return {
-    id, // peer id
-    items: {}
   }
 }
 

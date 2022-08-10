@@ -1,7 +1,7 @@
 <script>
 import { getDistance } from 'geolib'
 import BinaryImage from './BinaryImage.svelte'
-import { kernel, decodePk } from '../api'
+import { kernel, decodePk, ITEMS } from '../api'
 export let peer
 export let size = 'normal'
 let distance = null
@@ -26,7 +26,7 @@ if (kernel.pk) {
                 img = item.gfx
                 on:click => $showItemPopup(item.id) ?
               -->
-              <code>{item.id}</code>
+              <code>{JSON.stringify(item)}</code>
             {/each}
           </h2>
         </div>

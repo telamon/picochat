@@ -35,6 +35,7 @@ const showPreviewDialog = writable(false)
 // Email verification
 const showVerifyDialog = writable(!!q?.verifyEmail)
 const email = writable('')
+const badgeStatus = writable(false)
 
 async function save () {
   await updateProfile({
@@ -80,10 +81,15 @@ async function getCurrentGeohash () {
   }
 }
 
-async function requestStamp () {
-  console.log('Verify')
-  return await requestVerificationStamp($email)
+function requestStamp () {
+  $badgeStatus = true
+  $_waitRequestStamp = requestVerificationStamp($email)
+    .catch(err => {
+      $badgeStatus = false
+      throw err
+    })
 }
+
 let _waitRequestStamp = writable(Promise.resolve(''))
 let _loading = load()
 </script>
@@ -150,7 +156,8 @@ let _loading = load()
         <footer>
           <div class="row space-between">
             <b role="button" on:click={() => purge(true)}>purge</b>
-            <b role="button" on:click={() => reloadStore()}>reload</b>
+            <!-- Bug in picostore, only first store is reloaded? -->
+            <!-- <b role="button" on:click={() => reloadStore()}>reload</b> -->
             <b role="button" on:click={saveBackup}>backup</b>
             <b role="button" on:click={() => $showKeyDialog = false}>close</b>
           </div>
@@ -165,19 +172,25 @@ let _loading = load()
         <header><h5>Verify Profile</h5></header>
         <label for="email">
           <h5>email</h5>
-          <input type="email" bind:value={$email} placeholder="email@host.tld" id="email" name="email">
+          <input type="email" bind:value={$email} placeholder="name@host.tld">
         </label>
-        {#await $_waitRequestStamp}
-          ...
-        {:then message}
-          {message}
-        {:catch err}
-          <error>{err.message}</error>
-        {/await}
+        <div class="row center xcenter">
+          {#await $_waitRequestStamp}
+            <p aria="loading">Requesting badge</p>
+          {:then message}
+            <p>{message}</p>
+          {:catch err}
+            <error>{err.message}</error>
+          {/await}
+        </div>
         <footer>
           <div class="row space-between">
             <b role="button" on:click={() => $showVerifyDialog = false}>close</b>
-            <b role="button" on:click={$_waitRequestStamp = requestStamp()}>verify</b>
+            <b role="button"
+              on:click={requestStamp}
+              disabled={$badgeStatus ? 'true' : null}>
+              verify
+            </b>
           </div>
         </footer>
       </article>
