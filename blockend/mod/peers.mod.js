@@ -179,7 +179,7 @@ function computeProfile ([peer, vibes, chats, inv]) {
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
   const inventory = Object.values(inv[pid] || {})
-  const hasBadge = !!inventory[0xD001]
+  const hasBadge = !!(inv[pid] && inv[pid][0xD001])
   return {
     ...peer,
     stats,
