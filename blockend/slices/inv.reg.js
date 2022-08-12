@@ -16,8 +16,7 @@ const {
 } = require('../util')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
-const DLABS = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
-
+const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
 const TYPE_ITEMS = 'items'
 
 // Shit this is so confusing already.
@@ -34,7 +33,7 @@ function InventorySlice () {
       const peer = root.peers[pid]
       const pState = stateOfPeer(peer, root.vibes, root.chats)
       const hasBarItems = data.items.find(i => i.id < 0xD200)
-      if (hasBarItems && !block.key.equals(DLABS)) return 'StampNotTrusted'
+      if (hasBarItems && !block.key.equals(BARPK)) return 'StampNotTrusted'
       if (pState !== ACTIVE) return 'PeerBusy'
       if (Date.now() - data.date >= 60 * 60 * 1000) return 'DeliveryTimeout'
       return false

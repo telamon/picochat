@@ -1,7 +1,8 @@
 const test = require('tape')
-const { next } = require('piconuro')
+const { next, until } = require('piconuro')
 const {
   spawnSwarm,
+  makeChat,
   doMatch,
   turnBye,
   turnSend
@@ -32,5 +33,14 @@ test('Two peers mint a glass of water', async t => {
 
   const aProfile = await next(alice.k.$profile(), 2)
   const aWater = aProfile.inventory.find(i => i.id === 0xD700)
+  t.equal(aWater.id, 0xD700)
+  t.equal(aWater.qty, 1)
   t.ok(aWater, 'A fresh glass of water was minted')
+})
+
+test.skip('Water was given', async t => {
+  const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
+  await makeChat(bob, alice, { t: ACTION_CONJURE_WATER })
+  const bProfile = await until(bob.k.$profile(), p => p?.inventory.length)
+  t.equal(p.inventory[0].id, 0xD700, 'Alice has water')
 })
