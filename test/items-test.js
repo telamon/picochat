@@ -19,7 +19,7 @@ test('Peer has an inventory of items', async t => {
   t.equal(bProfile.inventory?.length, 0, "Bob's inventory empty")
 })
 
-test('Two peers mint a glas of water', async t => {
+test('Two peers mint a glass of water', async t => {
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
   const transaction = { t: ACTION_CONJURE_WATER }
   const cid = await doMatch(alice, bob, transaction)
@@ -31,8 +31,6 @@ test('Two peers mint a glas of water', async t => {
   await turnBye(bob.k, cid, 0)
 
   const aProfile = await next(alice.k.$profile(), 2)
-  // const bProfile = await next(bob.k.$profile())
   const aWater = aProfile.inventory.find(i => i.id === 0xD700)
   t.ok(aWater, 'A fresh glass of water was minted')
-  // console.log(aWater)
 })

@@ -1,6 +1,6 @@
 const test = require('tape')
 const { spawnSwarm, makeChat } = require('./test.helpers')
-const { next } = require('piconuro')
+const { next, until, mute, nfo } = require('piconuro')
 const {
   feedToGraph,
   scoreGraph,
@@ -24,12 +24,18 @@ test('A chat can be reduced to points using graph rewriting', async t => {
   t.equal(rewrite(feedToGraph(chat)), 'ᛄᚵᚴᛸ')
   const scoreAB = scoreGraph(feedToGraph(chat))
   const cidAC = await makeChat(alice, charlie)
-  const chatAC = await next(charlie.k.$chat(cidAC), 1)
+  const chatAC = await until(charlie.k.$chat(cidAC), c => c.state === 'end')
   t.equal(rewrite(chatAC.graph), 'ᛄᚵᚴᛸ')
 
   const scoreAC = scoreGraph(chatAC.graph)
 
-  const [aProfile, bProfile] = await next(charlie.k.$peers(), 0)
+  const [aProfile, bProfile] = await until(
+    mute(charlie.k.$peers(), prs => [
+      prs.find(p => p.pk.equals(alice.k.pk)),
+      prs.find(p => p.pk.equals(bob.k.pk))
+    ]), prs => prs.length === 2
+  )
+
   const aScore = scoreAB[0] + scoreAC[0]
   const bScore = scoreAB[1]
   const cScore = scoreAC[1]

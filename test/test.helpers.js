@@ -64,8 +64,10 @@ function makeDatabase () {
 }
 
 // Assumes peerA and peerB are already wired up.
-async function makeChat (initiator, responder, reverseFarewell = false, nMessages = 3) {
-  const chatId = await doMatch(initiator, responder)
+async function makeChat (initiator, responder, transactions) {
+  const reverseFarewell = false
+  const nMessages = 3
+  const chatId = await doMatch(initiator, responder, transactions)
 
   const [a, b] = reverseFarewell
     ? [responder.k, initiator.k]
