@@ -9,6 +9,7 @@ const {
 } = require('../util')
 const { mute, combine, gate, init, until } = require('piconuro')
 const { PEER_PLACEHOLDER } = require('./peers.mod')
+const Transactions = require('../transactions')
 const D = require('debug')('picochat:mod:vibes')
 
 module.exports = function VibesModule () {
@@ -19,7 +20,7 @@ module.exports = function VibesModule () {
      * params:
      * - peerId {SignaturePublicKey} a peer's signing key
      */
-    async sendVibe (peerId) {
+    async sendVibe (peerId, transactions = []) {
       peerId = toBuffer(peerId)
       if (this.pk.equals(peerId)) throw new Error('SelfVibeNotAllowed')
       // Don't sendVibes to peers waiting for your response.
@@ -31,7 +32,8 @@ module.exports = function VibesModule () {
           return this.respondVibe(match.chatId)
         }
       }
-
+      if (!Array.isArray(transactions)) transactions = [transactions]
+      transactions = transactions.map(t => Transactions.validate(t))
       const cd = await until(this.$cooldowns(), cd => cd.state !== 'loading')
       if (!cd.canVibe) throw new Error('VibeNotReady')
 
@@ -40,7 +42,8 @@ module.exports = function VibesModule () {
       if (peer.state === 'error') throw new Error(peer.errorMessage)
       const sealedMessage = seal(msgBox.pk, peer.box)
       const convo = await this.createBlock(TYPE_VIBE, {
-        box: sealedMessage
+        box: sealedMessage,
+        t: transactions
       })
       const chatId = convo.last.sig
       await this._storeLocalChatKey(chatId, msgBox)

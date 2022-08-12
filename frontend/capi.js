@@ -37,11 +37,11 @@ export async function postFeed (uri, feed, options = {}) {
     headers,
     body: feed.buf.slice(0, feed.tail)
   })
+
   const data = await res.json()
   if (!res.ok) {
     if (!data.error) console.error(data)
     throw new Error(`[${res.status}] ${data.error}`)
   }
-
   return data
 }

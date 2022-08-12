@@ -32,6 +32,11 @@ drinks:
     price: 600
     short: Proof of Prestige
 
+  - id: 0xD700
+    name: Water
+    price: 0
+    short: The developers best friend
+
 misc:
   - id: 0xD100
     name: Tip

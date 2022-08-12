@@ -8,6 +8,7 @@ const {
   crypto_box_SECRETKEYBYTES
 } = require('sodium-universal')
 /* eslint-enable camelcase */
+const assert = require('nanoassert')
 const createDebug = require('debug')
 const { SimpleKernel } = require('picostack')
 
@@ -89,7 +90,7 @@ function seal (m, pk) {
 function unseal (c, sk, pk) {
   const m = Buffer.allocUnsafe(c.length - crypto_box_SEALBYTES) // eslint-disable-line camelcase
   const succ = crypto_box_seal_open(m, c, pk, sk)
-  if (!succ) throw new Error('DecryptionFailedError')
+  assert(succ, 'DecryptionFailedError')
   return m
 }
 
@@ -110,6 +111,16 @@ createDebug.formatters.h = v => {
 createDebug.formatters.H = v => {
   if (!Buffer.isBuffer(v) || !v?.length) return v
   return v.toString('hex')
+}
+
+// Binary to obj-key codec
+function btok (b) {
+  assert(Buffer.isBuffer(b), 'Expected Buffer')
+  return b.toString('base64url')
+}
+function ktob (s) {
+  assert(typeof s === 'string', 'Expected string')
+  return Buffer.from(s, 'base64url')
 }
 
 module.exports = {
@@ -141,5 +152,7 @@ module.exports = {
   boxPair,
   seal,
   unseal,
-  bufferReplacer
+  bufferReplacer,
+  btok,
+  ktob
 }

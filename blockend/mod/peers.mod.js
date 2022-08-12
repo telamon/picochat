@@ -3,6 +3,7 @@ const Feed = require('picofeed')
 const {
   toBuffer,
   boxPair,
+  btok,
   TYPE_PROFILE,
   KEY_SK,
   KEY_BOX_LIKES_PK,
@@ -178,8 +179,9 @@ function computeProfile ([peer, vibes, chats, inv]) {
   // const extraTime = peer.score * 60 * 1000
   // console.info('PEER SCORE', peer.score, stats.nEnded)
   const expiresAt = peer.expiresAt + extraTime
-  const inventory = Object.values(inv[pid] || {})
-  const hasBadge = !!(inv[pid] && inv[pid][0xD001])
+  const pid2 = btok(peer.pk)
+  const inventory = Object.values(inv[pid2] || {})
+  const hasBadge = !!(inv[pid2] && inv[pid2][0xD001])
   return {
     ...peer,
     stats,

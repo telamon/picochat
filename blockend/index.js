@@ -3,7 +3,8 @@ const { SimpleKernel } = require('picostack')
 const PeerCtrl = require('./slices/peers.reg')
 const VibeCtrl = require('./slices/vibes.reg')
 const ConversationCtrl = require('./slices/chats.reg')
-const InventoryCtrl = require('./slices/inv.reg')
+const { InventorySlice, TransactionsSlice } = require('./slices/inv.reg')
+
 // const StatsCtrl = require('./slices/stats')
 // Kernel Modules (simply mixins)
 const ChatModule = require('./mod/chat.mod')
@@ -28,11 +29,15 @@ const {
   decodeBlock,
   typeOfBlock
 } = require('./util')
+const Transactions = require('./transactions')
+
 const debug = require('debug')
 const D = debug('picochat:kernel')
 // debug.enable('pico*')
 
 class Kernel extends SimpleKernel {
+  static Transactions = Transactions
+
   constructor (db, opts = {}) {
     super(db, opts)
     // Process opts
@@ -44,7 +49,8 @@ class Kernel extends SimpleKernel {
     this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
     this.store.register(ConversationCtrl())
-    this.store.register(InventoryCtrl())
+    this.store.register(InventorySlice())
+    this.store.register(TransactionsSlice())
     // this.store.register(StatsCtrl())
 
     // Load Mixins/ Kernel Modules

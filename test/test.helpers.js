@@ -90,13 +90,10 @@ async function makeChat (initiator, responder, reverseFarewell = false, nMessage
  * await doConverse(peerA, peerB, 3) // Interleaves 3 message blocks
  * await doBye(initiator, responder, gestures = [0, 0]) // ends conversation
  */
-async function doMatch (a, b) {
+async function doMatch (a, b, transactions) {
   const rpk = b.k.pk
-  await until( // initiator sees responder
-    a.k.$peers(),
-    peers => !!peers.find(p => p.pk && p.pk.equals(rpk))
-  )
-  const chatId = await a.k.sendVibe(rpk)
+  await sees(a, b)
+  const chatId = await a.k.sendVibe(rpk, transactions)
   D('makeChat() vibe sent %h', chatId)
   await until( // responder sees vibe
     b.k.$vibes(),
@@ -111,7 +108,7 @@ async function doMatch (a, b) {
 async function turn (kernel, chatId) {
   return await until(
     kernel.$chat(chatId),
-    chat => chat.state === 'active' && chat.myTurn
+    chat => chat.myTurn // && chat.state === 'active'
   )
 }
 
@@ -138,13 +135,32 @@ async function converse (kernelA, kernelB, chatId, nMessages = 3) {
   }
 }
 
+// TODO: upgrade old tests to use this helper
+// It's a lot more robust than the next/send pairs
+async function turnSend (k, cid, message) {
+  const chat = await turn(k, cid)
+  return chat.send(message)
+}
+async function turnPass (k, cid) {
+  const chat = await turn(k, cid)
+  return chat.pass()
+}
+async function turnBye (k, cid, gesture = 0) {
+  const chat = await turn(k, cid)
+  return chat.bye(gesture)
+}
+
 module.exports = {
   makeMatch,
   spawnPeer,
   spawnSwarm,
   makeDatabase,
   makeChat,
+  doMatch,
   turn,
+  turnSend,
+  turnPass,
+  turnBye,
   sees,
   D
 }
