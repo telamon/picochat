@@ -68,9 +68,6 @@ function InventorySlice () {
         const slot = initSlot(inv, op.item)
         slot.qty += op.amount
       }
-      // Warn how the heck do i notify observers
-      // of other store change?
-      delete root.trs[cid]
       return state
     }
   }
@@ -110,6 +107,7 @@ function TransactionsSlice () {
       } catch (err) {
         return err.messsage
       }
+      // TODO: ACTION_OFFER, validate deductable quantities.
       return false
     },
 
@@ -121,14 +119,31 @@ function TransactionsSlice () {
         switch (type) {
           case Transactions.ACTION_CONJURE_WATER:
             pending.push({
-              item: 0xD700,
+              item: 0xD700, // TODO: replace with Items.Water
               amount: 1,
               target: parentBlock.key
             })
             break
+          case Transactions.ACTION_OFFER:
+            pending.push({
+              item: payload.i,
+              amount: payload.q,
+              target: block.key
+            })
+            pending.push({
+              item: payload.i,
+              amount: -payload.q,
+              target: parentBlock.key
+            })
         }
       }
+      return state
+    },
 
+    trap ({ code, payload, root, state }) {
+      if (!EV_CHAT_END) return
+      const cid = btok(payload)
+      delete state[cid]
       return state
     }
   }

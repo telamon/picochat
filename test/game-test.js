@@ -1,6 +1,6 @@
 const test = require('tape')
 const { spawnSwarm, makeChat } = require('./test.helpers')
-const { next, until, mute, nfo } = require('piconuro')
+const { next, until, mute } = require('piconuro')
 const {
   feedToGraph,
   scoreGraph,

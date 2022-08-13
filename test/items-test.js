@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next, until } = require('piconuro')
+const { next, mute, until } = require('piconuro')
 const {
   spawnSwarm,
   makeChat,
@@ -9,8 +9,11 @@ const {
 } = require('./test.helpers')
 
 const {
-  ACTION_CONJURE_WATER
+  ACTION_CONJURE_WATER,
+  ACTION_OFFER
 } = require('..').Transactions
+
+const WATER = 0xD700
 
 test('Peer has an inventory of items', async t => {
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
@@ -32,15 +35,47 @@ test('Two peers mint a glass of water', async t => {
   await turnBye(bob.k, cid, 0)
 
   const aProfile = await next(alice.k.$profile(), 2)
-  const aWater = aProfile.inventory.find(i => i.id === 0xD700)
-  t.equal(aWater.id, 0xD700)
+  const aWater = aProfile.inventory.find(i => i.id === WATER)
+  t.equal(aWater.id, WATER)
   t.equal(aWater.qty, 1)
   t.ok(aWater, 'A fresh glass of water was minted')
 })
 
-test.skip('Water was given', async t => {
+// TODO: Long lost SimpleKernel/RPC issue captured.
+// this test races 2 of 10 fails when
+// G receives B's vibe before B's profile.
+test('Unordered blocks', async t => {
+  const [a, b, g] = await spawnSwarm('Alice', 'Bob', 'Gaul')
+  await makeChat(b, a)
+  t.pass('FirstChat')
+  const id = await makeChat(b, g)
+  t.pass('Second chat')
+  await Promise.all([
+    until(a.k.$chat(id), c => c.state === 'end'),
+    until(b.k.$chat(id), c => c.state === 'end'),
+    until(g.k.$chat(id), c => c.state === 'end')
+  ])
+  t.pass('finito')
+})
+
+test.only('Water was given', async t => {
   const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(bob, alice, { t: ACTION_CONJURE_WATER })
-  const bProfile = await until(bob.k.$profile(), p => p?.inventory.length)
-  t.equal(p.inventory[0].id, 0xD700, 'Alice has water')
+
+  let inv = await next(mute(bob.k.$profile(), p => p.inventory))
+  t.ok(inv[0])
+  t.equal(inv[0].id, WATER, 'Bob knows water')
+  t.equal(inv[0].qty, 1, '1 water')
+
+  await makeChat(bob, gaul, { t: ACTION_OFFER, p: { i: WATER, q: 1 } })
+
+  inv = await next(mute(bob.k.$profile(), p => p.inventory))
+  t.ok(inv[0])
+  t.equal(inv[0].id, WATER, 'Bob knows water')
+  t.equal(inv[0].qty, 0, '0 water')
+
+  inv = await next(mute(gaul.k.$profile(), p => p.inventory))
+  t.ok(inv[0])
+  t.equal(inv[0].id, WATER, 'Gaul knows water')
+  t.equal(inv[0].qty, 1, '1 water')
 })
