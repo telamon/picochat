@@ -41,9 +41,6 @@ test('Two peers mint a glass of water', async t => {
   t.ok(aWater, 'A fresh glass of water was minted')
 })
 
-// TODO: Long lost SimpleKernel/RPC issue captured.
-// this test races 2 of 10 fails when
-// G receives B's vibe before B's profile.
 test('Unordered blocks', async t => {
   const [a, b, g] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(b, a)
@@ -58,7 +55,7 @@ test('Unordered blocks', async t => {
   t.pass('finito')
 })
 
-test.only('Water was given', async t => {
+test('Water was given', async t => {
   const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(bob, alice, { t: ACTION_CONJURE_WATER })
 

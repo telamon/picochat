@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next } = require('piconuro')
+const { next, until, nfo } = require('piconuro')
 const {
   spawnSwarm,
   spawnPeer,
@@ -9,8 +9,10 @@ const {
 test('Profile expires', async t => {
   const peers = await spawnSwarm('alice', 'bob', 'charlie', 'daphne')
   const [alice] = peers
-  let profiles = Object.values(await next(s => alice.k.store.on('peers', s), 1))
-  t.equal(profiles.length, 4)
+  let profiles = await until(
+    alice.k.$peers(),
+    ps => ps.length === 3
+  )
   await alice.k._collectGarbage(Date.now() + 86400000)
   profiles = Object.values(await next(s => alice.k.store.on('peers', s), 0))
   t.equal(profiles.length, 1) // Eh what to do about own profile????

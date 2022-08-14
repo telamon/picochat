@@ -252,10 +252,10 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@telamon/picostore@^1.8.2":
-  version "1.8.2"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.8.2.tgz#45b344fab46daded290f8be9760ace11d23ccd14"
-  integrity sha512-zCHdhhBjmjuOsdS933V9lslHE5/Grb1yzZydCtDXasNjOrO7AI40ytM46jqw2qlm67tp6PjdDmWydbYA88D2hQ==
+"@telamon/picostore@^1.9.1":
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.9.1.tgz#58eb71095e24c5937b9573fbeeebfe13d8517b1b"
+  integrity sha512-uYpq1EGVs21suiSUd1gEcX2jP1GVhKuKnAWb6zNQ3Vs0wR+idfPPS+69npNCEIT0xRMdErNX4R5DthKBtm52EA==
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
@@ -1206,10 +1206,10 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-dayjs@^1.11.4:
-  version "1.11.4"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.4.tgz#3b3c10ca378140d8917e06ebc13a4922af4f433e"
-  integrity sha512-Zj/lPM5hOvQ1Bf7uAvewDaUcsJoI6JmNqmHhHl3nyumwe0XHwt8sWdOVAPACJzCebL8gQCi+K49w7iKWnGwX9g==
+dayjs@^1.11.5:
+  version "1.11.5"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.5.tgz#00e8cc627f231f9499c19b38af49f56dc0ac5e93"
+  integrity sha512-CAdX5Q3YW3Gclyo5Vpqkgpj8fSdLQcRuzfX6mC6Phy0nfJ0eGYOeS7m4mt2plDWLAtA4TqTakvbboHvUxfe4iA==
 
 debug@2.6.9, debug@^2.6.9:
   version "2.6.9"
@@ -3951,12 +3951,12 @@ picorepo@^1.4.0:
   resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.0.tgz#f6a8ed13f4c5569553e5ce99f8a99e77fce4a9be"
   integrity sha512-OjuDI7qcEYNlGj+LhBXjzYGQz0sFvaRSJUpDHWBlfJV/z94FDokFScQgfayfj/WMQg7mIZ7t/T9cFjsIuuiuMA==
 
-picostack@^1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.2.tgz#d67b4077a33745116f24e9a4d716b453580efd7b"
-  integrity sha512-+7Px2RzTgrW9oYw+pwVZdJ1DFaxsUSzoKMViG7EcKi323fUbMr5uYRLe5XyGaogG8LiYIGJN2GZRBE9leq21Mw==
+picostack@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.3.tgz#b6356be3ec98297ce130e44ab462f3fdac381ca3"
+  integrity sha512-lERgw/HlavLdIgiXMshpqjjD2oD13aKUEt5x0wUNTQm+uDt4ywZEojghi+Ant3rAnmpTO5BBTMxSI9mjcrhmrA==
   dependencies:
-    "@telamon/picostore" "^1.8.2"
+    "@telamon/picostore" "^1.9.1"
     msgpackr "^1.6.2"
     picofeed "^3.4.0"
     piconet "^3.1.1"
@@ -4453,10 +4453,10 @@ rollup-pluginutils@^2.3.1, rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@^2.77.2:
-  version "2.77.2"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.77.2.tgz#6b6075c55f9cc2040a5912e6e062151e42e2c4e3"
-  integrity sha512-m/4YzYgLcpMQbxX3NmAqDvwLATZzxt8bIegO78FZLl+lAgKJBd1DRAOeEiZcKOIOPjxE6ewHWHNgGEalFXuz1g==
+rollup@^2.77.3:
+  version "2.77.3"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.77.3.tgz#8f00418d3a2740036e15deb653bed1a90ee0cc12"
+  integrity sha512-/qxNTG7FbmefJWoeeYJFbHehJ2HNWnjkAFRKzWN/45eNBBF/r8lo992CwcJXEzyVxs5FmfId+vTSTQDb+bxA+g==
   optionalDependencies:
     fsevents "~2.3.2"
 
