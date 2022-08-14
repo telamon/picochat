@@ -113,14 +113,14 @@ createDebug.formatters.H = v => {
   return v.toString('hex')
 }
 
-// Binary to obj-key codec
-function btok (b) {
+// KEY codec: Buffer<->String
+function btok (b) { // 'base64url' not supported in browser :'(
   assert(Buffer.isBuffer(b), 'Expected Buffer')
-  return b.toString('base64url')
+  return b.toString('hex' || 'base64url')
 }
 function ktob (s) {
   assert(typeof s === 'string', 'Expected string')
-  return Buffer.from(s, 'base64url')
+  return Buffer.from(s, 'hex' || 'base64url')
 }
 
 module.exports = {

@@ -4,19 +4,22 @@ drinks:
     time: 20
     short: Cold, quenching
     price: 200
+    image: 🍺
 
   - id: 0xD102
     name: Kosmo
     time: 18
-    short: Sweet, intoxicating
+    short: Sweet
     price: 300
     mod: Random perk
+    image: 🍹
 
   - id: 0xD103
-    name: Ale
+    name: White
     time: 22
-    short: The new lager
+    short: Dry refreshing
     price: 320
+    image: 🍷
 
   - id: 0xD104
     name: Stout
@@ -24,6 +27,7 @@ drinks:
     price: 500
     mod: silence
     short: Liquid darkness
+    image: 🍫
 
   - id: 0xD105
     name: Sparkly Wine
@@ -31,26 +35,33 @@ drinks:
     mod: 1.5X Rewards
     price: 600
     short: Proof of Prestige
+    image: 🍾
+
+misc:
+  - id: 0xD100
+    name: Tip
+    image: 🤌
+
+  - id: 0xD001
+    time: 60
+    name: Verified Badge
+    short: Not a robot
+    image: 🏅
 
   - id: 0xD700
     name: Water
     price: 0
     short: The developers best friend
-
-misc:
-  - id: 0xD100
-    name: Tip
-
-  - id: 0xD001
-    name: Verified Badge
+    image: 🚰
 
 gear:
   - id: 0xD200
     name: B.A.B.
     slot: head
     price: 1200
-    mod: 1.1X Rewards per win (max 5 stacks), 0.5X if lose
+    mod: 1.1X rewards
     short: Never leave home without it
+    image: ☮️
 
   - id: 0xD201
     name: Fades
@@ -58,4 +69,12 @@ gear:
     price: 3800
     mod: Silenced, Timestrech 3X
     short: Lean back and enjoy your stay
+    image: 🕶️
 
+  - id: 0xD202
+    name: Boom Deck D202
+    slot: hands
+    price: 240000
+    mod: DJ mode
+    short: Play the song of your people
+    image: 📻

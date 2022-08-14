@@ -44,7 +44,7 @@ function InventorySlice () {
       const pid = btok(HEAD)
       const data = decodeBlock(block.body)
       // initialize peer inventory
-      const inv = initInv(pid)
+      const inv = initInv(state, pid)
       for (const item of data.items) {
         const slot = initSlot(inv, item.id)
         slot.qty++

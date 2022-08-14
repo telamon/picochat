@@ -20,8 +20,16 @@ import BinaryImage from './components/BinaryImage.svelte'
 import DebugSelector from './components/DebugSelector.svelte'
 const _loading = boot()
 const conn = Connections()
-const showBar = derived(state, s => s.hasKey && s.hasProfile)
-const showDev = writable(true)
+const showBar = derived([state, routeName], ([s, name]) =>
+  // Disable during profile setup
+  s.hasKey && s.hasProfile &&
+  // Disable on shop page
+  name !== 'shop'
+)
+const showDev = derived(routeName, name =>
+  // Disable on shop page
+  name !== 'shop'
+)
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
@@ -135,14 +143,18 @@ onMount(() =>
       <Icon id="gfx-shop" nofill/>
     </round>
     {#if !$state.entered}
-      <stat class="flex column center xcenter outside noselect btn-enter" on:click={enterPub}>
+      <stat class="flex column center xcenter outside noselect btn-enter"
+        on:click={enterPub}>
         <h3 class="muted">--:--</h3>
-        <h6 class="primary">enter</h6>
+        <h6 class="primary">start</h6>
       </stat>
     {:else}
-      <stat class="flex column center xcenter inside noselect">
-        <h3 class="primary"><Timer expiresAt={$profile.expiresAt} /></h3>
-        <h6 class="muted">exit</h6>
+      <stat class="flex column center xcenter inside noselect"
+        on:click={() => navigate('wallet')}>
+        <h3 class="primary">
+         <Timer expiresAt={$profile.expiresAt} format='¤Hm' />
+        </h3>
+        <h6 class="muted">wallet</h6>
       </stat>
     {/if}
     <round class="flex column center xcenter noselect" on:click={() => navigate('msgs')}>

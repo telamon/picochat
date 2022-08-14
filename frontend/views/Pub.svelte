@@ -35,7 +35,7 @@ function sendVibe (pk) {
     Shoot!
   </p>
   {#if !$state.entered}
-    Press the <strong>Enter</strong> button to play.
+    Press the <strong>START</strong> button to play.
   {:else}
     {#if !$cooldowns.vibe}
       <small>Your 〰️🔫 is primed and loaded!</small>
@@ -45,11 +45,11 @@ function sendVibe (pk) {
   {/if}
   <div class="row space-between xcenter">
     <h6 class="nogap">Patrons {$peers.length}</h6>
-    <a role="button"
+    <b role="button"
        class="outline hpad vgap"
        on:click={() => $showFiltersDialog = true}>
       Filter
-    </a>
+    </b>
   </div>
   <peers class="row wrap space-between">
   {#each $peers as peer}
@@ -66,11 +66,11 @@ function sendVibe (pk) {
             <small>Waiting</small>
             <Timer expiresAt={$vibes.find(v => v.peerId?.equals(peer.pk)).expiresAt} format="mm:ss" />
           {:else if $state.entered && !$cooldowns.vibe}
-            <a role="button"
+            <b role="button"
               class="nofill"
               on:click={() => sendVibe(peer.pk)}>
               <Icon id="gfx-vibe" />
-            </a>
+            </b>
           {/if}
         </div>
       </div>
@@ -105,8 +105,8 @@ function sendVibe (pk) {
           <input type="range" min="0" max="100" value="100" id="distance" name="distance">
         </label>
         <footer>
-          <a role="button">reset</a>
-          <a role="button" on:click={() => $showFiltersDialog = false}>filter</a>
+          <b role="button">reset</b>
+          <b role="button" on:click={() => $showFiltersDialog = false}>filter</b>
         </footer>
       </article>
     </Dialog>

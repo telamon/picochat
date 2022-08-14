@@ -81,11 +81,30 @@ h4, h5, h6, button, *[role=button] {
   text-transform: uppercase;
 }
 
+/* Colorful buttons */
+button.green, *[role=button].green {
+  background-color: var(--leaf);
+  border-color: var(--leaf);
+}
+button.purple, *[role=button].purple {
+  background-color: var(--wizardry);
+  border-color: var(--wizardry);
+}
+button.blue, *[role=button].red {
+  background-color: var(--sorcery);
+  border-color: var(--sorcery);
+}
+button.red, *[role=button].red {
+  background-color: var(--blood);
+  border-color: var(--blood);
+}
+
+
 /* global components */
 
 /** bottom navbar */
 :root { --bar-height: 4em; }
-main.has-bar { padding-bottom: var(--bar-height); }
+main.has-bar, .view-shop main { padding-bottom: var(--bar-height); }
 bar {
   background-color: var(--pitch);
   position: fixed;
@@ -240,6 +259,7 @@ article.peer legend overlay {
     "nw ne"
     "w e"
     "sw se";
+  background: linear-gradient(rgba(0,0,0,0) 80%, rgba(0,0,0,0.7) 100%);
 }
 
 article.peer legend h2, article.peer legend h3 {
@@ -351,7 +371,7 @@ balance black {
   background-color: var(--p2);
   color: var(--p1);
 }
-error { color: var(--blood); }
+error, .error { color: var(--blood); }
 /* Chromatic pearl effect
  *margin: 5px;
   box-shadow: 0 0 5px var(--wizardry);

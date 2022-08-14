@@ -1,5 +1,4 @@
 <script>
-export let q
 import {
   kernel,
   keychain,
@@ -10,7 +9,6 @@ import {
   purge,
   saveBackup
 } from '../api'
-import { requestVerificationStamp } from '../capi'
 import { navigate } from '../router'
 import { writable } from 'svelte/store'
 import Geohash from 'latlon-geohash'
@@ -32,10 +30,6 @@ const dirty = writable(true)
 // Profile preview dialogue
 const profile = Profile(true)
 const showPreviewDialog = writable(false)
-// Email verification
-const showVerifyDialog = writable(!!q?.verifyEmail)
-const email = writable('')
-const badgeStatus = writable(false)
 
 async function save () {
   await updateProfile({
@@ -81,16 +75,6 @@ async function getCurrentGeohash () {
   }
 }
 
-function requestStamp () {
-  $badgeStatus = true
-  $_waitRequestStamp = requestVerificationStamp($email)
-    .catch(err => {
-      $badgeStatus = false
-      throw err
-    })
-}
-
-let _waitRequestStamp = writable(Promise.resolve(''))
 let _loading = load()
 </script>
 <profile-view class="block container">
@@ -160,37 +144,6 @@ let _loading = load()
             <!-- <b role="button" on:click={() => reloadStore()}>reload</b> -->
             <b role="button" on:click={saveBackup}>backup</b>
             <b role="button" on:click={() => $showKeyDialog = false}>close</b>
-          </div>
-        </footer>
-      </article>
-    </Dialog>
-  {/if}
-
-  {#if $showVerifyDialog}
-    <Dialog open={true} on:fade={() => $showVerifyDialog = false}>
-      <article>
-        <header><h5>Verify Profile</h5></header>
-        <label for="email">
-          <h5>email</h5>
-          <input type="email" bind:value={$email} placeholder="name@host.tld">
-        </label>
-        <div class="row center xcenter">
-          {#await $_waitRequestStamp}
-            <p aria="loading">Requesting badge</p>
-          {:then message}
-            <p>{message}</p>
-          {:catch err}
-            <error>{err.message}</error>
-          {/await}
-        </div>
-        <footer>
-          <div class="row space-between">
-            <b role="button" on:click={() => $showVerifyDialog = false}>close</b>
-            <b role="button"
-              on:click={requestStamp}
-              disabled={$badgeStatus ? 'true' : null}>
-              verify
-            </b>
           </div>
         </footer>
       </article>

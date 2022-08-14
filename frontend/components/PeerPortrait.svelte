@@ -25,8 +25,9 @@ if (kernel.pk) {
                 attr:title = item.short
                 img = item.gfx
                 on:click => $showItemPopup(item.id) ?
+                <code>{JSON.stringify(item)}</code>
               -->
-              <code>{JSON.stringify(item)}</code>
+              {ITEMS[item.id].image}
             {/each}
           </h2>
         </div>

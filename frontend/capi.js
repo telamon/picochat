@@ -11,6 +11,9 @@
  * Don't touch this file, will move it out of the way later :/
  */
 import { kernel } from './api'
+import { until } from 'piconuro'
+import Feed from 'picofeed'
+import debug from 'debug'
 
 // eslint-disable-next-line no-constant-condition
 const baseUri = '__ENV__' === 'dev'
@@ -44,4 +47,50 @@ export async function postFeed (uri, feed, options = {}) {
     throw new Error(`[${res.status}] ${data.error}`)
   }
   return data
+}
+
+export async function getPickle (uri, options = {}) {
+  const headers = new window.Headers()
+  const raw = {
+    // Accept: 'pico/feed, application/json',
+    ...(options?.headers || {})
+  }
+  for (const key in raw) headers.append(key, raw[key])
+  const res = await fetch(uri, {
+    method: 'GET',
+    headers
+  })
+  const type = res.headers.get('Content-Type')
+  // console.log('Response type', type)
+  let data
+  if (/application\/json/.test(type)) {
+    data = await res.json()
+  }
+  if (!res.ok) {
+    throw new Error(`[${res.status}] ${data?.error || ''}`)
+  }
+  if (!data?.feed) throw new Error('Feed missing')
+  return Feed.from(data.feed)
+}
+
+export async function createCheckout (cart) {
+  console.log('checkout cart', cart)
+  const p = await until(kernel.$profile(), p => p.state !== 'loading')
+  if (p.state !== 'active') throw new Error('Feed busy')
+  const f = await kernel.feed()
+  const seq = (await kernel.seq()) + 1
+  cart = cart.map(i => ({ id: i.id, q: i.qty }))
+  f.append(kernel.constructor.encodeBlock('cart', seq, { items: cart }), kernel._secret)
+  const res = await postFeed(baseUri + '/v0/checkout', f)
+  window.location = res.url
+  return res.url
+}
+
+export async function redeem (sid, success) {
+  const crate = await getPickle(baseUri + '/v0/checkout/redeem/' + sid)
+  const m = await kernel.dispatch(crate, true)
+  if (!m.length) {
+    throw new Error('Merge Failed')
+  }
+  return 'Enjoy!'
 }
