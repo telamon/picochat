@@ -1,5 +1,5 @@
 const test = require('tape')
-const { next, until, nfo } = require('piconuro')
+const { next, until } = require('piconuro')
 const {
   spawnSwarm,
   spawnPeer,

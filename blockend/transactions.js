@@ -7,6 +7,7 @@ module.exports = class Transactions {
   static validate (transaction) {
     if (!transaction) throw new Error('Must be an object')
     const { t: type, p: payload } = transaction
+    let p
     switch (type) {
       case Transactions.ACTION_CONJURE_WATER:
         assert(
@@ -14,16 +15,18 @@ module.exports = class Transactions {
           'PayloadNotSupported'
         )
         break
+
       case Transactions.ACTION_OFFER: {
         const { i: item, q: quantity } = payload
         assert(isPositiveInteger(item), 'p.i: ItemId missing')
         // TODO: assert Item is known
         assert(isInteger(quantity), 'p.q: Quantity missing')
+        p = { i: item, q: quantity }
       } break
       default:
         assert(false, `UnknownTransaction: ${type}`)
     }
-    return { t: type, p: payload }
+    return { t: type, p }
   }
 }
 

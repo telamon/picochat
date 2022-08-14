@@ -75,4 +75,11 @@ test('Water was given', async t => {
   t.ok(inv[0])
   t.equal(inv[0].id, WATER, 'Gaul knows water')
   t.equal(inv[0].qty, 1, '1 water')
+
+  try { // Alice has no water to give, but tries to anyway
+    await doMatch(alice, gaul, { t: ACTION_OFFER, p: { i: WATER, q: 5 } })
+    t.fail('Invalid block was accepted')
+  } catch (err) { t.equal(err.message, 'InvalidBlock: InventoryEmpty') }
+  inv = await next(mute(gaul.k.$profile(), p => p.inventory))
+  t.equal(inv[0].qty, 1, '1 water')
 })

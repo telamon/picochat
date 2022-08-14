@@ -14,6 +14,7 @@ const {
   TYPE_VIBE_RESP,
   VIBE_REJECTED
 } = require('../util')
+const assert = require('nanoassert')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
 const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
@@ -48,7 +49,7 @@ function InventorySlice () {
         const slot = initSlot(inv, item.id)
         slot.qty++
         slot.expiresAt = item.expiresAt
-        // TODO: schedule perishables
+        // TODO: schedule perishables to expire
         /*
         if (item.expiresAt) {
           schedule(item.expiresAt, `item|${item.id}|${pid}`)
@@ -66,7 +67,7 @@ function InventorySlice () {
       for (const op of pending) {
         const inv = initInv(state, btok(op.target))
         const slot = initSlot(inv, op.item)
-        slot.qty += op.amount
+        slot.qty += op.qty
       }
       return state
     }
@@ -89,7 +90,7 @@ function initSlot (inv, id) {
 }
 
 // A slice holding pending transactions
-// and applying them on timelock break
+// and applying them on successfull timelock break
 function TransactionsSlice () {
   return {
     name: 'trs',
@@ -98,16 +99,27 @@ function TransactionsSlice () {
 
     filter ({ block, parentBlock, root, state }) {
       const { type, box } = decodeBlock(block.body)
+
       if (type !== TYPE_VIBE_RESP) return true
       const rejected = VIBE_REJECTED.equals(box)
       if (rejected) return true
-      const { t } = decodeBlock(parentBlock.body)
+      const { t: transactions } = decodeBlock(parentBlock.body)
       try {
-        for (const x in t) Transactions.validate(x)
-      } catch (err) {
-        return err.messsage
-      }
-      // TODO: ACTION_OFFER, validate deductable quantities.
+        for (const ta of transactions) {
+          const { t: type, p: payload } = Transactions.validate(ta)
+          switch (type) {
+            case Transactions.ACTION_OFFER: {
+              const sourcePid = btok(parentBlock.key)
+              const inv = root.inv[sourcePid]
+              assert(inv, 'InventoryEmpty')
+              const item = inv[payload.i]
+              assert(item, 'ItemNotHeld')
+              assert(item.qty - payload.q >= 0, 'NegativeQuantity')
+            } break
+          }
+        }
+      } catch (err) { return err.message }
+
       return false
     },
 
@@ -120,19 +132,19 @@ function TransactionsSlice () {
           case Transactions.ACTION_CONJURE_WATER:
             pending.push({
               item: 0xD700, // TODO: replace with Items.Water
-              amount: 1,
+              qty: 1,
               target: parentBlock.key
             })
             break
           case Transactions.ACTION_OFFER:
             pending.push({
               item: payload.i,
-              amount: payload.q,
+              qty: payload.q,
               target: block.key
             })
             pending.push({
               item: payload.i,
-              amount: -payload.q,
+              qty: -payload.q,
               target: parentBlock.key
             })
         }
