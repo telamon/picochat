@@ -377,3 +377,26 @@ error, .error { color: var(--blood); }
   box-shadow: 0 0 5px var(--wizardry);
   border: 5px solid #ffc1c1;
 */
+
+
+/** wallet **/
+wallet-view inventory {
+  display: block;
+  margin: 1em;
+}
+wallet-view h1 small {
+  font-size: 0.6em;
+}
+wallet-view item {
+  --slot: 50px;
+  display: inline-block;
+  width: var(--slot);
+  height: var(--slot);
+  border: 2px solid var(--grave);
+  border-radius: 4px;
+  margin: 1px;
+  background-color: var(--ash);
+  text-align: center;
+  line-height: var(--slot);
+  vertical-align: middle;
+}

@@ -26,7 +26,19 @@ onMount(() => {
     clearInterval(intervalId)
   }
 })
+function ddFormat(millis) {
+  const dd = millis / 1000 / 60
+  switch (format) {
+    case '¤': return Math.floor(dd)
+    case '¤¤': return `${Math.floor(dd)}<small>${(dd- Math.floor(dd)).toFixed(1).substr(1)}</small>`
+    case '¤¤¤': return `${Math.floor(dd)}<small>${(dd- Math.floor(dd)).toFixed(2).substr(1)}</small>`
+  }
+}
 </script>
 <timer>
-{dayjs.duration($timeLeft > 0 ? $timeLeft : 0).format(format)}
+{#if /^¤+$/.test(format)}
+  {@html ddFormat($timeLeft > 0 ? $timeLeft : 0)}
+{:else}
+  {dayjs.duration($timeLeft > 0 ? $timeLeft : 0).format(format)}
+{/if}
 </timer>

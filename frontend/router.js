@@ -10,6 +10,7 @@ import Messages from './views/Messages.svelte'
 import Chat from './views/Chat.svelte'
 import About from './views/About.svelte'
 import Append from './views/Append.svelte'
+import Wallet from './views/Wallet.svelte'
 
 const [$name, setName] = writable()
 const [$id, setId] = writable()
@@ -24,6 +25,7 @@ const $view = gate(mute($name, name => {
     case 'about': return About
     case 'keygen': return Keygen
     case 'append': return Append
+    case 'wallet': return Wallet
     case 'pub': default: return Pub
   }
 }))

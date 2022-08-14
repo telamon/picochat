@@ -6,7 +6,7 @@ import { requestVerificationStamp, createCheckout, redeem } from '../capi'
 import { navigate } from '../router'
 import Dialog from '../components/Dialog.svelte'
 
-const profile = Profile(true)
+const profile = Profile()
 const hasBadge = derived(profile, p => p?.hasBadge)
 const badge = ITEMS[0xD001]
 
