@@ -5,14 +5,26 @@ drinks:
     short: Cold, quenching
     price: 200
     image: 🍺
-
+    type: consumable
+    desc: |-
+      Freshly brewed from the finest grains.
+      There's always more
   - id: 0xD102
     name: Kosmo
     time: 18
-    short: Sweet
+    short: Sweet, intoxicating
     price: 300
     mod: Random perk
     image: 🍹
+    type: consumable
+    desc: |-
+      Applies one random effect for the duration of the drink.
+
+      - One part moonlight
+      - Two parts autumn honey
+      - An orange stolen from a dream
+      - A leaf caught midair
+      You can barely taste the vodka
 
   - id: 0xD103
     name: White
@@ -20,6 +32,7 @@ drinks:
     short: Dry refreshing
     price: 320
     image: 🍷
+    type: consumable
 
   - id: 0xD104
     name: Stout
@@ -28,6 +41,13 @@ drinks:
     mod: silence
     short: Liquid darkness
     image: 🍫
+    type: consumable
+    desc: |-
+      Vibe disabled
+
+      The bitterness is intense with aftertones of
+      dark chocolate.
+      Not a lager
 
   - id: 0xD105
     name: Sparkly Wine
@@ -36,23 +56,43 @@ drinks:
     price: 600
     short: Proof of Prestige
     image: 🍾
+    type: consumable
 
 misc:
   - id: 0xD100
     name: Tip
-    image: 🤌
+    image: 🙏
+    price: 100 # FE-Workaround, is user-customizable
+    short: Boost feature development
+    type: passive
+    desc: |-
+      DecentLabs - Compressing the internet to fit in the palm of your hand.
+
+      Thank you for playing.
 
   - id: 0xD001
     time: 60
     name: Verified Badge
     short: Not a robot
+    type: passive
     image: 🏅
+    desc: |-
+      Alice was a robot but Bob wasn't.
+
+      Don't worry we don't store your email for long.
 
   - id: 0xD700
     name: Water
+    time: 60
     price: 0
     short: The developers best friend
     image: 🚰
+    type: consumable
+    desc: |-
+      Lorem ipsum dolor sit amet went on a long journey
+      but lorem forgot to bring a snack. So amet said
+      "Don't worry bruh, I got you, I brought enough chocolate to bring down the entire mountain!"
+      And so the adventure continued.
 
 gear:
   - id: 0xD200
@@ -62,6 +102,13 @@ gear:
     mod: 1.1X rewards
     short: Never leave home without it
     image: ☮️
+    type: active
+    desc: |-
+      Consecutive wins increases rewards +0.3X stacks upto 3X.
+      But lose and you'll lose your stacks and
+      get no reward for that game.
+
+      Life's a gamble trust Cosmos
 
   - id: 0xD201
     name: Fades
@@ -70,11 +117,52 @@ gear:
     mod: Silenced, Timestrech 3X
     short: Lean back and enjoy your stay
     image: 🕶️
+    type: active
+    desc: |-
+      Vibe disabled and time flows 3X slower while active.
+      Relax, listen to the music, you're not in a hurry.
+
+  # TODO: port earlier prototypes to pico
+  - id: 0xD203
+    name: Tic Tac Nano
+    price: 500
+    short: No talk, Play!
+    image: ♟️
+    type: collectible
+    desc: |-
+      Attach to vibe to challenge someone to a round of tic-tac-toe.
+
+  #- id: 0xD204
+    #name: Super POH Turbo II
+    #short: Insert Coin
+    #price: 1200
+    #image: 🎮
+    #type: collectible
+    #desc: |-
+      #Play a nerve wrecking arcade featuring unique characters and combos.
+
+  #- id: 0xD205
+    #name: Xorcery Offline
+    #short: Crypts of Cryptography
+    #image: ⚔️
+    #price: 6000
+    #type: collectible
+    #desc: |-
+      #Rougelike dungeon crawler, form your party and
+      #explore the Crypts of Cryptography finding treasures
+      #and monsters.
+
 
   - id: 0xD202
-    name: Boom Deck D202
+    name: Boom Deck 202
     slot: hands
     price: 240000
-    mod: DJ mode
+    mod: DJ mode | TIMEFLOW 3X
     short: Play the song of your people
     image: 📻
+    type: active
+    desc: |-
+      Take the DJ seat and broadcast your tunes.
+      But beware! Time flows 3X faster while active 😱
+      Make sure to collect tips.
+

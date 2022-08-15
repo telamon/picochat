@@ -79,7 +79,9 @@ export async function createCheckout (cart) {
   if (p.state !== 'active') throw new Error('Feed busy')
   const f = await kernel.feed()
   const seq = (await kernel.seq()) + 1
-  cart = cart.map(i => ({ id: i.id, q: i.qty }))
+  cart = cart.map(i => i.id !== 0xD100
+    ? ({ id: i.id, q: i.qty })
+    : ({ id: i.id, q: 1, a: i.qty * 100 }))
   f.append(kernel.constructor.encodeBlock('cart', seq, { items: cart }), kernel._secret)
   const res = await postFeed(baseUri + '/v0/checkout', f)
   window.location = res.url

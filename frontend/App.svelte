@@ -27,8 +27,7 @@ const showBar = derived([state, routeName], ([s, name]) =>
   name !== 'shop'
 )
 const showDev = derived(routeName, name =>
-  // Disable on shop page
-  name !== 'shop'
+  name === 'profile'
 )
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
@@ -152,7 +151,7 @@ onMount(() =>
       <stat class="flex column center xcenter inside noselect"
         on:click={() => navigate('wallet')}>
         <h3 class="primary">
-         <Timer expiresAt={$profile.expiresAt} format='¤Hm' />
+         ¤<Timer expiresAt={$profile.expiresAt} format='¤' />
         </h3>
         <h6 class="muted">wallet</h6>
       </stat>

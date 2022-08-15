@@ -71,6 +71,7 @@
 
 root [data-theme="dark"] {
   background-color: var(--pitch);
+  display: block;
 }
 /*-- END OF Pico-css config --*/
 
@@ -214,7 +215,7 @@ idsqr {
 .row, .column, .col { display: flex; } /* TODO: move this rule to flexi.css */
 /*---- Pico CSS unpad/repad ----*/
 .no-margin, .nogap { margin: unset; }
-.nopad, *[role=button] { padding: 0; }
+.nopad , *[role=button].nopad{ padding: 0; }
 .pad { padding: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 .hpad, *[role=button]:not(.nopad) { padding: 0 var(--block-spacing-horizontal); }
 .vpad { padding: var(--block-spacing-vertical) 0; }
@@ -323,7 +324,7 @@ health svg.icon.empty { fill: var(--grave); }
 
 /*** About page ***/
 logo {
-  --size: 80vw;
+  --size: 200px;
   padding: 0;
   margin: 0;
   display: inline-block;
@@ -340,7 +341,6 @@ logo {
 logo svg.icon {
   vertical-align: unset;
   margin-top: -1px; /* wtf */
-  --size: 80vw;
   width: var(--size);
   height: var(--size);
 }
@@ -378,25 +378,52 @@ error, .error { color: var(--blood); }
   border: 5px solid #ffc1c1;
 */
 
-
+wallet-view {
+  --slot: 50px;
+  --slot-gap: 1px;
+  /* slot bounding box */
+  --sb: calc(var(--slot) + var(--slot-gap) * 2);
+}
 /** wallet **/
 wallet-view inventory {
   display: block;
   margin: 1em;
+  min-height: calc(var(--sb) * 5);
+  width: calc(var(--sb) * 6);
+
+  background-image: radial-gradient(circle, var(--ash) 66%, var(--bone) 0%);
+  background-repeat: repeat;
+  background-position: 0 0, var(--sb) var(--sb);
+  background-size: var(--sb) var(--sb);
 }
 wallet-view h1 small {
   font-size: 0.6em;
 }
-wallet-view item {
-  --slot: 50px;
+wallet-view item[role='button'] {
   display: inline-block;
   width: var(--slot);
   height: var(--slot);
-  border: 2px solid var(--grave);
   border-radius: 4px;
-  margin: 1px;
-  background-color: var(--ash);
+  margin: var(--slot-gap);
   text-align: center;
   line-height: var(--slot);
   vertical-align: middle;
+  padding: 0 !important;
+  /*
+  background-color: var(--ash);
+  border: 1px solid var(--grave);
+  color: var(--bone);*/
+}
+wallet-view item emo {
+  box-shadow: 0 0 var(--blurSize) var(--chalk);
+  border-radius: 50%;
+}
+wallet-view item.misc emo {
+  box-shadow: 0 0 var(--blurSize) var(--leaf);
+}
+wallet-view item.drinks emo {
+  box-shadow: 0 0 var(--blurSize) var(--sorcery);
+}
+wallet-view item.gear emo {
+  box-shadow: 0 0 var(--blurSize) var(--wizardry);
 }

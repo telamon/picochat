@@ -5,11 +5,14 @@ import { Profile, INVENTORY, ITEMS } from '../api'
 import { requestVerificationStamp, createCheckout, redeem } from '../capi'
 import { navigate } from '../router'
 import Dialog from '../components/Dialog.svelte'
+import Timer from '../components/Timer.svelte'
+import ItemDescription from '../components/ItemDescription.svelte'
 
 const profile = Profile()
 const hasBadge = derived(profile, p => p?.hasBadge)
 const badge = ITEMS[0xD001]
 
+const showItem = writable(false)
 // Email verification
 const showVerifyDialog = writable(false)
 const email = writable('')
@@ -64,16 +67,19 @@ function doRedeem () {
   const sid = q.session
   $waitRedeem = redeem(sid, success)
 }
+function decentralCheckout (item) {
+  console.info('TODO: Network purchases')
+}
 </script>
 <shop-view data-theme="dark">
   <splash class="column xcenter">
     <img src="/gfx/shop.jpg" alt="The Bar"/>
   </splash>
   <section class="block container">
-    <h1 class="text-center">The Bartender</h1>
+    <h1 class="text-center">Bar</h1>
     <drinks>
       <!-- BADGE LINE -->
-      <item class="drink row xcenter">
+      <item class="drink row xcenter" on:click={() => $showItem = badge}>
         <iimage>{badge.image}</iimage>
         <description class="column xstart grow2 space-between">
           <h3>{badge.name}</h3>
@@ -82,7 +88,7 @@ function doRedeem () {
         </description>
         <buy class="column center">
           <button disabled={$hasBadge} class="green"
-            on:click={() => $showVerifyDialog = true}>
+            on:click|stopPropagation={() => $showVerifyDialog = true}>
             free
           </button>
         </buy>
@@ -96,7 +102,7 @@ function doRedeem () {
       {/if}
 
       {#each INVENTORY.drinks as drink}
-        <item class="drink row xcenter">
+        <item class="drink row xcenter" on:click={() => $showItem = drink}>
           <iimage>{drink.image}</iimage>
           <description class="column xstart grow2 space-between">
             <h3>{drink.name}</h3>
@@ -110,7 +116,7 @@ function doRedeem () {
           </description>
           <buy class="column center">
             <button class="blue" disabled={!$hasBadge}
-              on:click={() => addCart(drink.id)}>
+              on:click|stopPropagation={() => addCart(drink.id)}>
               € {(drink.price / 100)}
             </button>
           </buy>
@@ -121,7 +127,7 @@ function doRedeem () {
     <h2 class="text-center nogap">Gear</h2>
     <gear>
       {#each INVENTORY.gear as item}
-        <item class="item row xcenter">
+        <item class="item row xcenter" on:click={() => $showItem = item}>
           <iimage>{item.image}</iimage>
           <description class="column xstart grow2 space-between">
             <h3>{item.name}</h3>
@@ -133,7 +139,9 @@ function doRedeem () {
             <short>{item.short}</short>
           </description>
           <buy class="column center">
-            <button>¤ {Math.ceil(item.price / 100)}</button>
+            <button on:click|stopPropagation={() => decentralCheckout(i)}>
+              ¤ {Math.ceil(item.price / 100)}
+            </button>
           </buy>
         </item>
       {/each}
@@ -200,6 +208,7 @@ function doRedeem () {
           <h3 class="text-right">
             Sum € {($cartSum / 100).toFixed(2)}
           </h3>
+          <b role="button" on:click={() => addCart(0xD100)}>Add tip</b>
         {#await $checkoutPromise}
           <h2 aria-busy="true" class="nogap text-center">Loading...</h2>
         {:then url}
@@ -255,11 +264,35 @@ function doRedeem () {
       </article>
     </Dialog>
   {/if}
+  {#if $showItem}
+    <Dialog open={true} on:fade={() => $showItem = false}>
+      <article>
+        <ItemDescription id={$showItem.id} />
+        <footer class="row space-between">
+          <button class="hgap" on:click={() => $showItem = false}>ok</button>
+          {#if $showItem.id < 0xD200 && $showItem.id >= 0xD100}
+            <button class="hgap blue"
+              disabled={!$hasBadge}
+              on:click={() => { addCart($showItem.id); $showItem = false; }}>
+              € {($showItem.price / 100)}
+            </button>
+          {:else if $showItem.id >= 0xD200 && $showItem.price}
+            <button class="hgap red"
+              on:click={() => { decentralCheckout($showItem); $showItem = false; }}>
+              ¤ {($showItem.price / 100)}
+            </button>
+          {/if}
+        </footer>
+      </article>
+    </Dialog>
+  {/if}
   <bar class="flex row space-between xcenter">
-    <div class="flex row center xcenter">
-      <button class="round" on:click={() => navigate('/')}>back</button>
+    <div>
+      <button class="nogap" on:click={() => navigate('/')}>back</button>
     </div>
-    <h3 class="stat nopad nogap">¤ {Math.floor(Math.max($profile.expiresAt - Date.now(), 0) / 1000)}</h3>
+    <h3 class="stat nopad nogap">
+      ¤<Timer expiresAt={$profile.expiresAt} format='¤' />
+    </h3>
 
     <h3 class="nopad nogap" on:click={() => $showCartDialog = !$showCartDialog}>
       🛒 {$cartQty}
@@ -307,5 +340,9 @@ function doRedeem () {
     max-height: 5em;
     overflow: scroll;
   }
+  bar {
+    border-top: 1px solid var(--slate);
+  }
+
 </style>
 
