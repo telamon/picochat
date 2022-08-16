@@ -5,7 +5,7 @@
  * Like a barcode-qr scan receiver.
  */
 export let id
-import { Feed } from 'picostack'
+import { Feed, SimpleKernel } from 'picostack'
 import { mute, init } from 'piconuro'
 import { nId, navigate } from '../router'
 import { svlt, kernel } from '../api'
@@ -16,17 +16,21 @@ const merge = svlt(
       if (!pickle) return { loading: true }
       const foreign = Feed.from(pickle)
 
+      const lType =  SimpleKernel.decodeBlock(foreign.last.body).type
       const hasBlock = !!(await kernel.repo.readBlock(foreign.last.sig))
-
       let error = null
       let imported = false
       if (hasBlock) {
         error = 'Already merged'
+        if (lType === 'items') navigate('shop')
       } else {
         try {
           const mutated = await kernel.dispatch(foreign, true)
           if (!mutated.length) throw new Error('Rejected by kernel')
-          else imported = true
+          else {
+            imported = true
+            if (lType === 'items') navigate('shop')
+          }
         } catch (err) {
           console.error(err)
           error = err.message

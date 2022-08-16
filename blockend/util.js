@@ -24,6 +24,7 @@ const TYPE_VIBE_RESP = 'vibe-response' // <3 / </3
 const TYPE_MESSAGE = 'message'
 const TYPE_BYE = 'bye'
 const TYPE_BYE_RESP = 'byebye'
+const TYPE_ITEMS = 'items' // Delivery from Bartender
 
 // Interrupts (internal lowlevel events)
 // Yes.. they look scary cause they probably are. :/
@@ -133,6 +134,7 @@ module.exports = {
   TYPE_MESSAGE,
   TYPE_BYE,
   TYPE_BYE_RESP,
+  TYPE_ITEMS,
   EV_CHAT_END,
   VIBE_REJECTED,
   PASS_TURN,

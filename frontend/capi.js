@@ -22,9 +22,8 @@ const baseUri = '__ENV__' === 'dev'
 
 export async function requestVerificationStamp (email) {
   const f = await kernel.feed()
-  const res = await postFeed(baseUri + '/v0/verify', f, {
-    headers: { 'X-Email-Address': email }
-  })
+  f.append(kernel.constructor.encodeBlock('badge-plz', await kernel.seq(), { email }), kernel._secret)
+  const res = await postFeed(baseUri + '/v0/verify', f)
   return res.message
 }
 

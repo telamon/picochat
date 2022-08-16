@@ -4,7 +4,7 @@ import { Profile, ITEMS } from '../api'
 import Timer from '../components/Timer.svelte'
 import Dialog from '../components/Dialog.svelte'
 import ItemDescription from '../components/ItemDescription.svelte'
-const profile = Profile(true)
+const profile = Profile()
 const inventory = derived(profile, p => {
   // dev-inventory
   // return Object.keys(ITEMS).map(id => ({ id, qty: 1}))

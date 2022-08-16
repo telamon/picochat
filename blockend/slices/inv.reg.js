@@ -12,13 +12,13 @@ const {
   decodeBlock,
   EV_CHAT_END,
   TYPE_VIBE_RESP,
+  TYPE_ITEMS,
   VIBE_REJECTED
 } = require('../util')
 const assert = require('nanoassert')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
 const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
-const TYPE_ITEMS = 'items'
 
 // Shit this is so confusing already.
 function InventorySlice () {
