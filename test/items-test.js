@@ -55,7 +55,7 @@ test('Unordered blocks', async t => {
   t.pass('finito')
 })
 
-test.skip('Water is tradeable', async t => {
+test('Water is tradeable', async t => {
   const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(bob, alice, { t: ACTION_CONJURE_WATER })
 
@@ -65,9 +65,11 @@ test.skip('Water is tradeable', async t => {
   t.equal(inv[0].qty, 1, '1 water')
 
   await makeChat(bob, gaul, { t: ACTION_OFFER, p: { i: WATER, q: 1 } })
-  inv = await next(mute(bob.k.$profile(), p => p.inventory))
+  inv = await next(mute(bob.k.$profile(), p => p.inventory), 1)
   // inv = await until(mute(bob.k.$profile(), p => p.inventory), i => i?.length)
-  t.ok(inv[0]) // low-level save 0qty item behaviour?
+  // This test is brittle, we're testing low-level state
+  // that does not filter qty:0 items and might not.
+  t.ok(inv[0])
   t.equal(inv[0].id, WATER, 'Bob knows water')
   t.equal(inv[0].qty, 0, 'Bob no long')
 

@@ -129,7 +129,6 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
           copy = peerId.equals(payload.target)
           break
       }
-      if (copy) console.log('copyPeer', rootPeer.score, rootPeer.balance)
       if (copy) return { ...rootPeer }
     }
   }

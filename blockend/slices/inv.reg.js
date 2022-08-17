@@ -23,7 +23,6 @@ const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
 const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
 const WATER = 0xD700 // TODO: require('../../items.js')
-
 // Shit this is so confusing already.
 function InventorySlice () {
   return {
@@ -148,11 +147,13 @@ function TransactionsSlice () {
             break
           case Transactions.ACTION_OFFER:
             pending.push({
+              type: 'item',
               item: payload.i,
               qty: payload.q,
               target: block.key
             })
             pending.push({
+              type: 'item',
               item: payload.i,
               qty: -payload.q,
               target: parentBlock.key
