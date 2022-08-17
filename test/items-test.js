@@ -55,23 +55,23 @@ test('Unordered blocks', async t => {
   t.pass('finito')
 })
 
-test('Water was given', async t => {
+test.skip('Water is tradeable', async t => {
   const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(bob, alice, { t: ACTION_CONJURE_WATER })
 
   let inv = await next(mute(bob.k.$profile(), p => p.inventory))
   t.ok(inv[0])
-  t.equal(inv[0].id, WATER, 'Bob knows water')
+  t.equal(inv[0].id, WATER, 'Bob has water')
   t.equal(inv[0].qty, 1, '1 water')
 
   await makeChat(bob, gaul, { t: ACTION_OFFER, p: { i: WATER, q: 1 } })
-
   inv = await next(mute(bob.k.$profile(), p => p.inventory))
-  t.ok(inv[0])
+  // inv = await until(mute(bob.k.$profile(), p => p.inventory), i => i?.length)
+  t.ok(inv[0]) // low-level save 0qty item behaviour?
   t.equal(inv[0].id, WATER, 'Bob knows water')
-  t.equal(inv[0].qty, 0, '0 water')
+  t.equal(inv[0].qty, 0, 'Bob no long')
 
-  inv = await next(mute(gaul.k.$profile(), p => p.inventory))
+  inv = await until(mute(gaul.k.$profile(), p => p.inventory), i => i?.length)
   t.ok(inv[0])
   t.equal(inv[0].id, WATER, 'Gaul knows water')
   t.equal(inv[0].qty, 1, '1 water')
@@ -82,4 +82,14 @@ test('Water was given', async t => {
   } catch (err) { t.equal(err.message, 'InvalidBlock: InventoryEmpty') }
   inv = await next(mute(gaul.k.$profile(), p => p.inventory))
   t.equal(inv[0].qty, 1, '1 water')
+})
+
+test('On mint effect', async t => {
+  const [alice, bob] = await spawnSwarm('Alice', 'Bob')
+  let a = await until(alice.k.$profile(), p => p.state !== 'loading')
+  t.equal(a.balance, 0, 'Alice has zero decents')
+  const transaction = { t: ACTION_CONJURE_WATER }
+  await makeChat(alice, bob, transaction)
+  a = await until(alice.k.$profile(), p => p.inventory?.length)
+  t.equal(a.balance, 60 + 11, 'Alice item onpickup effect')
 })

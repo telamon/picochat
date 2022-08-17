@@ -13,7 +13,6 @@
 import { kernel } from './api'
 import { until } from 'piconuro'
 import Feed from 'picofeed'
-import debug from 'debug'
 
 // eslint-disable-next-line no-constant-condition
 const baseUri = '__ENV__' === 'dev'

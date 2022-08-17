@@ -11,6 +11,9 @@ const {
   btok,
   decodeBlock,
   EV_CHAT_END,
+  EV_BALANCE_CREDIT,
+  EV_BALANCE_DEBIT,
+  EV_ADD_SCORE, // Also adds time
   TYPE_VIBE_RESP,
   TYPE_ITEMS,
   VIBE_REJECTED
@@ -19,6 +22,7 @@ const assert = require('nanoassert')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
 const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
+const WATER = 0xD700 // TODO: require('../../items.js')
 
 // Shit this is so confusing already.
 function InventorySlice () {
@@ -40,15 +44,16 @@ function InventorySlice () {
       return false
     },
 
-    reducer ({ block, state, schedule, HEAD }) {
+    reducer ({ block, state, schedule, signal, HEAD }) {
       const pid = btok(HEAD)
       const data = decodeBlock(block.body)
       // initialize peer inventory
       const inv = initInv(state, pid)
-      for (const item of data.items) {
+      for (const item of data.items) { // uncrate items
         const slot = initSlot(inv, item.id)
         slot.qty++
         slot.expiresAt = item.expiresAt
+        onPickup(HEAD, item.id, signal)
         // TODO: schedule perishables to expire
         /*
         if (item.expiresAt) {
@@ -60,11 +65,12 @@ function InventorySlice () {
     },
 
     trap ({ code, payload, root, state }) {
-      if (!EV_CHAT_END) return
+      if (code !== EV_CHAT_END) return
       const cid = btok(payload)
       const pending = root.trs[cid]
       if (!pending?.length) return
       for (const op of pending) {
+        if (op.type !== 'item') continue
         const inv = initInv(state, btok(op.target))
         const slot = initSlot(inv, op.item)
         slot.qty += op.qty
@@ -129,12 +135,16 @@ function TransactionsSlice () {
       const pending = state[cid] = []
       for (const { t: type, p: payload } of transactions) {
         switch (type) {
+          // Mint glass of water
           case Transactions.ACTION_CONJURE_WATER:
             pending.push({
-              item: 0xD700, // TODO: replace with Items.Water
+              type: 'item',
+              item: WATER, // TODO: replace with Items.Water
               qty: 1,
               target: parentBlock.key
             })
+            pending.push({ type: 'credit', target: parentBlock.key, amount: 60 })
+            pending.push({ type: 'debit', target: block.key, amount: 5 })
             break
           case Transactions.ACTION_OFFER:
             pending.push({
@@ -153,14 +163,25 @@ function TransactionsSlice () {
     },
 
     trap ({ code, payload, root, state }) {
-      if (!EV_CHAT_END) return
+      if (code !== EV_CHAT_END) return
       const cid = btok(payload)
-      delete state[cid]
+      delete state[cid] // Clear out pending transactions
       return state
     }
   }
 }
 
+/**
+ * TODO: lookup stats in ../../items.js
+ */
+function onPickup (pid, item, signal) {
+  switch (item) {
+    case 0xD001: // badge
+      signal(EV_BALANCE_CREDIT, { target: pid, amount: 60 })
+      signal(EV_ADD_SCORE, { target: pid, amount: 60 })
+      break
+  }
+}
 module.exports = {
   InventorySlice,
   TransactionsSlice

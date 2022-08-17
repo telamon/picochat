@@ -68,11 +68,11 @@
   --switch-color: var(--primary-inverse);
   --switch-checked-background-color: var(--primary);
 }
-
-root [data-theme="dark"] {
+/*
+[data-theme="dark"] {
   background-color: var(--pitch);
   display: block;
-}
+} */
 /*-- END OF Pico-css config --*/
 
 /* Typography */
@@ -99,6 +99,11 @@ button.red, *[role=button].red {
   background-color: var(--blood);
   border-color: var(--blood);
 }
+
+red { color: var(--leaf); }
+blue { color: var(--pool); }
+purple { color: var(--shadow); }
+error, .error, red { color: var(--blood); }
 
 
 /* global components */
@@ -371,7 +376,6 @@ balance black {
   background-color: var(--p2);
   color: var(--p1);
 }
-error, .error { color: var(--blood); }
 /* Chromatic pearl effect
  *margin: 5px;
   box-shadow: 0 0 5px var(--wizardry);
@@ -396,6 +400,10 @@ wallet-view inventory {
   background-position: 0 0, var(--sb) var(--sb);
   background-size: var(--sb) var(--sb);
 }
+
+[data-theme="dark"] wallet-view inventory {
+  background-image: radial-gradient(circle, var(--slate) 66%, rgba(0,0,0,0) 0%);
+}
 wallet-view h1 small {
   font-size: 0.6em;
 }
@@ -414,6 +422,9 @@ wallet-view item[role='button'] {
   border: 1px solid var(--grave);
   color: var(--bone);*/
 }
+[data-theme="dark"] wallet-view item[role='button'] {
+  background-color: var(--pitch);
+}
 wallet-view item emo {
   box-shadow: 0 0 var(--blurSize) var(--chalk);
   border-radius: 50%;
@@ -427,3 +438,4 @@ wallet-view item.drinks emo {
 wallet-view item.gear emo {
   box-shadow: 0 0 var(--blurSize) var(--wizardry);
 }
+

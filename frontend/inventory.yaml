@@ -77,9 +77,9 @@ misc:
     type: passive
     image: 🏅
     desc: |-
-      Alice was a robot but Bob wasn't.
+      "Don't collect what you can't protect"
 
-      Don't worry we don't store your email for long.
+      We only store your email for a short while to keep track of your purchases.
 
   - id: 0xD700
     name: Water

@@ -19,13 +19,21 @@ export function svlt (neuron, dbg) {
       : nfo(neuron, dbg)(set)
   )
 }
-const DB = new BrowserLevel('PC', {
-  keyEncoding: 'buffer',
-  valueEncoding: 'buffer'
-})
-const personalBucket = DB.sublevel('KC', { valueEncoding: 'buffer' })
-export const kernel = new Kernel(DB)
-export const keychain = new Keychain(personalBucket)
+
+const ROOT_DB = new BrowserLevel('PicoChat')
+export const kernel = new Kernel(
+  ROOT_DB.sublevel('app', {
+    keyEncoding: 'buffer',
+    valueEncoding: 'buffer'
+  })
+)
+
+export const keychain = new Keychain(
+  ROOT_DB.sublevel('key', {
+    keyEncoding: 'buffer',
+    valueEncoding: 'buffer'
+  })
+)
 
 export const keygen = (gender, geo, attempts) => {
   return Keychain.generate(gender, geo, attempts)

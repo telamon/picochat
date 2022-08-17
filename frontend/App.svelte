@@ -101,6 +101,7 @@ onMount(() =>
           |ó_ó|
         {/if}
       </btn>
+      <btn on:click={reloadStores}>r</btn>
       <btn on:click={() => $showDebugSelector = true}>D</btn>
       <btn on:click={toggleTheme}>t</btn>
       <btn on:click={inspectFeed}>i</btn>

@@ -1,6 +1,7 @@
 <script>
 import { ITEMS } from '../api'
 export let id = -1
+export let noDescription = false
 const item = ITEMS[id]
 </script>
 <item-description class="flex column xcenter start">
@@ -17,6 +18,7 @@ const item = ITEMS[id]
       {#if item.time} | ¤{item.time}{/if}
       {#if item.mod} | {item.mod}{/if}
     </h6>
+    {#if !noDescription}
     <div>
       <p>
         {#if !item.desc}
@@ -26,6 +28,7 @@ const item = ITEMS[id]
         {/if}
       </p>
     </div>
+    {/if}
   {/if}
 </item-description>
 <style>

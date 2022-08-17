@@ -10,7 +10,8 @@ import ItemDescription from '../components/ItemDescription.svelte'
 
 const profile = Profile()
 const hasBadge = derived(profile, p => p?.hasBadge)
-const badge = ITEMS[0xD001]
+const BADGE_ID = 0xD001
+const badge = ITEMS[BADGE_ID]
 
 const showItem = writable(false)
 // Email verification
@@ -22,6 +23,7 @@ function requestStamp () {
   $_waitRequestStamp = requestVerificationStamp($email)
     .catch(err => {
       $badgeStatus = false
+      console.error(err)
       throw err
     })
 }
@@ -79,7 +81,7 @@ function decentralCheckout (item) {
     <h1 class="text-center">Bar</h1>
     <drinks>
       <!-- BADGE LINE -->
-      <item class="drink row xcenter" on:click={() => $showItem = badge}>
+      <item class="drink row xcenter" on:click={() => $showVerifyDialog = true}>
         <iimage>{badge.image}</iimage>
         <description class="column xstart grow2 space-between">
           <h3>{badge.name}</h3>
@@ -151,33 +153,36 @@ function decentralCheckout (item) {
   {#if $showVerifyDialog}
     <Dialog open={true} on:fade={() => $showVerifyDialog = false}>
       <article>
-        <header><h5>Verify Profile</h5></header>
-        <label for="email">
-          <h5>email</h5>
-          <input type="email"
-            bind:value={$email}
-            placeholder="name@host.tld"
-            disabled={$badgeStatus ? 'true' : null}
-            on:keypress={e => e.charCode === 13 && requestStamp()} />
-        </label>
-        <div class="row center xcenter">
-          {#await $_waitRequestStamp}
-            <p aria-busy="true">Requesting badge</p>
-          {:then message}
-            <p>{message}</p>
-          {:catch err}
-            <error>{err.message}</error>
-          {/await}
-        </div>
-        <footer>
-          <div class="row space-between">
-            <b role="button" on:click={() => $showVerifyDialog = false}>close</b>
-            <b role="button"
-              on:click={requestStamp}
-              disabled={$badgeStatus ? 'true' : null}>
-              verify
-            </b>
+        <ItemDescription id={BADGE_ID} noDescription={!$hasBadge} />
+        {#if $hasBadge}
+          <br/>
+          <p class="text-center"><blue>Your email is verified</blue></p>
+        {:else}
+          <label for="email">
+            <div>Verify your email to buy drinks</div>
+            <input type="email"
+              bind:value={$email}
+              placeholder="name@host.tld"
+              disabled={$badgeStatus ? 'true' : null}
+              on:keypress={e => e.charCode === 13 && requestStamp()} />
+          </label>
+          <div class="row center xcenter">
+            {#await $_waitRequestStamp}
+              <p aria-busy="true">Requesting badge</p>
+            {:then message}
+              <p>{message}</p>
+            {:catch err}
+              <error>{err.message}</error>
+            {/await}
           </div>
+        {/if}
+        <footer class="row space-between">
+          <button class="hgap" on:click={() => $showVerifyDialog = false}>ok</button>
+          <button class="hgap"
+            on:click={requestStamp}
+            disabled={$badgeStatus || $hasBadge ? 'true' : null}>
+            verify
+          </button>
         </footer>
       </article>
     </Dialog>

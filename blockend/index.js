@@ -44,8 +44,8 @@ class Kernel extends SimpleKernel {
     this._vibeBox = opts.box ?? null // Vibe box-pair
 
     // Setup slices
-    this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
     this.store.register(PeerCtrl()) // Register PeerStore that holds user profiles
+    this.store.register(PeerCtrl.ProfileCtrl(() => this.pk))
     this._vibeController = new VibeCtrl() // TODO: return { resolveKeys: fn, controller: fn }
     this.store.register(this._vibeController)
     this.store.register(ConversationCtrl())

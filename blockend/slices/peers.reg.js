@@ -1,8 +1,13 @@
 const {
   TYPE_PROFILE,
   EV_CHAT_END,
-  decodeBlock
+  EV_BALANCE_CREDIT,
+  EV_BALANCE_DEBIT,
+  EV_ADD_SCORE,
+  decodeBlock,
+  btok
 } = require('../util')
+const assert = require('nanoassert')
 const { scoreGraph } = require('../game')
 
 const ACTIVE = 'active'
@@ -37,19 +42,59 @@ module.exports = () => ({
   trap ({ code, payload, root, state }) {
     switch (code) {
       case EV_CHAT_END: {
-        const strkey = payload.toString('hex')
+        const strkey = btok(payload)
         const chat = root.chats.chats[strkey]
         const score = scoreGraph(chat.graph)
-        state[chat.a.toString('hex')].score += score[0]
-        state[chat.b.toString('hex')].score += score[1]
-      }
+        state[btok(chat.a)].score += score[0]
+        state[btok(chat.b)].score += score[1]
+        // Scores affect balance as well
+        state[btok(chat.a)].balance += score[0]
+        state[btok(chat.b)].balance += score[1]
+
+        // Handle balance affecting transactions
+        const pending = root.trs[strkey]
+        if (!pending?.length) return
+        for (const op of pending) {
+          switch (op.type) {
+            case 'debit':
+              assert(Buffer.isBuffer(op.target), 'InvalidPeerId')
+              assert(Number.isFinite(op.amount), 'InvalidAmount')
+              state[btok(op.target)].balance -= op.amount
+              break
+            case 'credit':
+              assert(Buffer.isBuffer(op.target), 'InvalidPeerId')
+              assert(Number.isFinite(op.amount), 'InvalidAmount')
+              state[btok(op.target)].balance += op.amount
+              break
+          }
+        }
+      } break
+      case EV_BALANCE_CREDIT: {
+        const { target, amount } = payload
+        state[btok(target)].balance += amount
+      } break
+      case EV_BALANCE_DEBIT: {
+        const { target, amount } = payload
+        state[btok(target)].balance -= amount
+      } break
+      case EV_ADD_SCORE: {
+        const { target, amount } = payload
+        state[btok(target)].score += amount
+      } break
+      default:
+        return // unhandled signal
     }
+    return state
   }
 })
 
 // Experimental: attempt maintaining own profile as separate slice
-// registering it as the first controller should ensure that all other slices
-// will run after it, making it possible to use as a dependency through rootState...
+// TODO: redesign later to formalize cross-slice dependencies.
+// just don't recreate immutable state as that would create inmemory
+// blocks of blocks and quad memory usage.
+// The size of a swarm will always be limited by the slowest node.
+// TODO: deprecate this slice, it's sole function is make
+// own-peerId available to other slices.
 module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
   let peerId = null
   return {
@@ -63,26 +108,29 @@ module.exports.ProfileCtrl = function ProfileCtrl (pubKeyGetter) {
       if (data.type !== TYPE_PROFILE) return true // Ignore non-profile blocks.
       return validateProfile(data)
     },
-    reducer ({ block, state }) {
-      const data = decodeBlock(block.body)
-      Object.assign(state, data)
-      state.pk = block.key
-      state.sig = block.sig // Store profile.pk as hexString
-      state.expiresAt = state.date + TTL
-      return state
+    reducer ({ block, state, root }) {
+      return { ...root.peers[btok(peerId)] }
     },
+
+    // This slice runs AFTER the peers slice
     trap ({ code, payload, root, state }) {
+      const rootPeer = root.peers[btok(peerId)]
+      let copy = false
       switch (code) {
         case EV_CHAT_END: {
-          const strkey = payload.toString('hex')
-          const chat = root.chats.chats[strkey]
-          // Apply Scores
-          const white = peerId.equals(chat.a)
-          if (!white && !peerId.equals(chat.b)) return // not our chat
-          const score = scoreGraph(chat.graph)
-          state.score += score[white ? 0 : 1]
+          const cid = btok(payload)
+          const chat = root.chats.chats[cid]
+          copy = peerId.equals(chat.a) ||
+            peerId.equals(chat.b)
         } break
+        case EV_BALANCE_CREDIT:
+        case EV_BALANCE_DEBIT:
+        case EV_ADD_SCORE:
+          copy = peerId.equals(payload.target)
+          break
       }
+      if (copy) console.log('copyPeer', rootPeer.score, rootPeer.balance)
+      if (copy) return { ...rootPeer }
     }
   }
 }
@@ -98,7 +146,8 @@ function mkProfile (pk) {
     sig: null,
     expiresAt: 0,
     state: ACTIVE,
-    score: 0
+    balance: 0, // Current amount of ¤ Decents
+    score: 0 // score equals total acquired ¤ through rewards
   }
 }
 

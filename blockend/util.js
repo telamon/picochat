@@ -29,6 +29,9 @@ const TYPE_ITEMS = 'items' // Delivery from Bartender
 // Interrupts (internal lowlevel events)
 // Yes.. they look scary cause they probably are. :/
 const EV_CHAT_END = 60
+const EV_BALANCE_CREDIT = 70
+const EV_BALANCE_DEBIT = 71
+const EV_ADD_SCORE = 72
 
 // Other Constants
 const VIBE_REJECTED = Buffer.from('💔')
@@ -136,6 +139,9 @@ module.exports = {
   TYPE_BYE_RESP,
   TYPE_ITEMS,
   EV_CHAT_END,
+  EV_BALANCE_DEBIT,
+  EV_BALANCE_CREDIT,
+  EV_ADD_SCORE,
   VIBE_REJECTED,
   PASS_TURN,
   PEACE,
