@@ -165,7 +165,8 @@ bar stat h6 {
   font-size: smaller;
   margin-top: 4px;
 }
-.view-pub bar stat.btn-enter {
+bar round[disabled=true] { opacity: 0.6; }
+bar stat.btn-enter {
   padding: 4px;
   border-radius: 10px;
   animation: 4s linear 0s infinite both stat-pulse;

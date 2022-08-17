@@ -178,7 +178,7 @@ function decentralCheckout (item) {
         {/if}
         <footer class="row space-between">
           <button class="hgap" on:click={() => $showVerifyDialog = false}>ok</button>
-          <button class="hgap"
+          <button class="hgap green"
             on:click={requestStamp}
             disabled={$badgeStatus || $hasBadge ? 'true' : null}>
             verify
@@ -296,7 +296,8 @@ function decentralCheckout (item) {
       <button class="nogap" on:click={() => navigate('/')}>back</button>
     </div>
     <h3 class="stat nopad nogap">
-      ¤<Timer expiresAt={$profile.expiresAt} format='¤' />
+      <Timer expiresAt={$profile.expiresAt} /> /
+      ¤{$profile.balance}
     </h3>
 
     <h3 class="nopad nogap" on:click={() => $showCartDialog = !$showCartDialog}>

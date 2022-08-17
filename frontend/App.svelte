@@ -29,6 +29,7 @@ const showBar = derived([state, routeName], ([s, name]) =>
 const showDev = derived(routeName, name =>
   name === 'profile'
 )
+$: console.log('state', $state)
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
@@ -139,7 +140,9 @@ onMount(() =>
     <round class="flex column center xcenter noselect" on:click={() => navigate('pub')}>
       <Icon id="gfx-vibe" nofill/>
     </round>
-    <round class="flex column center xcenter noselect" on:click={() => navigate('shop')}>
+    <round class="flex column center xcenter noselect"
+      disabled={!$state.entered}
+      on:click={() => $state.entered && navigate('shop')}>
       <Icon id="gfx-shop" nofill/>
     </round>
     {#if !$state.entered}
@@ -152,12 +155,14 @@ onMount(() =>
       <stat class="flex column center xcenter inside noselect"
         on:click={() => navigate('wallet')}>
         <h3 class="primary">
-         ¤<Timer expiresAt={$profile.expiresAt} format='¤' />
+         <Timer expiresAt={$profile.expiresAt} format='HH:mm' />
         </h3>
         <h6 class="muted">wallet</h6>
       </stat>
     {/if}
-    <round class="flex column center xcenter noselect" on:click={() => navigate('msgs')}>
+    <round class="flex column center xcenter noselect"
+      disabled={!$state.entered}
+      on:click={() => $state.entered && navigate('msgs')}>
       <Icon id="gfx-msgs" nofill/>
       <samp class="notifications-badge" class:zero={!$nCount}>{$nCount}</samp>
       <!-- TODO: read/unread messages tracking not yet implemented -->

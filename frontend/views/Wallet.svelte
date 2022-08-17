@@ -23,17 +23,10 @@ function activate (id) {
   <div class="row column xcenter start">
     <!-- For the record: I perfer the term "inventory" but wallet is shorter and relatable -->
     <h1 class="nogap">Balance</h1>
-    <h1>¤ <Timer expiresAt={$profile.expiresAt} format="¤¤"/></h1>
+    <h1>¤{$profile.balance}</h1>
     <div>
-      <!-- hang on... wasn't the total amount of score gained supposed
-          to be the ingame currency???
-          Consuming drinks give score + bump expiresAt.
-          But what's more important to show in bottom-bar,
-          balance or time until death?
-      -->
+      <Timer expiresAt={$profile.expiresAt} format="HH:mm:ss"/>💀<br/>
       Score {$profile.score}<br/>
-      Total ¤{Math.floor((Math.min(Date.now(), $profile.expiresAt) - $profile.date) / 1000)}<br/>
-      <small>Oops.. have to redo the scoring</small><br/>
     </div>
     <h1>&nbsp;</h1>
     <h1 class="nogap">Inventory</h1>
