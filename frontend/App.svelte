@@ -141,7 +141,7 @@ onMount(() =>
       <Icon id="gfx-vibe" nofill/>
     </round>
     <round class="flex column center xcenter noselect"
-      disabled={!$state.entered}
+      disabled={!$state.entered || null}
       on:click={() => $state.entered && navigate('shop')}>
       <Icon id="gfx-shop" nofill/>
     </round>
@@ -161,7 +161,7 @@ onMount(() =>
       </stat>
     {/if}
     <round class="flex column center xcenter noselect"
-      disabled={!$state.entered}
+      disabled={!$state.entered || null}
       on:click={() => $state.entered && navigate('msgs')}>
       <Icon id="gfx-msgs" nofill/>
       <samp class="notifications-badge" class:zero={!$nCount}>{$nCount}</samp>

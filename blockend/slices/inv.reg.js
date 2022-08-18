@@ -21,7 +21,7 @@ const {
 const assert = require('nanoassert')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
-const BARPK = Buffer.from('vjbtsM2BFee1ExqsUJsJaoWLj8hXENll2/ePLeLz9c0=', 'base64')
+const BARPK = Buffer.from('jWR6XgHjIeNA8xDtVtjOxdsUhgKzABQ75HHi30ab8X0=', 'base64')
 const WATER = 0xD700 // TODO: require('../../items.js')
 // Shit this is so confusing already.
 function InventorySlice () {
