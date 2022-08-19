@@ -68,11 +68,6 @@
   --switch-color: var(--primary-inverse);
   --switch-checked-background-color: var(--primary);
 }
-/*
-[data-theme="dark"] {
-  background-color: var(--pitch);
-  display: block;
-} */
 /*-- END OF Pico-css config --*/
 
 /* Typography */
@@ -89,16 +84,32 @@ h4, h5, h6, button, *[role=button] {
   border-color: var(--leaf);
 }
 [data-theme="dark"] button.purple, [data-theme="dark"] *[role=button].purple {
-  background-color: var(--wizardry);
-  border-color: var(--wizardry);
+  background-color: var(--shadow);
+  border-color: var(--shadow);
 }
-[data-theme="dark"] button.blue, [data-theme="dark"] *[role=button].red {
-  background-color: var(--sorcery);
-  border-color: var(--sorcery);
+[data-theme="dark"] button.blue, [data-theme="dark"] *[role=button].blue {
+  background-color: var(--pool);
+  border-color: var(--pool);
 }
 [data-theme="dark"] button.red, [data-theme="dark"] *[role=button].red {
   background-color: var(--blood);
   border-color: var(--blood);
+}
+[data-theme="dark"] button.green:hover, [data-theme="dark"] *[role=button].green:hover {
+  background-color: var(--poison);
+  border-color: var(--poison);
+}
+[data-theme="dark"] button.purple:hover, [data-theme="dark"] *[role=button].purple:hover {
+  background-color: var(--wizardry);
+  border-color: var(--wizardry);
+}
+[data-theme="dark"] button.blue:hover, [data-theme="dark"] *[role=button].blue:hover {
+  background-color: var(--sorcery);
+  border-color: var(--sorcery);
+}
+[data-theme="dark"] button.red:hover, [data-theme="dark"] *[role=button].red:hover {
+  background-color: var(--ember);
+  border-color: var(--ember);
 }
 /* light theme */
 [data-theme="light"] button.purple,
@@ -122,18 +133,50 @@ h4, h5, h6, button, *[role=button] {
   :root:not([data-theme="dark"]) *[role=button].blue
   { color: var(--sorcery); }
 
+/* Light hover */
+[data-theme="light"] button.purple:hover,
+  :root:not([data-theme="dark"]) button.purple:hover,
+  [data-theme="light"] *[role=button].purple:hover,
+  :root:not([data-theme="dark"]) *[role=button].purple:hover {
+    background-color: var(--shadow);
+    border-color: var(--shadow);
+    color: var(--primary-inverse);
+  }
+[data-theme="light"] button.red:hover,
+  :root:not([data-theme="dark"]) button.red:hover,
+  [data-theme="light"] *[role=button].red:hover,
+  :root:not([data-theme="dark"]) *[role=button].red:hover {
+    background-color: var(--blood);
+    border-color: var(--blood);
+    color: var(--primary-inverse);
+  }
+[data-theme="light"] button.blue:hover,
+  :root:not([data-theme="dark"]) button.blue:hover,
+  [data-theme="light"] *[role=button].blue:hover,
+  :root:not([data-theme="dark"]) *[role=button].blue:hover {
+    background-color: var(--pool);
+    border-color: var(--pool);
+    color: var(--primary-inverse);
+  }
+[data-theme="light"] button.green:hover,
+  :root:not([data-theme="dark"]) button.green:hover,
+  [data-theme="light"] *[role=button].green:hover,
+  :root:not([data-theme="dark"]) *[role=button].green:hover {
+    background-color: var(--leaf);
+    border-color: var(--leaf);
+    color: var(--primary-inverse);
+  }
+
 /* Restore dark-theme button color nested inside light-theme */
 .view-shop button.red,
 .view-shop button.green,
 .view-shop button.blue,
 .view-shop button.purple { color: var(--primary-inverse) !important; }
 /* TODO: fix light-theme color/bg-color on :hover */
-
 red { color: var(--leaf); }
 blue { color: var(--pool); }
 purple { color: var(--shadow); }
 error, .error, red { color: var(--blood); }
-
 
 /* global components */
 
@@ -270,21 +313,18 @@ svg.icon {
 article.peer {
   --mdsqrsz: 300px;
   padding: 0;
-  max-width: var(--mdsqrsz);
-  /* margin: 0; */
   margin: 0 var(--block-spacing-horizontal);
   margin-bottom: var(--block-spacing-vertical);
 }
 article.peer overlay h2,
 article.peer overlay h3 { margin: 0; }
+/* ensure children don't escape */
+article.peer legend { position: relative; }
 article.peer legend .bimg { width: 100%; }
-article.peer legend {
-  width: var(--mdsqrsz);
-  height: var(--mdsqrsz);
-}
 article.peer legend overlay {
-  width: var(--mdsqrsz);
-  height: var(--mdsqrsz);
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
   position: absolute;
   z-index: 11;
   display: grid;
