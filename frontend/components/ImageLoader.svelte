@@ -20,7 +20,12 @@ async function setImage (url) {
   return new Promise(resolve => {
     imgElement.onload = () => {
       if (imgElement.src === '') return
-      ctx.drawImage(imgElement, 0, 0, 300, 300)
+      console.info(imgElement.width, imgElement.height)
+      const s =  Math.min(imgElement.height, imgElement.width)
+      ctx.drawImage(imgElement,
+        (imgElement.width - s) / 2, (imgElement.height - s) / 2, s, s, // Src
+        0, 0, 300, 300 // Dst
+      )
       imgElement.src = ''
       resolve()
     }
