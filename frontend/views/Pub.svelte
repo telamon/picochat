@@ -46,7 +46,7 @@ function sendVibe (pk) {
 
 </script>
 <pub-view class="block container">
-  <h1 class="view-header">🪩 Club Room</h1>
+  <h1 class="view-header">Club Room</h1>
   <p>
     This is the common room, see someone interesting?<br/>
     Shoot!
@@ -124,11 +124,23 @@ function sendVibe (pk) {
   {#if $inspectPeer}
     <Dialog on:fade={() => $inspectPeer = false}>
       <div>
-        <Portrait peer={$inspectPeer}/>
+        <Portrait peer={$inspectPeer}>
+          <span slot="nw"></span>
+        </Portrait>
         <article class="nogap">
+          <div class="row space-between xcenter">
+            <h6 class="nogap">
+              Score {$inspectPeer.score}
+              | <blue>¤{$inspectPeer.balance}</blue>
+            </h6>
+            <h6 class="nogap">
+              <!-- {$inspectPeer.state} -->
+              💀 <code><Timer expiresAt={$inspectPeer.expiresAt} format="HH:mm:ss"/></code>
+            </h6>
+          </div>
           <p>{$inspectPeer.tagline}</p>
 
-          <h6>Attach</h6>
+          <h6>Vibe Options</h6>
           <label for="water">
             <h6>
             <input type="checkbox" name="water" id="water"
@@ -143,31 +155,34 @@ function sendVibe (pk) {
               disabled={$activeVibe?.state === 'match'}>
             offer tradeable</h6>
           </label>
-
-          <footer class="row space-between">
-            <button class="hgap" on:click={() => $inspectPeer = false}>ok</button>
-            {#if $state.entered && !$cooldowns.vibe}
-              <button class="hgap" on:click={() => sendVibe($inspectPeer.pk)}>
-                <Icon id="gfx-vibe" />
-              </button>
-            {:else if $activeVibe?.state === 'match'}
-              <button class="hgap green"
-                on:click={() => navigate(`chat/${btok($activeVibe.id)}`)}>
-                chat
-              </button>
-            {:else}
-              <button class="hgap" disabled>
-                <Timer expiresAt={$cooldowns.vibe} format="mm:ss" />
-              </button>
+          <footer>
+            {#if !$state.entered}
+              <div class="text-right">
+                <sup class="hpad">Press START to play</sup>
+              </div>
             {/if}
+            <div class="row space-between">
+              <button class="hgap" on:click={() => $inspectPeer = false}>ok</button>
+              {#if !$state.entered}
+                <button class="hgap purple" disabled>vibe</button>
+              {:else if $state.entered && !$cooldowns.vibe}
+                <button class="hgap purple" on:click={() => sendVibe($inspectPeer.pk)}>
+                  vibe
+                </button>
+              {:else if $activeVibe?.state === 'match'}
+                <button class="hgap green"
+                  on:click={() => navigate(`chat/${btok($activeVibe.id)}`)}>
+                  chat
+                </button>
+              {:else}
+                <button class="hgap red" disabled>
+                  <Timer expiresAt={$cooldowns.vibe} format="mm:ss" />
+                </button>
+              {/if}
+            </div>
           </footer>
         </article>
       </div>
     </Dialog>
   {/if}
 </pub-view>
-<style>
-.view-header {
-  border-bottom: 1px solid var(--wizardry);
-}
-</style>

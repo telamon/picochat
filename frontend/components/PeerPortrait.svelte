@@ -19,7 +19,7 @@ const inv = peer.inventory || []
     <legend>
       <overlay>
         <div style="grid-area: nw;" class="hpad">
-          <h3>{peer.score}</h3>
+          <slot name="nw"><h3>{peer.score}</h3></slot>
         </div>
         <div style="grid-area: sw; align-self: end;">
           <h2><dot class={peer.state}>&nbsp;</dot>{peer.name}</h2>

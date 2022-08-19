@@ -83,22 +83,51 @@ h4, h5, h6, button, *[role=button] {
 }
 
 /* Colorful buttons */
-button.green, *[role=button].green {
+/* dark theme <button> and <b role="button"> */
+[data-theme="dark"] button.green, [data-theme="dark"] *[role=button].green {
   background-color: var(--leaf);
   border-color: var(--leaf);
 }
-button.purple, *[role=button].purple {
+[data-theme="dark"] button.purple, [data-theme="dark"] *[role=button].purple {
   background-color: var(--wizardry);
   border-color: var(--wizardry);
 }
-button.blue, *[role=button].red {
+[data-theme="dark"] button.blue, [data-theme="dark"] *[role=button].red {
   background-color: var(--sorcery);
   border-color: var(--sorcery);
 }
-button.red, *[role=button].red {
+[data-theme="dark"] button.red, [data-theme="dark"] *[role=button].red {
   background-color: var(--blood);
   border-color: var(--blood);
 }
+/* light theme */
+[data-theme="light"] button.purple,
+  :root:not([data-theme="dark"]) button.purple,
+  [data-theme="light"] *[role=button].purple,
+  :root:not([data-theme="dark"]) *[role=button].purple
+  { color: var(--wizardry); }
+[data-theme="light"] button.red,
+  :root:not([data-theme="dark"]) button.red,
+  [data-theme="light"] *[role=button].red,
+  :root:not([data-theme="dark"]) *[role=button].red
+  { color: var(--blood); }
+[data-theme="light"] button.green,
+  :root:not([data-theme="dark"]) button.green,
+  [data-theme="light"] *[role=button].green,
+  :root:not([data-theme="dark"]) *[role=button].green
+  { color: var(--leaf); }
+[data-theme="light"] button.blue,
+  :root:not([data-theme="dark"]) button.blue,
+  [data-theme="light"] *[role=button].blue,
+  :root:not([data-theme="dark"]) *[role=button].blue
+  { color: var(--sorcery); }
+
+/* Restore dark-theme button color nested inside light-theme */
+.view-shop button.red,
+.view-shop button.green,
+.view-shop button.blue,
+.view-shop button.purple { color: var(--primary-inverse) !important; }
+/* TODO: fix light-theme color/bg-color on :hover */
 
 red { color: var(--leaf); }
 blue { color: var(--pool); }

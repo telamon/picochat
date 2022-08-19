@@ -29,7 +29,7 @@ const showBar = derived([state, routeName], ([s, name]) =>
 const showDev = derived(routeName, name =>
   name === 'profile'
 )
-$: console.log('state', $state)
+
 const showDebugSelector = writable(false)
 const nCount = NotificationsCount()
 const profile = Profile()
