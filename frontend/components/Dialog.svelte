@@ -1,7 +1,7 @@
 <script>
 import { createEventDispatcher } from 'svelte'
 // Silly workaround for svelte props clashing with custom attrs.
-export let open = false
+export let open = true
 const dispatch = createEventDispatcher()
 let elem
 function updateAttribute(node, name, value) {

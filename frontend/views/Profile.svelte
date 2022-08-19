@@ -52,12 +52,10 @@ async function load () {
   $sk = await keychain.readIdentity()
   $pk = $sk.slice(32)
   $geohash = p.geohash
+  // TODO: update current geoloc if !entered
   if (!$geohash) {
-    try {
-      $geohash = await getCurrentGeohash()
-    } catch (err) {
-      console.log('BrowserLocation failed, let user set manually', err)
-    }
+    // $geohash = await getCurrentGeohash()
+    //   .catch(console.info.bind(null, 'noneogeo'))
   }
   return p
 }
@@ -67,6 +65,7 @@ async function getCurrentGeohash () {
   // console.log(res)
   const { latitude: lat, longitude: lng } = res.coords
   return Geohash.encode(lat, lng, 6)
+
   function fetchPosition (options) {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) reject(new Error('Browser does not support geolocation APIs'))

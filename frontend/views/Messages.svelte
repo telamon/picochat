@@ -62,20 +62,22 @@ function respondVibe (chatId, rejected) {
   </conversations>
   {#if $vibeDetail}
   <Dialog open={true} on:fade={() => $vibeDetail = null}>
-    <PeerPortrait peer={$vibeDetail.peer}>
+    <article>
+      <BinaryImage src={$vibeDetail?.peer.picture} />
       <p>{$vibeDetail.peer.tagline}</p>
+      <p>TODO: transaction details</p>
       <h6 class="text-center no-margin">Vibe Expires in</h6>
       <h2 class="text-center timer"><Timer expiresAt={$vibeDetail.expiresAt} format="mm:ss"/></h2>
-      {#if !$vibeDetail.initiator}
-        <div class="text-center">
-          <a role="button" class="reject" on:click={() => respondVibe($vibeDetail.id, true)}>reject</a>
-          <a role="button" class="accept" on:click={() => respondVibe($vibeDetail.id)}>accept</a>
-        </div>
-      {:else}
-        <div class="text-center">Waiting for player2</div>
-      {/if}
-      <br/>
-    </PeerPortrait>
+      <footer class="row space-between">
+        {#if !$vibeDetail.initiator}
+          <button class="hgap reject" on:click={() => respondVibe($vibeDetail.id, true)}>reject</button>
+          <button class="hgap accept" on:click={() => respondVibe($vibeDetail.id)}>accept</button>
+        {:else}
+          <button class="hgap" on:click={() => $vibeDetail = null}>hide</button>
+          <div class="text-center">Waiting for player2</div>
+        {/if}
+      </footer>
+    </article>
   </Dialog>
   {/if}
 </messages-view>
