@@ -7,7 +7,6 @@ import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import css from 'rollup-plugin-css-only'
 import json from '@rollup/plugin-json'
-import yaml from '@rollup/plugin-yaml'
 import svelte from 'rollup-plugin-svelte'
 import svgSprite from 'rollup-plugin-svg-sprite-deterministic'
 import replace from '@rollup/plugin-replace'
@@ -33,7 +32,6 @@ export default {
   plugins: [
     svelte({
       compilerOptions: {
-        // enable run-time checks when not in production
         dev: !production
       }
     }),
@@ -47,7 +45,6 @@ export default {
     // a separate file - better for performance
     css({ output: 'bundle.css', sourceMap: false }),
     json(),
-    yaml(),
     resolve({
       browser: true,
       dedupe: ['svelte', 'sodium-universal'],

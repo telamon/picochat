@@ -117,6 +117,7 @@ function TransactionsSlice () {
         for (const ta of transactions) {
           const { t: type, p: payload } = Transactions.validate(ta)
           switch (type) {
+            // Not yet supported by frontend.
             case Transactions.ACTION_OFFER: {
               const sourcePid = btok(parentBlock.key)
               const inv = root.inv[sourcePid]
@@ -166,11 +167,11 @@ function TransactionsSlice () {
           case Transactions.ACTION_NETWORK_PURCHASE: {
             const white = parentBlock.key
             const black = block.key
-            const tname = root.peers[btok(white)]?.name || op.target
+            const tname = root.peers[btok(white)]?.name || white
             D('[%s]txBuy(%h, %h, %i) => %i', root.peer.name, tname, payload.i, payload.q)
             // TODO: fetch amount from item.price
             pending.push({ type: 'debit', target: white, amount: 15 })
-            pending.push({ type: 'credit', target: white, amount: 2 }) // reward
+            pending.push({ type: 'credit', target: black, amount: 2 }) // reward
             pending.push({
               type: 'item',
               item: payload.i,

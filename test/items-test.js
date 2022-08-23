@@ -105,7 +105,8 @@ test.skip('Drink water', async t => {
   debugger
 })
 
-test.only('Purchase Gear from network', async t => {
+// TODO: depends on item-db
+test.skip('Purchase Gear from network', async t => {
   const BAB = 0xD201
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
   await makeChat(alice, bob, { t: ACTION_CONJURE_WATER })

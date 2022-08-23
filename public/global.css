@@ -345,12 +345,13 @@ article.peer legend h2, article.peer legend h3 {
 
 article.peer dot {
   display: inline-block;
-  width: 0.8em;
-  height: 0.8em;
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 50%;
   background-color: var(--ash);
-  line-height: 1rem;
-  margin: 0 0.3em;
+  line-height: 1em;
+  vertical-align: middle;
+  margin: 0 0.3rem;
   opacity: 0.8;
 }
 article.peer dot.active {
