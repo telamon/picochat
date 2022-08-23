@@ -21,9 +21,14 @@ const {
 const assert = require('nanoassert')
 const D = require('debug')('picochat:slices:inv')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
-const Transactions = require('../transactions')
+const {
+  validate,
+  ACTION_OFFER,
+  ACTION_NETWORK_PURCHASE,
+  ACTION_ATTACHMENT
+} = require('../transactions')
 const BARPK = Buffer.from('jWR6XgHjIeNA8xDtVtjOxdsUhgKzABQ75HHi30ab8X0=', 'base64')
-const WATER = 0xD700 // TODO: require('../../items.js')
+const { ITEMS } = require('../items.db')
 // Shit this is so confusing already.
 function InventorySlice () {
   return {
@@ -115,17 +120,26 @@ function TransactionsSlice () {
       const { t: transactions } = decodeBlock(parentBlock.body)
       try {
         for (const ta of transactions) {
-          const { t: type, p: payload } = Transactions.validate(ta)
+          const { t: type, p: payload } = validate(ta)
           switch (type) {
             // Not yet supported by frontend.
-            case Transactions.ACTION_OFFER: {
+            case ACTION_OFFER: {
               const sourcePid = btok(parentBlock.key)
               const inv = root.inv[sourcePid]
+              if (!inv) return 'InventoryEmpty'
               assert(inv, 'InventoryEmpty')
               const item = inv[payload.i]
               assert(item, 'ItemNotHeld')
               assert(item.qty - payload.q >= 0, 'NegativeQuantity')
             } break
+
+            case ACTION_NETWORK_PURCHASE: {
+              const { i, q } = payload
+              const item = ITEMS[i]
+              const sum = item.price * q
+              const target = btok(parentBlock.key)
+              assert(root.peers[target].balance >= sum, 'InsufficientFunds')
+            }
           }
         }
       } catch (err) { return err.message }
@@ -139,18 +153,26 @@ function TransactionsSlice () {
       const pending = state[cid] = []
       for (const { t: type, p: payload } of transactions) {
         switch (type) {
-          // Mint glass of water
-          case Transactions.ACTION_CONJURE_WATER:
+          case ACTION_ATTACHMENT: {
+            const white = parentBlock.key
+            const black = block.key
+            const item = ITEMS[payload]
+            if (item.consumable) {
+              pending.push({
+                type: 'item',
+                item: payload.i,
+                qty: -payload.q,
+                target: white
+              })
+            }
+            // TODO: what to do if item has no boost time?
             pending.push({
-              type: 'item',
-              item: WATER, // TODO: replace with Items.Water
-              qty: 1,
-              target: parentBlock.key
+              type: 'credit',
+              target: black,
+              amount: item.time
             })
-            pending.push({ type: 'credit', target: parentBlock.key, amount: 60 })
-            pending.push({ type: 'credit', target: block.key, amount: 5 })
-            break
-          case Transactions.ACTION_OFFER:
+          } break
+          case ACTION_OFFER: // Swap ownership
             pending.push({
               type: 'item',
               item: payload.i,
@@ -164,20 +186,21 @@ function TransactionsSlice () {
               target: parentBlock.key // white
             })
             break
-          case Transactions.ACTION_NETWORK_PURCHASE: {
+          case ACTION_NETWORK_PURCHASE: {
             const white = parentBlock.key
             const black = block.key
             const tname = root.peers[btok(white)]?.name || white
             D('[%s]txBuy(%h, %h, %i) => %i', root.peer.name, tname, payload.i, payload.q)
-            // TODO: fetch amount from item.price
-            pending.push({ type: 'debit', target: white, amount: 15 })
-            pending.push({ type: 'credit', target: black, amount: 2 }) // reward
+            const item = ITEMS[payload.i]
+            pending.push({ type: 'debit', target: white, amount: item.price })
+            pending.push({ type: 'credit', target: black, amount: item.price * 0.02 }) // reward 2% of minted value
             pending.push({
               type: 'item',
               item: payload.i,
               qty: payload.q,
-              target: parentBlock.key // white
+              target: white
             })
+            // TODO: pending.push( item.onPickup effects)
           } break
         }
       }
@@ -198,10 +221,11 @@ function TransactionsSlice () {
  */
 function onPickup (pid, item, signal) {
   switch (item) {
-    case 0xD001: // badge
-      signal(EV_BALANCE_CREDIT, { target: pid, amount: 60 })
-      signal(EV_ADD_SCORE, { target: pid, amount: 60 })
-      break
+    case 0xD001: { // badge
+      const amount = ITEMS[0xD001].time
+      signal(EV_BALANCE_CREDIT, { target: pid, amount })
+      signal(EV_ADD_SCORE, { target: pid, amount })
+    } break
   }
 }
 module.exports = {

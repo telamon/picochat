@@ -281,17 +281,6 @@ export async function saveBackup () {
   // TODO: revokeObjectURL
 }
 
-export const INVENTORY = inventory
-// Flatten product catalog into a LUT
-export const ITEMS = Object.keys(INVENTORY)
-  .reduce((p, category) => {
-    for (const item of inventory[category]) {
-      item.category = category
-      p[item.id] = item
-    }
-    return p
-  }, {})
-
 function mockChat () {
   const [$initiator, setInitiator] = write(true)
   const [$turn, setTurn] = write(true)
