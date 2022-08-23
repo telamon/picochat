@@ -3,6 +3,7 @@ const assert = require('nanoassert')
 module.exports = class Transactions {
   static ACTION_CONJURE_WATER = 0
   static ACTION_OFFER = 1
+  static ACTION_NETWORK_PURCHASE = 2
 
   static validate (transaction) {
     if (!transaction) throw new Error('Must be an object')
@@ -16,6 +17,7 @@ module.exports = class Transactions {
         )
         break
 
+      case Transactions.ACTION_NETWORK_PURCHASE:
       case Transactions.ACTION_OFFER: {
         const { i: item, q: quantity } = payload
         assert(isPositiveInteger(item), 'p.i: ItemId missing')
@@ -30,9 +32,5 @@ module.exports = class Transactions {
   }
 }
 
-function isInteger (n) {
-  return Number.isInteger(n)
-}
-function isPositiveInteger (n) {
-  return Number.isInteger(n) && n >= 0
-}
+function isInteger (n) { return Number.isInteger(n) }
+function isPositiveInteger (n) { return Number.isInteger(n) && n >= 0 }

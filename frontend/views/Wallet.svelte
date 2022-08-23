@@ -14,7 +14,7 @@ const showItem = writable(false)
 function consume (id) {
   console.info('Todo implement item consumption')
 }
-function activate (id) {
+function toggle (id) {
   console.info('todo implement item activation')
 }
 </script>
@@ -25,7 +25,9 @@ function activate (id) {
     <h1 class="nogap">Balance</h1>
     <h1>¤{$profile.balance}</h1>
     <div>
-      <Timer expiresAt={$profile.expiresAt} format="HH:mm:ss"/>💀<br/>
+      <h6 class="nogap">
+        💀 <code><Timer expiresAt={$profile.expiresAt} format="HH:mm:ss"/></code>
+      </h6>
       Score {$profile.score}<br/>
     </div>
     <h1>&nbsp;</h1>

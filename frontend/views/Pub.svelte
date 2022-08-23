@@ -7,6 +7,7 @@ import {
   boot,
   Peers,
   Cooldowns,
+  Profile,
   Vibes,
   ITEMS,
 } from '../api'
@@ -15,9 +16,10 @@ import Timer from '../components/Timer.svelte'
 import Portrait from '../components/PeerPortrait.svelte'
 import Icon from '../components/Icon.svelte'
 import Dialog from '../components/Dialog.svelte'
+import ItemInput from '../components/ItemInput.svelte'
 import { navigate } from '../router'
-import { ACTION_CONJURE_WATER } from '../../blockend/transactions'
-
+import { ACTION_CONJURE_WATER, ACTION_OFFER } from '../../blockend/transactions'
+const profile = Profile()
 const cooldowns = Cooldowns()
 const peers = Peers()
 const vibes = Vibes()
@@ -33,13 +35,17 @@ const activeVibe = derived([vibes, inspectPeer], ([vs, peer]) => {
 if (!$state.swarming) boot()
   .catch(console.error.bind(null, 'Auto-connect failed'))
 
-const mintWater = writable(false)
-const offerItem = writable(null)
+const attachment = writable(null)
+const availableAttachments = derived(profile, p =>
+  p.inventory
+  ? [
+    ITEMS[0xD700],
+    ...p.inventory.filter(i => !ITEMS[i.id].soulbound)
+  ]
+  : []
+)
 function sendVibe (pk) {
   const transactions = []
-  if ($mintWater) {
-    transactions.push({ t: ACTION_CONJURE_WATER })
-  }
   kernel.sendVibe(pk, transactions)
     .catch(err => console.error('Failed sending vibe', err))
 }
@@ -56,7 +62,13 @@ function sendVibe (pk) {
     Press the <strong>START</strong> button to play.
   {:else}
     {#if !$cooldowns.vibe}
-      Your <strong class="purple"><purple>vibe</purple></strong> is primed and loaded.
+      Your
+        <strong
+          data-tooltip="Initiate a conversation, cooldown 5min"
+          data-placement="right">
+          <purple>vibe</purple>
+        </strong>
+      is primed and loaded.
       <sup>Pow pow! 〰️🔫</sup>
     {:else}
       Vibe available in again <Timer expiresAt={$cooldowns.vibe} format="mm:ss" />
@@ -131,7 +143,7 @@ function sendVibe (pk) {
           <div class="row space-between xcenter">
             <h6 class="nogap">
               Score {$inspectPeer.score}
-              | <blue>¤{$inspectPeer.balance}</blue>
+              | ¤{$inspectPeer.balance}
             </h6>
             <h6 class="nogap">
               <!-- {$inspectPeer.state} -->
@@ -139,22 +151,14 @@ function sendVibe (pk) {
             </h6>
           </div>
           <p>{$inspectPeer.tagline}</p>
-
-          <h6>Vibe Options</h6>
-          <label for="water">
-            <h6>
-            <input type="checkbox" name="water" id="water"
-              bind:value={$mintWater}
-              disabled={$activeVibe?.state === 'match'}>
-            mint water {ITEMS[0xD700].image}</h6>
-          </label>
-          <label for="item">
-            <h6>
-            <input type="checkbox" name="item" id="item"
-              value={!!$offerItem}
-              disabled={$activeVibe?.state === 'match'}>
-            offer tradeable</h6>
-          </label>
+          <br/>
+          <div class="column end xcenter">
+              <h6 class="nogap">Attachments</h6>
+              <ItemInput bind:item={$attachment}
+                items={$availableAttachments}>
+                            You don't have anything to offer
+              </ItemInput>
+          </div>
           <footer>
             {#if !$state.entered}
               <div class="text-right">

@@ -10,7 +10,8 @@ const {
 
 const {
   ACTION_CONJURE_WATER,
-  ACTION_OFFER
+  ACTION_OFFER,
+  ACTION_NETWORK_PURCHASE
 } = require('..').Transactions
 
 const WATER = 0xD700
@@ -94,4 +95,29 @@ test('On mint effect', async t => {
   await makeChat(alice, bob, transaction)
   a = await until(alice.k.$profile(), p => p.inventory?.length)
   t.equal(a.balance, 60 + 11, 'Alice item onpickup effect')
+})
+
+test.skip('Drink water', async t => {
+  const [alice, bob] = await spawnSwarm('Alice', 'Bob')
+  await makeChat(alice, bob, { t: ACTION_CONJURE_WATER })
+  let a = await until(alice.k.$profile(), p => p.inventory?.length)
+  // TODO: useItem via transaction or via Block?
+  debugger
+})
+
+test.only('Purchase Gear from network', async t => {
+  const BAB = 0xD201
+  const [alice, bob] = await spawnSwarm('Alice', 'Bob')
+  await makeChat(alice, bob, { t: ACTION_CONJURE_WATER })
+  // TODO: this test will break if same-peer chats are prohibited.
+  // If bob called alice and they ended, alice can call bob back but only once.
+  await makeChat(alice, bob, {
+    t: ACTION_NETWORK_PURCHASE,
+    p: {
+      i: BAB,
+      q: 1
+    }
+  })
+  const a = await until(alice.k.$profile(), p => p.inventory?.length)
+  t.ok(a.inventory.find(i => i.id === BAB && i.qty), 'Item in inventory')
 })

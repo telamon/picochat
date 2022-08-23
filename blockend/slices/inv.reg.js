@@ -19,6 +19,7 @@ const {
   VIBE_REJECTED
 } = require('../util')
 const assert = require('nanoassert')
+const D = require('debug')('picochat:slices:inv')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const Transactions = require('../transactions')
 const BARPK = Buffer.from('jWR6XgHjIeNA8xDtVtjOxdsUhgKzABQ75HHi30ab8X0=', 'base64')
@@ -53,6 +54,7 @@ function InventorySlice () {
         slot.qty++
         slot.expiresAt = item.expiresAt
         onPickup(HEAD, item.id, signal)
+        D('onPickup(%x, %x, %i)', HEAD, item.id, slot.qty)
         // TODO: schedule perishables to expire
         /*
         if (item.expiresAt) {
@@ -73,6 +75,8 @@ function InventorySlice () {
         const inv = initInv(state, btok(op.target))
         const slot = initSlot(inv, op.item)
         slot.qty += op.qty
+        const tname = root.peers[btok(op.target)]?.name || op.target
+        D('[%s]onTrade(%h, %h, %i) => %i', root.peer.name, tname, op.item, op.qty, slot.qty)
       }
       return state
     }
@@ -143,21 +147,37 @@ function TransactionsSlice () {
               target: parentBlock.key
             })
             pending.push({ type: 'credit', target: parentBlock.key, amount: 60 })
-            pending.push({ type: 'debit', target: block.key, amount: 5 })
+            pending.push({ type: 'credit', target: block.key, amount: 5 })
             break
           case Transactions.ACTION_OFFER:
             pending.push({
               type: 'item',
               item: payload.i,
               qty: payload.q,
-              target: block.key
+              target: block.key // black
             })
             pending.push({
               type: 'item',
               item: payload.i,
               qty: -payload.q,
-              target: parentBlock.key
+              target: parentBlock.key // white
             })
+            break
+          case Transactions.ACTION_NETWORK_PURCHASE: {
+            const white = parentBlock.key
+            const black = block.key
+            const tname = root.peers[btok(white)]?.name || op.target
+            D('[%s]txBuy(%h, %h, %i) => %i', root.peer.name, tname, payload.i, payload.q)
+            // TODO: fetch amount from item.price
+            pending.push({ type: 'debit', target: white, amount: 15 })
+            pending.push({ type: 'credit', target: white, amount: 2 }) // reward
+            pending.push({
+              type: 'item',
+              item: payload.i,
+              qty: payload.q,
+              target: parentBlock.key // white
+            })
+          } break
         }
       }
       return state

@@ -168,6 +168,7 @@ h4, h5, h6, button, *[role=button] {
   }
 
 /* Restore dark-theme button color nested inside light-theme */
+.view-shop button { white-space: nowrap; }
 .view-shop button.red,
 .view-shop button.green,
 .view-shop button.blue,
@@ -311,7 +312,7 @@ svg.icon {
 
 /*----- views/Pub.svelte: Peer Card */
 article.peer {
-  --mdsqrsz: 300px;
+  --mdsqrsz: 250px;
   padding: 0;
   margin: 0 var(--block-spacing-horizontal);
   margin-bottom: var(--block-spacing-vertical);
@@ -373,6 +374,7 @@ dialog article.peer {
   --mdsqrsz: 84vw;
   margin: 0;
 }
+peers article.peer { max-width: var(--mdsqrsz);}
 /*-- END OF PEER CARD --*/
 
 .view-shop {
@@ -470,32 +472,33 @@ balance black {
   border: 5px solid #ffc1c1;
 */
 
-wallet-view {
+/** wallet + other places **/
+
+inventory {
   --slot: 50px;
   --slot-gap: 1px;
   /* slot bounding box */
   --sb: calc(var(--slot) + var(--slot-gap) * 2);
-}
-/** wallet **/
-wallet-view inventory {
   display: block;
   margin: 1em;
-  min-height: calc(var(--sb) * 5);
-  width: calc(var(--sb) * 6);
+  min-width: var(--sb);
+  min-height: var(--sb);
 
-  background-image: radial-gradient(circle, var(--ash) 66%, var(--bone) 0%);
+  background-image: radial-gradient(circle, var(--ash) 66%, rgba(0,0,0,0) 0%);
   background-repeat: repeat;
   background-position: 0 0, var(--sb) var(--sb);
   background-size: var(--sb) var(--sb);
 }
-
-[data-theme="dark"] wallet-view inventory {
+[data-theme="dark"] inventory {
   background-image: radial-gradient(circle, var(--slate) 66%, rgba(0,0,0,0) 0%);
 }
-wallet-view h1 small {
-  font-size: 0.6em;
+
+wallet-view inventory {
+  min-height: calc(var(--sb) * 4);
+  width: calc(var(--sb) * 6);
 }
-wallet-view item[role='button'] {
+
+inventory item[role='button'] {
   display: inline-block;
   width: var(--slot);
   height: var(--slot);
@@ -505,25 +508,21 @@ wallet-view item[role='button'] {
   line-height: var(--slot);
   vertical-align: middle;
   padding: 0 !important;
-  /*
-  background-color: var(--ash);
-  border: 1px solid var(--grave);
-  color: var(--bone);*/
 }
-[data-theme="dark"] wallet-view item[role='button'] {
+[data-theme="dark"] inventory item[role='button'] {
   background-color: var(--pitch);
 }
-wallet-view item emo {
+inventory item emo {
   box-shadow: 0 0 var(--blurSize) var(--chalk);
   border-radius: 50%;
 }
-wallet-view item.misc emo {
+inventory item.misc emo {
   box-shadow: 0 0 var(--blurSize) var(--leaf);
 }
-wallet-view item.drinks emo {
+inventory item.drinks emo {
   box-shadow: 0 0 var(--blurSize) var(--sorcery);
 }
-wallet-view item.gear emo {
+inventory item.gear emo {
   box-shadow: 0 0 var(--blurSize) var(--wizardry);
 }
 

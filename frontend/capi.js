@@ -15,7 +15,7 @@ import { until } from 'piconuro'
 import Feed from 'picofeed'
 
 // eslint-disable-next-line no-constant-condition
-const baseUri = '__ENV__' === 'dev'
+const baseUri = '__ENV__' === 'dev' || true
   ? 'http://localhost:4000'
   : 'https://api.pico.pub'
 
