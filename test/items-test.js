@@ -108,19 +108,21 @@ test('On attachment effect', async t => {
   t.equal(g.balance, 60 + 7, 'Alice offered gaul some water that he drank')
 })
 
-test.skip('Drink water', async t => {
+test('Use Item on self', async t => {
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
-  await makeChat(alice, bob, { t: ACTION_CONJURE_WATER })
+  await makeChat(alice, bob, txBuyWater)
   let a = await until(alice.k.$profile(), p => p.inventory?.length)
-  // TODO: useItem via transaction or via Block?
-  debugger
+  t.equal(a.balance, 11)
+  await alice.k.useItem(WATER)
+  a = await next(alice.k.$profile())
+  t.equal(a.balance, 11 + 60)
 })
 
-test.skip('Purchase Gear from network', async t => {
+test('Purchase Gear from network', async t => {
   const BAB = 0xD201
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
   await makeChat(alice, bob, txBuyWater)
-  // TODO: await alice.use(WATER) // => +60¤
+  await alice.k.useItem(WATER)
 
   // TODO: this test will break if same-peer chats are prohibited.
   // If bob called alice and they ended, alice can call bob back but only once.

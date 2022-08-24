@@ -10,7 +10,7 @@ const {
 const assert = require('nanoassert')
 const { scoreGraph } = require('../game')
 
-const ACTIVE = 'active'
+const ACTIVE = 'active' // head is Profile|Bye|Items|Use
 const PENDING = 'pending' // Waiting for vibe-resp
 const LOCKED = 'locked' // Locked in convo
 const EXPIRED = 'expired' // GC-candy

@@ -5,14 +5,14 @@ const VibeCtrl = require('./slices/vibes.reg')
 const ConversationCtrl = require('./slices/chats.reg')
 const { InventorySlice, TransactionsSlice } = require('./slices/inv.reg')
 
-// const StatsCtrl = require('./slices/stats')
-// Kernel Modules (simply mixins)
+// Kernel Modules (basically mixins)
 const ChatModule = require('./mod/chat.mod')
 const BufferedRegistry = require('./mod/buffered-registry.mod')
 const GarbageCollector = require('./mod/gc.mod')
 const PeersModule = require('./mod/peers.mod')
 const VibesModule = require('./mod/vibes.mod')
 const MonitorModule = require('./mod/monitor.mod')
+const InventoryModule = require('./mod/inv.mod')
 
 // Util
 const {
@@ -25,6 +25,7 @@ const {
   TYPE_PROFILE,
   TYPE_BYE,
   TYPE_BYE_RESP,
+  TYPE_ACTIVATE,
   VIBE_REJECTED,
   decodeBlock,
   typeOfBlock
@@ -58,9 +59,9 @@ class Kernel extends SimpleKernel {
     Object.assign(this, VibesModule())
     Object.assign(this, ChatModule())
     Object.assign(this, BufferedRegistry())
-    // Object.assign(this, Network(this))
     Object.assign(this, GarbageCollector(this.store))
     Object.assign(this, MonitorModule())
+    Object.assign(this, InventoryModule())
   }
 
   /**
@@ -124,7 +125,9 @@ class Kernel extends SimpleKernel {
           keys[1] = block.key
           heads[1] = decodeBlock(block.body).link
           break
-
+        // TODO: add & verify:
+        // case TYPE_ITEMS: // issued by bar
+        // case TYPE_ACTIVATE: // self issued
         case TYPE_PROFILE:
         case TYPE_BYE_RESP:
           keys[0] = block.key
@@ -160,6 +163,7 @@ class Kernel extends SimpleKernel {
   // Same thing with bye.
   // There are identity checks in store-filters but
   // maybe should be handled on strategy level.
+  // TODO: Heads up, there's a bug here? Why isn't bartender blocks rejected?
   async mergeStrategy (block, repo) { // TODO: expose loudFail flag? mergStr(b, r, !dryMerge && loud)
     const content = decodeBlock(block.body)
     const { type } = content

@@ -16,9 +16,10 @@ const {
   EV_ADD_SCORE, // Also adds time
   TYPE_VIBE_RESP,
   TYPE_ITEMS,
+  TYPE_ACTIVATE,
   VIBE_REJECTED
 } = require('../util')
-const assert = require('nanoassert')
+const { now } = require('../../config')
 const D = require('debug')('picochat:slices:inv')
 const { ACTIVE, stateOfPeer } = require('./peers.reg')
 const {
@@ -37,15 +38,30 @@ function InventorySlice () {
 
     filter ({ block, root, state, HEAD }) {
       const data = decodeBlock(block.body)
-      if (data.type !== TYPE_ITEMS) return true
-
+      if (
+        data.type !== TYPE_ITEMS &&
+        data.type !== TYPE_ACTIVATE
+      ) return true
+      // validate peer state
       const pid = btok(HEAD)
       const peer = root.peers[pid]
       const pState = stateOfPeer(peer, root.vibes, root.chats)
-      const hasBarItems = data.items.find(i => i.id < 0xD200)
-      if (hasBarItems && !block.key.equals(BARPK)) return 'StampNotTrusted'
       if (pState !== ACTIVE) return 'PeerBusy'
-      if (Date.now() - data.date >= 60 * 60 * 1000) return 'DeliveryTimeout'
+
+      // Validate block
+      if (data.type === TYPE_ITEMS) {
+        const hasBarItems = data.items.find(i => i.id < 0xD200)
+        if (hasBarItems && !block.key.equals(BARPK)) return 'StampNotTrusted'
+        if (now() - data.date >= 60 * 60 * 1000) return 'DeliveryTimeout'
+      } else { // TYPE_ACTIVATE
+        if (!ITEMS[data.i]) return 'UnknownItem'
+        if (!~['consumable', 'active'].indexOf(ITEMS[data.i].type)) return 'CannotBeActivated'
+        const inv = state[pid]
+        if (!inv) return 'InventoryEmpty'
+        const item = inv[data.i]
+        if (!item) return 'ItemNotHeld'
+        if (item.qty <= 0) return 'OutOfStock'
+      }
       return false
     },
 
@@ -54,21 +70,44 @@ function InventorySlice () {
       const data = decodeBlock(block.body)
       // initialize peer inventory
       const inv = initInv(state, pid)
-      for (const item of data.items) { // uncrate items
-        const slot = initSlot(inv, item.id)
-        slot.qty++
-        slot.expiresAt = item.expiresAt
-        onPickup(HEAD, item.id, signal)
-        D('onPickup(%x, %x, %i)', HEAD, item.id, slot.qty)
-        // TODO: schedule perishables to expire
-        /*
-        if (item.expiresAt) {
-          schedule(item.expiresAt, `item|${item.id}|${pid}`)
+      if (data.type === TYPE_ITEMS) {
+        for (const item of data.items) { // uncrate items
+          const slot = initSlot(inv, item.id)
+          slot.qty++
+          slot.expiresAt = item.expiresAt
+          onPickup(HEAD, item.id, signal)
+          D('onPickup(%x, %x, %i)', HEAD, item.id, slot.qty)
+
+          /* TODO: schedule perishables to expire
+            if (item.expiresAt) {
+              schedule(item.expiresAt, `item|${item.id}|${pid}`)
+            }
+          */
         }
-        */
+      } else { // TYPE_ACTIVATE
+        const { i } = data
+        const item = ITEMS[i]
+        const slot = initSlot(inv, i)
+        if (item.type === 'consumable') {
+          slot.qty--
+          slot.activatedAt = now()
+          // TODO: Rethink before proceed, inflation in time and score?
+          signal(EV_ADD_SCORE, { target: HEAD, amount: item.time })
+          signal(EV_BALANCE_CREDIT, { target: HEAD, amount: item.time })
+        } else { // type: active (can be toggled)
+          if (isActive(slot)) {
+            slot.deactivatedAt = now()
+            // TODO: Apply deactivation effects
+          } else {
+            slot.activatedAt = now()
+            // TODO: Apply activation effects
+          }
+        }
+        // onActivate(HEAD, item.id, signal)
+        D('onActivate(%x, %x, %i)', HEAD, item, slot.qty)
       }
       return state
-    },
+    }, // Picochat is a social survival game with in the setting of a night club. It's powered by pico-blockchains.
 
     trap ({ code, payload, root, state }) {
       if (code !== EV_CHAT_END) return
@@ -98,9 +137,14 @@ function initSlot (inv, id) {
     id, // item id
     qty: 0,
     activatedAt: -1,
+    deactivatedAt: -1,
     expiresAt: -1
   }
   return inv[id]
+}
+
+function isActive (slot) {
+  return !(slot.activatedAt === -1 || slot.activatedAt < slot.deactivatedAt)
 }
 
 // A slice holding pending transactions
@@ -127,10 +171,9 @@ function TransactionsSlice () {
               const sourcePid = btok(parentBlock.key)
               const inv = root.inv[sourcePid]
               if (!inv) return 'InventoryEmpty'
-              assert(inv, 'InventoryEmpty')
               const item = inv[payload.i]
-              assert(item, 'ItemNotHeld')
-              assert(item.qty - payload.q >= 0, 'NegativeQuantity')
+              if (!item) return 'ItemNotHeld'
+              if (item.qty - payload.q < 0) return 'NegativeQuantity'
             } break
 
             case ACTION_NETWORK_PURCHASE: {
@@ -138,7 +181,7 @@ function TransactionsSlice () {
               const item = ITEMS[i]
               const sum = item.price * q
               const target = btok(parentBlock.key)
-              assert(root.peers[target].balance >= sum, 'InsufficientFunds')
+              if (root.peers[target].balance < sum) return 'InsufficientFunds'
             }
           }
         }

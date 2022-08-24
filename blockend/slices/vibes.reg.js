@@ -4,6 +4,7 @@ const {
   TYPE_PROFILE,
   TYPE_BYE_RESP,
   TYPE_ITEMS,
+  TYPE_ACTIVATE,
   EV_CHAT_END,
   VIBE_REJECTED,
   decodeBlock,
@@ -65,7 +66,8 @@ class VibeCtrl { // TODO: use same pattern as aother reducers instead of class
       if (
         parentType !== TYPE_PROFILE &&
         parentType !== TYPE_BYE_RESP &&
-        parentType !== TYPE_ITEMS // Continue where we left off
+        parentType !== TYPE_ITEMS &&
+        parentType !== TYPE_ACTIVATE // Continue where we left off
       ) return `InvalidParent: ${parentType}`
 
       const key = block.key.toString('hex')
