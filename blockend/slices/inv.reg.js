@@ -98,9 +98,11 @@ function InventorySlice () {
           if (isActive(slot)) {
             slot.deactivatedAt = now()
             // TODO: Apply deactivation effects
+            console.warn('Item deactivation effects not implemented')
           } else {
             slot.activatedAt = now()
             // TODO: Apply activation effects
+            console.warn('Item activation effects not implemented')
           }
         }
         // onActivate(HEAD, item.id, signal)
