@@ -5,7 +5,6 @@ import Keychain from '../blockend/keychain'
 import { readable } from 'svelte/store'
 import { mute, gate, init, write, combine, get, nfo } from 'piconuro'
 import { navigate } from './router'
-import inventory from './inventory.yaml'
 const Modem56 = window.Modem56
 const TOPIC = 'picochat-testnet'
 

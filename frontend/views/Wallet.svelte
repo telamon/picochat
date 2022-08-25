@@ -1,18 +1,22 @@
 <script>
 import { writable, derived } from 'svelte/store'
-import { Profile, ITEMS } from '../api'
+import { Profile, kernel } from '../api'
+import { ITEMS } from '../../blockend/items.db'
 import Timer from '../components/Timer.svelte'
 import Dialog from '../components/Dialog.svelte'
 import ItemDescription from '../components/ItemDescription.svelte'
 const profile = Profile()
 const inventory = derived(profile, p => {
+  if (p.state === 'loading') return []
   // dev-inventory
   // return Object.keys(ITEMS).map(id => ({ id, qty: 1}))
-  return p.inventory || []
+  return p.inventory.filter(i => i.qty)
 })
 const showItem = writable(false)
-function consume (id) {
-  console.info('Todo implement item consumption')
+async function consume (id) {
+  await kernel.useItem(id)
+    .catch(err => console.error('Failed consuming', id, err))
+  $showItem = false
 }
 function toggle (id) {
   console.info('todo implement item activation')

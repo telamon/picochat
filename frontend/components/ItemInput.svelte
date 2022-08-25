@@ -1,12 +1,12 @@
 <script>
-import { ITEMS  } from '../api'
+import { ITEMS } from '../../blockend/items.db'
 import { writable } from 'svelte/store'
 import Dialog from '../components/Dialog.svelte'
 export let item = undefined
 export let items = []
-// items = Object.values(ITEMS)
+// items = Object.values(ITEMS).map(i => i.id)
 const pop = writable(false)
-
+console.log('ItemInput', items)
 function select (id) {
   $pop = false
   item = id
@@ -22,9 +22,9 @@ function select (id) {
             on:click={() => select(null)}>
             <emo>❌</emo>
           </item>{#each items as i}
-            <item role="button" class={ITEMS[i.id].category}
-              on:click={() => select(i.id)}>
-              <emo>{ITEMS[i.id].image}</emo>
+            <item role="button" class={ITEMS[i].category}
+              on:click={() => select(i)}>
+              <emo>{ITEMS[i].image}</emo>
             </item>
           {/each}
         </inventory>

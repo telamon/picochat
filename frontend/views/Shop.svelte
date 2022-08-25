@@ -1,7 +1,8 @@
 <script>
 export let q = {}
 import { derived, writable } from 'svelte/store'
-import { Profile, INVENTORY, ITEMS } from '../api'
+import { Profile } from '../api'
+import { ITEMS, GROUPS } from '../../blockend/items.db'
 import { requestVerificationStamp, createCheckout, redeem } from '../capi'
 import { navigate } from '../router'
 import Dialog from '../components/Dialog.svelte'
@@ -103,7 +104,7 @@ function decentralCheckout (item) {
       </a>
       {/if}
 
-      {#each INVENTORY.drinks as drink}
+      {#each GROUPS.drinks as drink}
         <item class="drink row xcenter" on:click={() => $showItem = drink}>
           <iimage>{drink.image}</iimage>
           <description class="column xstart grow2 space-between">
@@ -128,7 +129,7 @@ function decentralCheckout (item) {
 
     <h2 class="text-center nogap">Gear</h2>
     <gear>
-      {#each INVENTORY.gear as item}
+      {#each GROUPS.gear as item}
         <item class="item row xcenter" on:click={() => $showItem = item}>
           <iimage>{item.image}</iimage>
           <description class="column xstart grow2 space-between">

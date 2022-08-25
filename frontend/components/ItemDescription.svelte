@@ -1,5 +1,5 @@
 <script>
-import { ITEMS } from '../api'
+import { ITEMS } from '../../blockend/items.db'
 export let id = -1
 export let noDescription = false
 const item = ITEMS[id]

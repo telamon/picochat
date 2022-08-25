@@ -1,7 +1,8 @@
 <script>
 import { getDistance } from 'geolib'
 import BinaryImage from './BinaryImage.svelte'
-import { kernel, decodePk, ITEMS } from '../api'
+import { kernel, decodePk } from '../api'
+import { ITEMS } from '../../blockend/items.db'
 export let peer
 export let size = 'normal'
 let distance = null

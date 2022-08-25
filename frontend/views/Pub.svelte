@@ -9,8 +9,8 @@ import {
   Cooldowns,
   Profile,
   Vibes,
-  ITEMS,
 } from '../api'
+import { ITEMS, WATER } from '../../blockend/items.db'
 import { btok } from '../../blockend/util'
 import Timer from '../components/Timer.svelte'
 import Portrait from '../components/PeerPortrait.svelte'
@@ -18,7 +18,7 @@ import Icon from '../components/Icon.svelte'
 import Dialog from '../components/Dialog.svelte'
 import ItemInput from '../components/ItemInput.svelte'
 import { navigate } from '../router'
-import { ACTION_CONJURE_WATER, ACTION_OFFER } from '../../blockend/transactions'
+import { ACTION_OFFER, ACTION_NETWORK_PURCHASE } from '../../blockend/transactions'
 const profile = Profile()
 const cooldowns = Cooldowns()
 const peers = Peers()
@@ -36,16 +36,24 @@ if (!$state.swarming) boot()
   .catch(console.error.bind(null, 'Auto-connect failed'))
 
 const attachment = writable(null)
-const availableAttachments = derived(profile, p =>
-  p.inventory
-  ? [
-    ITEMS[0xD700],
-    ...p.inventory.filter(i => !ITEMS[i.id].soulbound)
-  ]
-  : []
-)
+const availableAttachments = derived(profile, p => {
+  if (!p.inventory) return []
+
+  const items = p.inventory.filter(i => !ITEMS[i.id].soulbound && i.qty)
+    .map(i => i.id)
+  if (!items.find(i => i === WATER)) items.push(WATER)
+  return items
+})
+
 function sendVibe (pk) {
   const transactions = []
+  if ($attachment === WATER) {
+    // TODO: network purchase cart
+    transactions.push({ t: ACTION_NETWORK_PURCHASE, p: { i: WATER, q: 1 } })
+  } else {
+    transactions.push({ t: ACTION_OFFER, p: { i: $attachment, q: 1 } })
+  }
+
   kernel.sendVibe(pk, transactions)
     .catch(err => console.error('Failed sending vibe', err))
 }
