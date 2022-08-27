@@ -22,6 +22,20 @@ const _names = {}
 */
 
 // ----------- Drinks
+item(0xD701, 'WATER')`
+name: Glass of Water
+time: 60
+price: 0
+short: Stay hydrated
+image: 🥛
+group: drinks
+type: consumable
+desc: |-
+  Disregarding the looks, it's a regular glass of
+  water.
+  Can be purchased once a Day
+`
+
 item(0xD101)`
 name: Lager
 time: 20
@@ -149,20 +163,6 @@ desc: |-
   but lorem forgot to bring a snack. So amet said
   "Don't worry bruh, I got you, I brought enough chocolate to bring down the entire mountain!"
   And so the adventure continued.
-`
-
-item(0xD701, 'WATER')`
-name: Glass of Water
-time: 60
-price: 0
-short: Stay hydrated
-image: 🥛
-group: misc
-type: consumable
-desc: |-
-  Disregarding the looks, it's a regular glass of
-  water.
-  Can be purchased once a Day
 `
 // ----------- GEAR
 item(0xD200)`
@@ -316,7 +316,11 @@ function item (id, exportName) {
     assert(~validGroups.indexOf(i.group), `${istr}: Invalid 'group'`)
 
     if (i.time) assert(Number.isFinite(i.time), `${istr}: 'time' Invalid`)
-    if (i.price) assert(Number.isFinite(i.price), `${istr}: 'price' Invalid`)
+    if (i.price) { // Assume purchasable
+      assert(Number.isFinite(i.price), `${istr}: 'price' Invalid`)
+      // Reserved realworld currency range
+      i.irlPrice = id < 0xD200 && id >= 0xD100
+    }
 
     // Index
     ITEMS[id] = i

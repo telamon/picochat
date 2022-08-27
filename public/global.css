@@ -174,9 +174,10 @@ h4, h5, h6, button, *[role=button] {
 .view-shop button.blue,
 .view-shop button.purple { color: var(--primary-inverse) !important; }
 /* TODO: fix light-theme color/bg-color on :hover */
-red { color: var(--leaf); }
+red { color: var(--blood); }
 blue { color: var(--pool); }
 purple { color: var(--shadow); }
+green { color: var(--leaf); }
 error, .error, red { color: var(--blood); }
 
 /* global components */
@@ -312,7 +313,7 @@ svg.icon {
 
 /*----- views/Pub.svelte: Peer Card */
 article.peer {
-  --mdsqrsz: 250px;
+  --mdsqrsz: 280px;
   padding: 0;
   margin: 0 var(--block-spacing-horizontal);
   margin-bottom: var(--block-spacing-vertical);
@@ -345,14 +346,14 @@ article.peer legend h2, article.peer legend h3 {
 
 article.peer dot {
   display: inline-block;
-  width: 0.8rem;
-  height: 0.8rem;
+  width: 0.7rem;
+  height: 0.7rem;
   border-radius: 50%;
   background-color: var(--ash);
-  line-height: 1em;
+  line-height: 1rem;
   vertical-align: middle;
-  margin: 0 0.3rem;
   opacity: 0.8;
+  margin: 0;
 }
 article.peer dot.active {
   background-color: var(--wizardry);

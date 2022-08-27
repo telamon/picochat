@@ -10,7 +10,8 @@ import {
   Profile,
   Vibes,
 } from '../api'
-import { ITEMS, WATER } from '../../blockend/items.db'
+import { cart } from '../network-cart'
+import { ITEMS } from '../../blockend/items.db'
 import { btok } from '../../blockend/util'
 import Timer from '../components/Timer.svelte'
 import Portrait from '../components/PeerPortrait.svelte'
@@ -38,23 +39,25 @@ if (!$state.swarming) boot()
 const attachment = writable(null)
 const availableAttachments = derived(profile, p => {
   if (!p.inventory) return []
-
   const items = p.inventory.filter(i => !ITEMS[i.id].soulbound && i.qty)
     .map(i => i.id)
-  if (!items.find(i => i === WATER)) items.push(WATER)
   return items
 })
 
+
 function sendVibe (pk) {
   const transactions = []
-  if ($attachment === WATER) {
-    // TODO: network purchase cart
-    transactions.push({ t: ACTION_NETWORK_PURCHASE, p: { i: WATER, q: 1 } })
-  } else {
+  for (const item of $cart) {
+    transactions.push({
+      t: ACTION_NETWORK_PURCHASE,
+      p: { i: item.id, q: item.qty }
+    })
+  }
+  if ($attachment) {
     transactions.push({ t: ACTION_OFFER, p: { i: $attachment, q: 1 } })
   }
-
   kernel.sendVibe(pk, transactions)
+    .then(() => $cart = [])
     .catch(err => console.error('Failed sending vibe', err))
 }
 

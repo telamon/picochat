@@ -20,10 +20,15 @@ const inv = peer.inventory || []
     <legend>
       <overlay>
         <div style="grid-area: nw;" class="hpad">
-          <slot name="nw"><h3>{peer.score}</h3></slot>
+          <slot name="nw">
+            <h3>
+              <dot class={peer.state} data-tooltip={peer.state}>&nbsp;</dot>
+              {peer.score}
+            </h3>
+          </slot>
         </div>
-        <div style="grid-area: sw; align-self: end;">
-          <h2><dot class={peer.state}>&nbsp;</dot>{peer.name}</h2>
+        <div style="grid-area: sw; align-self: end;" class="hpad">
+          <h2>{peer.name}</h2>
         </div>
         <div style="grid-area: se; align-self: end; justify-self: end;" class="end">
           <h2>

@@ -35,6 +35,7 @@ module.exports = function VibesModule () {
       if (!Array.isArray(transactions)) transactions = [transactions]
       transactions = transactions.map(t => Transactions.validate(t))
       const cd = await until(this.$cooldowns(), cd => cd.state !== 'loading')
+      console.log('MyState', cd)
       if (!cd.canVibe) throw new Error('VibeNotReady')
 
       const msgBox = boxPair()

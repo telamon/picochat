@@ -8,6 +8,13 @@ import { navigate } from '../router'
 import Dialog from '../components/Dialog.svelte'
 import Timer from '../components/Timer.svelte'
 import ItemDescription from '../components/ItemDescription.svelte'
+import { // prefix with d(ecentral)
+  cart as dCart,
+  addCart as dAddCart,
+  delCart as dDelCart,
+  cartSum as dCartSum,
+  cartQty as dCartQty
+} from '../network-cart'
 
 const profile = Profile()
 const hasBadge = derived(profile, p => p?.hasBadge)
@@ -29,7 +36,6 @@ function requestStamp () {
     })
 }
 let _waitRequestStamp = writable(Promise.resolve(''))
-
 // Cart
 const cart = writable([])
 const cartSum = derived(cart, c =>
@@ -59,6 +65,7 @@ function doCheckout () {
   $checkoutPromise = createCheckout($cart)
 }
 const showCartDialog = writable(false)
+const showDCartDialog = writable(false)
 
 const showRedeemDialog = writable(q.redeem)
 
@@ -70,9 +77,10 @@ function doRedeem () {
   const sid = q.session
   $waitRedeem = redeem(sid, success)
 }
-function decentralCheckout (item) {
-  console.info('TODO: Network purchases')
-}
+
+const balance = derived([dCartSum, profile], ([s, p]) =>
+  p.balance - s
+)
 </script>
 <shop-view data-theme="dark">
   <splash class="column xcenter">
@@ -99,9 +107,10 @@ function decentralCheckout (item) {
 
       <h2 class="text-center nogap">Drinks</h2>
       {#if !$hasBadge}
-      <a on:click={() => $showVerifyDialog = true} class="row xcenter center">
-        <div>Verify your profile to buy drinks</div>
-      </a>
+        <green on:click={() => $showVerifyDialog = true} class="row xcenter center">
+          <div>Verify your profile to buy drinks</div>
+        </green>
+        <br/>
       {/if}
 
       {#each GROUPS.drinks as drink}
@@ -118,10 +127,16 @@ function decentralCheckout (item) {
             <short>{drink.short}</short>
           </description>
           <buy class="column center">
-            <button class="blue" disabled={!$hasBadge}
-              on:click|stopPropagation={() => addCart(drink.id)}>
-              € {(drink.price / 100)}
-            </button>
+            {#if drink.irlPrice}
+              <button class="blue" disabled={!$hasBadge}
+                on:click|stopPropagation={() => addCart(drink.id)}>
+                € {(drink.price / 100)}
+              </button>
+            {:else}
+              <button on:click|stopPropagation={() => dAddCart(drink.id)}>
+                ¤ {drink.price}
+              </button>
+            {/if}
           </buy>
         </item>
       {/each}
@@ -142,8 +157,10 @@ function decentralCheckout (item) {
             <short>{item.short}</short>
           </description>
           <buy class="column center">
-            <button on:click|stopPropagation={() => decentralCheckout(i)}>
-              ¤ {Math.ceil(item.price / 100)}
+            <button
+              disabled={$balance < item.price || null}
+              on:click|stopPropagation={() => dAddCart(item.id)}>
+              ¤ {item.price}
             </button>
           </buy>
         </item>
@@ -276,18 +293,58 @@ function decentralCheckout (item) {
         <ItemDescription id={$showItem.id} />
         <footer class="row space-between">
           <button class="hgap" on:click={() => $showItem = false}>ok</button>
-          {#if $showItem.id < 0xD200 && $showItem.id >= 0xD100}
+          {#if $showItem.irlPrice}
             <button class="hgap blue"
               disabled={!$hasBadge}
               on:click={() => { addCart($showItem.id); $showItem = false; }}>
               € {($showItem.price / 100)}
             </button>
-          {:else if $showItem.id >= 0xD200 && $showItem.price}
+          {:else if !$showItem.irlPrice && $showItem.price > -1}
             <button class="hgap red"
-              on:click={() => { decentralCheckout($showItem); $showItem = false; }}>
-              ¤ {($showItem.price / 100)}
+              disabled={$balance < $showItem.price || null}
+              on:click={() => {dAddCart($showItem.id); $showItem = false; }}>
+              ¤ {$showItem.price}
             </button>
           {/if}
+        </footer>
+      </article>
+    </Dialog>
+  {/if}
+  {#if $showDCartDialog}
+    <Dialog open={true} on:fade={() => $showDCartDialog = false}>
+      <article>
+        <header><h5>Decentral Cart</h5></header>
+        {#if !$dCart.length}
+          <h3>Your cart is empty</h3>
+        {/if}
+
+        {#each $dCart as item}
+          <item class="item row xcenter">
+            <iimage>{ITEMS[item.id].image}</iimage>
+            <description class="column xstart grow2 space-between">
+              <h3>{ITEMS[item.id].name}</h3>
+              <short>{ITEMS[item.id].short}</short>
+            </description>
+            <buy class="row center xcenter">
+              <b role="button" class="blue" on:click={() => dDelCart(item.id)}>-</b>
+              <!-- <input type="number" value={item.qty} /> -->
+              <h3 class="nogap nopad hpad">{item.qty}</h3>
+              <b role="button" class="blue"
+                disabled={$balance - ITEMS[item.id].price < 0 || null}
+                on:click={() => dAddCart(item.id)}>+</b>
+            </buy>
+          </item>
+        {/each}
+        <h3 class="text-right">
+          Sum ¤ {$dCartSum}
+        </h3>
+        <p class="text-center">
+          Items will be delivered after next vibe
+        </p>
+        <footer class="flex row space-between xcenter">
+          <button on:click={() => $showDCartDialog = false}>ok</button>
+          <div>&nbsp;</div>
+          <button class="blue" on:click={() => navigate('/')}>socialize</button>
         </footer>
       </article>
     </Dialog>
@@ -296,9 +353,11 @@ function decentralCheckout (item) {
     <div>
       <button class="nogap" on:click={() => navigate('/')}>back</button>
     </div>
-    <h3 class="stat nopad nogap">
-      <Timer expiresAt={$profile.expiresAt} /> /
-      ¤{$profile.balance}
+    <h3 class="stat nopad nogap" on:click={() => $showDCartDialog = !$showDCartDialog}>
+      ¤{$balance}
+      {#if $dCartQty}
+        <small><blue>(¤{$dCartSum})</blue></small>
+      {/if}
     </h3>
 
     <h3 class="nopad nogap" on:click={() => $showCartDialog = !$showCartDialog}>
@@ -325,7 +384,7 @@ function decentralCheckout (item) {
     text-align: center;
   }
   item description {
-    line-height: 1em;
+    line-height: 1.1;
   }
   item description h3, item description h6, item description short { margin: 3px; }
   item buy button {
@@ -350,6 +409,4 @@ function decentralCheckout (item) {
   bar {
     border-top: 1px solid var(--slate);
   }
-
 </style>
-
