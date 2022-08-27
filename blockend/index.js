@@ -1,4 +1,5 @@
 const { SimpleKernel } = require('picostack')
+const { inspect: dumpDot } = require('picorepo/dot')
 // Lowlevel registers that hold block-state
 const PeerCtrl = require('./slices/peers.reg')
 const VibeCtrl = require('./slices/vibes.reg')
@@ -25,7 +26,6 @@ const {
   TYPE_PROFILE,
   TYPE_BYE,
   TYPE_BYE_RESP,
-  TYPE_ACTIVATE,
   VIBE_REJECTED,
   decodeBlock,
   typeOfBlock
@@ -191,6 +191,23 @@ class Kernel extends SimpleKernel {
 
     console.warn('MergeStrategy rejected', parentType, '<--', type)
     return false // disallow by default
+  }
+
+  async inspect () {
+    const dot = await dumpDot(this.repo, {
+      blockLabel (block) {
+        const data = SimpleKernel.decodeBlock(block.body)
+        const s = `${data.type.toUpperCase()}\nseq:${data.seq}\n`
+        switch (data.type) {
+          case TYPE_PROFILE: return s + data.name
+          case TYPE_VIBE: return s + 'T: ' + data.transactions?.length || 0
+          default:
+            console.info('Unknown type', data.type, data)
+            return `${s}TYPE: ${data.type}`
+        }
+      }
+    })
+    return dot
   }
 }
 

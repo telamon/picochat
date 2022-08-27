@@ -9,7 +9,6 @@ const {
 module.exports = function InventoryModule () {
   return {
     // $hasItem(pk, itemId) { return  inv[itemId].qty }
-
     async useItem (i) {
       assert(Number.isInteger(i), 'ItemID expected')
       // const cd = await until(this.$cooldowns(), cd => cd.state !== 'loading')

@@ -322,7 +322,7 @@ article.peer overlay h2,
 article.peer overlay h3 { margin: 0; }
 /* ensure children don't escape */
 article.peer legend { position: relative; }
-article.peer legend .bimg { width: 100%; }
+article.peer legend .bimg {  width: 100%;}
 article.peer legend overlay {
   display: block;
   width: 100%;
@@ -373,7 +373,7 @@ article.peer dot.pending {
   border: 1px solid var(--blood);
 }
 dialog article.peer {
-  --mdsqrsz: 84vw;
+  --mdsqrsz: 350px;
   margin: 0;
 }
 peers article.peer { max-width: var(--mdsqrsz);}
@@ -527,4 +527,6 @@ inventory item.drinks emo {
 inventory item.gear emo {
   box-shadow: 0 0 var(--blurSize) var(--wizardry);
 }
-
+devel-view graph svg {
+  max-width: 150vw;
+}

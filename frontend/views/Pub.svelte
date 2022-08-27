@@ -20,8 +20,8 @@ import Dialog from '../components/Dialog.svelte'
 import ItemInput from '../components/ItemInput.svelte'
 import { navigate } from '../router'
 import { ACTION_OFFER, ACTION_NETWORK_PURCHASE } from '../../blockend/transactions'
-const profile = Profile()
-const cooldowns = Cooldowns()
+const profile = Profile('profile')
+const cooldowns = Cooldowns('cd')
 const peers = Peers()
 const vibes = Vibes()
 const showFiltersDialog = writable(false)
@@ -56,6 +56,7 @@ function sendVibe (pk) {
   if ($attachment) {
     transactions.push({ t: ACTION_OFFER, p: { i: $attachment, q: 1 } })
   }
+
   kernel.sendVibe(pk, transactions)
     .then(() => $cart = [])
     .catch(err => console.error('Failed sending vibe', err))
@@ -72,7 +73,7 @@ function sendVibe (pk) {
   {#if !$state.entered}
     Press the <strong>START</strong> button to play.
   {:else}
-    {#if !$cooldowns.vibe}
+    {#if $cooldowns.canVibe}
       Your
         <strong
           data-tooltip="Initiate a conversation, cooldown 5min"
@@ -167,9 +168,17 @@ function sendVibe (pk) {
               <h6 class="nogap">Attachments</h6>
               <ItemInput bind:item={$attachment}
                 items={$availableAttachments}>
-                            You don't have anything to offer
+                <p>
+                  You don't have anything to offer.<br/>
+                  <a href="#/shop">Visit the bar to get items</a>
+                </p>
               </ItemInput>
           </div>
+          {#if $cart.length}
+          <div class="text-right">
+            Delivery: {#each $cart as item}{ITEMS[item.id].image}{/each}
+          </div>
+          {/if}
           <footer>
             {#if !$state.entered}
               <div class="text-right">

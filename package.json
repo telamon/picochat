@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "picostack": "^1.5.3"
+    "picostack": "^1.5.3",
+    "tiny-byte-size": "^1.1.0"
   }
 }

@@ -15,7 +15,9 @@ const inventory = derived(profile, p => {
 const showItem = writable(false)
 async function consume (id) {
   await kernel.useItem(id)
+    .then(sig => console.log('Consumed item', id, sig))
     .catch(err => console.error('Failed consuming', id, err))
+
   $showItem = false
 }
 function toggle (id) {

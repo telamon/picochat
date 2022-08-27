@@ -35,9 +35,7 @@ const nCount = NotificationsCount()
 const profile = Profile()
 
 async function inspectFeed () {
-  const feed = await kernel.feed()
-  feed.inspect()
-  console.log(`Size: ${(feed.tail / 1024).toFixed(2)} kB`, )
+  navigate('/devel')
 }
 async function reloadStores () {
   await kernel.store.reload()
