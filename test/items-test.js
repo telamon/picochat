@@ -14,7 +14,7 @@ const {
   ACTION_ATTACHMENT
 } = require('..').Transactions
 
-const { ITEMS, WATER } = require('../blockend/items.db')
+const { ITEMS, WATER, BAB } = require('../blockend/items.db')
 const txBuyWater = Object.freeze({ t: ACTION_NETWORK_PURCHASE, p: { i: WATER, q: 1 } })
 test('Peer has an inventory of items', async t => {
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
@@ -59,6 +59,8 @@ test('Unordered blocks', async t => {
 test('ACTION_OFFER', async t => {
   const [alice, bob, gaul] = await spawnSwarm('Alice', 'Bob', 'Gaul')
   await makeChat(bob, alice, txBuyWater)
+  await makeChat(alice, bob)
+  await makeChat(gaul, alice)
 
   let inv = await next(mute(bob.k.$profile(), p => p.inventory))
   t.ok(inv[0])
@@ -83,8 +85,11 @@ test('ACTION_OFFER', async t => {
     await doMatch(alice, gaul, { t: ACTION_OFFER, p: { i: WATER, q: 5 } })
     t.fail('Invalid block was accepted')
   } catch (err) { t.equal(err.message, 'InvalidBlock: InventoryEmpty') }
+
   inv = await next(mute(gaul.k.$profile(), p => p.inventory))
   t.equal(inv[0].qty, 1, '1 water')
+  const dot = await gaul.k.inspect()
+  require('fs').writeFileSync('repo.dot', dot)
 })
 
 // Disable on mint effect for now, getting the item is reward enough
@@ -119,7 +124,6 @@ test('Use Item on self', async t => {
 })
 
 test('Purchase Gear from network', async t => {
-  const BAB = 0xD201
   const [alice, bob] = await spawnSwarm('Alice', 'Bob')
   await makeChat(alice, bob, txBuyWater)
   await alice.k.useItem(WATER)

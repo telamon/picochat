@@ -165,7 +165,7 @@ desc: |-
   And so the adventure continued.
 `
 // ----------- GEAR
-item(0xD200)`
+item(0xD200, 'BAB')`
 name: B.A.B.
 slot: head
 price: 12

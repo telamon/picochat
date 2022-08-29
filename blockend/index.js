@@ -1,5 +1,4 @@
 const { SimpleKernel } = require('picostack')
-const { inspect: dumpDot } = require('picorepo/dot')
 // Lowlevel registers that hold block-state
 const PeerCtrl = require('./slices/peers.reg')
 const VibeCtrl = require('./slices/vibes.reg')
@@ -14,6 +13,7 @@ const PeersModule = require('./mod/peers.mod')
 const VibesModule = require('./mod/vibes.mod')
 const MonitorModule = require('./mod/monitor.mod')
 const InventoryModule = require('./mod/inv.mod')
+const DumpModule = require('./mod/dump.mod.js')
 
 // Util
 const {
@@ -26,6 +26,8 @@ const {
   TYPE_PROFILE,
   TYPE_BYE,
   TYPE_BYE_RESP,
+  TYPE_ITEMS,
+  TYPE_ACTIVATE,
   VIBE_REJECTED,
   decodeBlock,
   typeOfBlock
@@ -62,6 +64,7 @@ class Kernel extends SimpleKernel {
     Object.assign(this, GarbageCollector(this.store))
     Object.assign(this, MonitorModule())
     Object.assign(this, InventoryModule())
+    Object.assign(this, DumpModule())
   }
 
   /**
@@ -126,8 +129,8 @@ class Kernel extends SimpleKernel {
           heads[1] = decodeBlock(block.body).link
           break
         // TODO: add & verify:
-        // case TYPE_ITEMS: // issued by bar
-        // case TYPE_ACTIVATE: // self issued
+        case TYPE_ITEMS: // issued by bar
+        case TYPE_ACTIVATE: // self issued
         case TYPE_PROFILE:
         case TYPE_BYE_RESP:
           keys[0] = block.key
@@ -193,29 +196,17 @@ class Kernel extends SimpleKernel {
     return false // disallow by default
   }
 
-  async inspect () {
-    const dot = await dumpDot(this.repo, {
-      blockLabel (block, { link }) {
-        const data = SimpleKernel.decodeBlock(block.body)
-        const s = `${data.type.toUpperCase()}\nseq:${data.seq}\n`
-        switch (data.type) {
-          case TYPE_PROFILE: return s + data.name
-          case TYPE_VIBE: return s + 'T: ' + data.transactions?.length || 0
-          case TYPE_VIBE_RESP: {
-            link(data.link)
-            return s
-          }
-          default:
-            console.info('Unknown type', data.type, data)
-            return s
-        }
-      }
-    })
-    return dot
-  }
-
   async reload () {
     return this.store.reload()
+  }
+
+  /* Clock counter is useful but what the hack. */
+  // TODO: backport to SimpleKernel
+  async seq () {
+    const f = await this.repo.loadLatest(this.pk, 1)
+    if (!f) return -1
+    if (!this.pk.equals(f.last.key)) throw new Error('InternalError: Wrong feed?')
+    return SimpleKernel.decodeBlock(f.last.body).seq
   }
 }
 

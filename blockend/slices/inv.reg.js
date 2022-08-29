@@ -14,6 +14,7 @@ const {
   EV_BALANCE_CREDIT,
   EV_BALANCE_DEBIT,
   EV_ADD_SCORE, // Also adds time
+  TYPE_VIBE,
   TYPE_VIBE_RESP,
   TYPE_ITEMS,
   TYPE_ACTIVATE,
@@ -156,39 +157,45 @@ function TransactionsSlice () {
     name: 'trs',
     initialValue: {
     },
-
+    // This slice, accepts VIBE_RESPONSES if and only if
+    // the VIBE was silently passed.
+    // it's wierd, transactions are validated on vibe, but
+    // state is mutated only after the vibe was accepted.
+    // I didn't notice it before but now i see that it's
+    // weird that decodes parentBlock
     filter ({ block, parentBlock, root, state }) {
-      const { type, box } = decodeBlock(block.body)
+      const { type, box, t: transactions } = decodeBlock(block.body)
 
-      if (type !== TYPE_VIBE_RESP) return true
-      const rejected = VIBE_REJECTED.equals(box)
-      if (rejected) return true
-      const { t: transactions } = decodeBlock(parentBlock.body)
-      try {
-        for (const ta of transactions) {
-          const { t: type, p: payload } = validate(ta)
-          switch (type) {
-            // Not yet supported by frontend.
-            case ACTION_OFFER: {
-              const sourcePid = btok(parentBlock.key)
-              const inv = root.inv[sourcePid]
-              if (!inv) return 'InventoryEmpty'
-              const item = inv[payload.i]
-              if (!item) return 'ItemNotHeld'
-              if (item.qty - payload.q < 0) return 'NegativeQuantity'
-            } break
+      // Validate transactions in VIBE
+      if (type === TYPE_VIBE) {
+        try {
+          for (const ta of transactions) {
+            const { t: type, p: payload } = validate(ta)
+            switch (type) {
+              case ACTION_OFFER: {
+                const sourcePid = btok(block.key)
+                const inv = root.inv[sourcePid]
+                if (!inv) return 'InventoryEmpty'
+                const item = inv[payload.i]
+                if (!item) return 'ItemNotHeld'
+                if (item.qty - payload.q < 0) return 'NegativeQuantity'
+              } break
 
-            case ACTION_NETWORK_PURCHASE: {
-              const { i, q } = payload
-              const item = ITEMS[i]
-              const sum = item.price * q
-              const target = btok(parentBlock.key)
-              if (root.peers[target].balance < sum) return 'InsufficientFunds'
+              case ACTION_NETWORK_PURCHASE: {
+                const { i, q } = payload
+                const item = ITEMS[i]
+                const sum = item.price * q
+                const target = btok(block.key)
+                if (root.peers[target].balance < sum) return 'InsufficientFunds'
+              }
             }
           }
-        }
-      } catch (err) { return err.message }
+        } catch (err) { return err.message }
+        return true // Vibe looks good, silent ignore until VibeRes
+      }
 
+      if (type !== TYPE_VIBE_RESP) return true
+      if (VIBE_REJECTED.equals(box)) return true
       return false
     },
 

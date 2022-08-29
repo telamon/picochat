@@ -35,7 +35,6 @@ module.exports = function VibesModule () {
       if (!Array.isArray(transactions)) transactions = [transactions]
       transactions = transactions.map(t => Transactions.validate(t))
       const cd = await until(this.$cooldowns(), cd => cd.state !== 'loading')
-      console.log('MyState', cd)
       if (!cd.canVibe) throw new Error('VibeNotReady')
 
       const msgBox = boxPair()
@@ -77,9 +76,12 @@ module.exports = function VibesModule () {
 
       const block = await this.repo.readBlock(chatId)
       if (!block) throw new Error('Vibe no longer exists')
+
+      const head = await this.feed(1)
+
       const convo = await this.createBlock(Feed.from(block), TYPE_VIBE_RESP, {
         box: !like ? VIBE_REJECTED : sealedMessage,
-        link: this.store.state.peer.sig // Weak-ref to own checkpoint
+        link: head.last.sig // Weak-ref to own checkpoint
       })
       if (!convo) throw new Error('Failed creating block')
       if (like) await this._storeLocalChatKey(vibe.chatId, msgBox)
