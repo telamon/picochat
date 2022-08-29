@@ -195,19 +195,27 @@ class Kernel extends SimpleKernel {
 
   async inspect () {
     const dot = await dumpDot(this.repo, {
-      blockLabel (block) {
+      blockLabel (block, { link }) {
         const data = SimpleKernel.decodeBlock(block.body)
         const s = `${data.type.toUpperCase()}\nseq:${data.seq}\n`
         switch (data.type) {
           case TYPE_PROFILE: return s + data.name
           case TYPE_VIBE: return s + 'T: ' + data.transactions?.length || 0
+          case TYPE_VIBE_RESP: {
+            link(data.link)
+            return s
+          }
           default:
             console.info('Unknown type', data.type, data)
-            return `${s}TYPE: ${data.type}`
+            return s
         }
       }
     })
     return dot
+  }
+
+  async reload () {
+    return this.store.reload()
   }
 }
 

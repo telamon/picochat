@@ -18,10 +18,10 @@ const KEY_BOX_LIKES_PK = 'reg/likes_pk'
 const KEY_BOX_LIKES_SK = 'reg/likes_sk'
 
 // Block-types
-const TYPE_PROFILE = 'profile'
+const TYPE_PROFILE = 'peer'
 const TYPE_VIBE = 'vibe' // A.k.a ❤️ Like ❤️
-const TYPE_VIBE_RESP = 'vibe-response' // <3 / </3
-const TYPE_MESSAGE = 'message'
+const TYPE_VIBE_RESP = 'vres' // <3 / </3
+const TYPE_MESSAGE = 'msg'
 const TYPE_BYE = 'bye'
 const TYPE_BYE_RESP = 'byebye'
 const TYPE_ITEMS = 'bar' // Delivery from Bartender

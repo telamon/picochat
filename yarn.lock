@@ -243,10 +243,10 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@telamon/picostore@^1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.9.1.tgz#58eb71095e24c5937b9573fbeeebfe13d8517b1b"
-  integrity sha512-uYpq1EGVs21suiSUd1gEcX2jP1GVhKuKnAWb6zNQ3Vs0wR+idfPPS+69npNCEIT0xRMdErNX4R5DthKBtm52EA==
+"@telamon/picostore@^1.9.2":
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.9.2.tgz#8285e390f9421b6b10d0f484df32fc40a64ec456"
+  integrity sha512-nEdzZbwvJWxc5Efucz438w+9lb/Kxih12j9K1AVYc1pT2aub79o0dYYv2L9pYZqWW2PaSOgKjnNlc2aZ0PCo2A==
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
@@ -2199,7 +2199,7 @@ glob-parent@^6.0.1:
   dependencies:
     is-glob "^4.0.3"
 
-glob@^7.1.0, glob@^7.1.3, glob@^7.1.6, glob@^7.2.0:
+glob@^7.1.0, glob@^7.1.3, glob@^7.1.6:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.2.0.tgz#d15535af7732e02e948f4c41628bd910293f6023"
   integrity sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==
@@ -2208,6 +2208,18 @@ glob@^7.1.0, glob@^7.1.3, glob@^7.1.6, glob@^7.2.0:
     inflight "^1.0.4"
     inherits "2"
     minimatch "^3.0.4"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+
+glob@^7.2.3:
+  version "7.2.3"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-7.2.3.tgz#b8df0fb802bbfa8e89bd1d938b4e16578ed44f2b"
+  integrity sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^3.1.1"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
@@ -3295,7 +3307,7 @@ minimatch@^3.0.0, minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^3.1.2:
+minimatch@^3.1.1, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
@@ -3397,7 +3409,7 @@ ms@2.1.3, ms@^2.1.1, ms@^2.1.3:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-msgpackr-extract@^2.0.2:
+msgpackr-extract@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/msgpackr-extract/-/msgpackr-extract-2.1.2.tgz#56272030f3e163e1b51964ef8b1cd5e7240c03ed"
   integrity sha512-cmrmERQFb19NX2JABOGtrKdHMyI6RUyceaPBQ2iRz9GnDkjBWFjNJC0jyyoOfZl2U/LZE3tQCCQc4dlRyA8mcA==
@@ -3411,12 +3423,12 @@ msgpackr-extract@^2.0.2:
     "@msgpackr-extract/msgpackr-extract-linux-x64" "2.1.2"
     "@msgpackr-extract/msgpackr-extract-win32-x64" "2.1.2"
 
-msgpackr@^1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.6.2.tgz#176cd9f6b4437dad87a839b37f23c2dfee408d9a"
-  integrity sha512-bqSQ0DYJbXbrJcrZFmMygUZmqQiDfI2ewFVWcrZY12w5XHWtPuW4WppDT/e63Uu311ajwkRRXSoF0uILroBeTA==
+msgpackr@^1.7.0-alpha3:
+  version "1.7.0-alpha3"
+  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.7.0-alpha3.tgz#6afa9ef5e68ea11d2acc92a265659a9f737f36fa"
+  integrity sha512-HHIL1ioZF+i/jiaJSz1RiFtRT7d7lngaEnFL7lkUV0fueKbzm1YDDlm0LYslXlqCREBC68jmDrjCKpB/9oR+Ug==
   optionalDependencies:
-    msgpackr-extract "^2.0.2"
+    msgpackr-extract "^2.1.1"
 
 multicast-dns@^7.2.2:
   version "7.2.4"
@@ -3561,7 +3573,7 @@ object-inspect@^1.11.0, object-inspect@^1.9.0:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.11.1.tgz#d4bd7d7de54b9a75599f59a00bd698c1f1c6549b"
   integrity sha512-If7BjFlpkzzBeV1cqgT3OSWT3azyoxDGajR+iGnFBfVV2EWyDyWaZZW2ERDjUaY2QM8i5jI3Sj7mhsM4DDAqWA==
 
-object-inspect@^1.12.0:
+object-inspect@^1.12.0, object-inspect@^1.12.2:
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.2.tgz#c0641f26394532f28ab8d796ab954e43c009a8ea"
   integrity sha512-z+cPxW0QGUp0mcqcsgQyLVRDoXFQbXOwBaqyF7VIgI4TWNQsDHrBpUQslRmIfAoYWdYzs6UlKJtB2XJpTaNSpQ==
@@ -3601,6 +3613,16 @@ object.assign@^4.1.2:
     call-bind "^1.0.0"
     define-properties "^1.1.3"
     has-symbols "^1.0.1"
+    object-keys "^1.1.1"
+
+object.assign@^4.1.3:
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/object.assign/-/object.assign-4.1.4.tgz#9673c7c7c351ab8c4d0b516f4343ebf4dfb7799f"
+  integrity sha512-1mxKf0e58bvyjSCtKYY4sRe9itRk3PJpquJOjeIkz885CczcI4IvJJDLPS72oowuSh+pBxUFROpX+TU++hxhZQ==
+  dependencies:
+    call-bind "^1.0.2"
+    define-properties "^1.1.4"
+    has-symbols "^1.0.3"
     object-keys "^1.1.1"
 
 object.entries@^1.1.5:
@@ -3917,22 +3939,22 @@ piconuro@^1.0.0:
   resolved "https://registry.yarnpkg.com/piconuro/-/piconuro-1.0.0.tgz#6fd065c3c2758d04802cb8d841db2ec8076cd615"
   integrity sha512-52Y3VWIlMV/RD6NyqmZ5XYgXhQi5R351JkCaaDYxd+SrwuU8Nc7dmvSRLUHv8GGFAlK+56jBjbVm76GiqnFauQ==
 
-picorepo@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.0.tgz#f6a8ed13f4c5569553e5ce99f8a99e77fce4a9be"
-  integrity sha512-OjuDI7qcEYNlGj+LhBXjzYGQz0sFvaRSJUpDHWBlfJV/z94FDokFScQgfayfj/WMQg7mIZ7t/T9cFjsIuuiuMA==
+picorepo@^1.4.3:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.3.tgz#6dadf616f7c42558195ea65e8da842e7ba02fc64"
+  integrity sha512-0UpRfMYhqZ8iBQrEh1BaE0ICIfhxf8ttTHMb5uCLzp0V5kvmdcrcPm2LJne6iMYmBt8WYgwkRipKO3TMgBC8Ow==
 
-picostack@^1.5.3:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.3.tgz#b6356be3ec98297ce130e44ab462f3fdac381ca3"
-  integrity sha512-lERgw/HlavLdIgiXMshpqjjD2oD13aKUEt5x0wUNTQm+uDt4ywZEojghi+Ant3rAnmpTO5BBTMxSI9mjcrhmrA==
+picostack@^1.5.4:
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.4.tgz#a5474d87a2db7a3c65e21ed403dae4bed99ec428"
+  integrity sha512-su94r3Muy1VWRjtlvLZ6/JwGL64sGsM5l8SDdZMLJ7wHifP3mXAKt/husolbZt8s8eVeJUhfgbZbdeTwM+oR+A==
   dependencies:
-    "@telamon/picostore" "^1.9.1"
-    msgpackr "^1.6.2"
+    "@telamon/picostore" "^1.9.2"
+    msgpackr "^1.7.0-alpha3"
     picofeed "^3.4.0"
     piconet "^3.1.1"
     piconuro "^1.0.0"
-    picorepo "^1.4.0"
+    picorepo "^1.4.3"
 
 pify@^4.0.1:
   version "4.0.1"
@@ -4424,10 +4446,10 @@ rollup-pluginutils@^2.3.1, rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@^2.77.3:
-  version "2.77.3"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.77.3.tgz#8f00418d3a2740036e15deb653bed1a90ee0cc12"
-  integrity sha512-/qxNTG7FbmefJWoeeYJFbHehJ2HNWnjkAFRKzWN/45eNBBF/r8lo992CwcJXEzyVxs5FmfId+vTSTQDb+bxA+g==
+rollup@^2.78.1:
+  version "2.78.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.78.1.tgz#52fe3934d9c83cb4f7c4cb5fb75d88591be8648f"
+  integrity sha512-VeeCgtGi4P+o9hIg+xz4qQpRl6R401LWEXBmxYKOV4zlF82lyhgh2hTZnheFUbANE8l2A41F458iwj2vEYaXJg==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -4957,14 +4979,14 @@ string.prototype.matchall@^4.0.7:
     regexp.prototype.flags "^1.4.1"
     side-channel "^1.0.4"
 
-string.prototype.trim@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/string.prototype.trim/-/string.prototype.trim-1.2.5.tgz#a587bcc8bfad8cb9829a577f5de30dd170c1682c"
-  integrity sha512-Lnh17webJVsD6ECeovpVN17RlAKjmz4rF9S+8Y45CkMc/ufVpTkU3vZIyIC7sllQ1FCvObZnnCdNs/HXTUOTlg==
+string.prototype.trim@^1.2.6:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/string.prototype.trim/-/string.prototype.trim-1.2.6.tgz#824960787db37a9e24711802ed0c1d1c0254f83e"
+  integrity sha512-8lMR2m+U0VJTPp6JjvJTtGyc4FIGq9CdRt7O9p6T0e6K4vjU+OP+SQJpbe/SBmRcCUIvNUnjsbmY6lnMp8MhsQ==
   dependencies:
     call-bind "^1.0.2"
-    define-properties "^1.1.3"
-    es-abstract "^1.19.1"
+    define-properties "^1.1.4"
+    es-abstract "^1.19.5"
 
 string.prototype.trimend@^1.0.4:
   version "1.0.4"
@@ -5141,10 +5163,10 @@ syntax-error@^1.1.1:
   dependencies:
     acorn-node "^1.2.0"
 
-tape@^5.5.3:
-  version "5.5.3"
-  resolved "https://registry.yarnpkg.com/tape/-/tape-5.5.3.tgz#b6d6f3c99a7bade12b9dcf6ee2234b1dd35e5003"
-  integrity sha512-hPBJZBL9S7bH9vECg/KSM24slGYV589jJr4dmtiJrLD71AL66+8o4b9HdZazXZyvnilqA7eE8z5/flKiy0KsBg==
+tape@^5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/tape/-/tape-5.6.0.tgz#588af7292e4a91e49ce5eba344d632d412317b9b"
+  integrity sha512-LyM4uqbiTAqDgsHTY0r1LH66yE24P3SZaz5TL3mPUds0XCTFl/0AMUBrjgBjUclvbPTFB4IalXg0wFfbTuuu/Q==
   dependencies:
     array.prototype.every "^1.1.3"
     call-bind "^1.0.2"
@@ -5153,19 +5175,19 @@ tape@^5.5.3:
     dotignore "^0.1.2"
     for-each "^0.3.3"
     get-package-type "^0.1.0"
-    glob "^7.2.0"
+    glob "^7.2.3"
     has "^1.0.3"
     has-dynamic-import "^2.0.1"
     inherits "^2.0.4"
     is-regex "^1.1.4"
     minimist "^1.2.6"
-    object-inspect "^1.12.0"
+    object-inspect "^1.12.2"
     object-is "^1.1.5"
     object-keys "^1.1.1"
-    object.assign "^4.1.2"
+    object.assign "^4.1.3"
     resolve "^2.0.0-next.3"
     resumer "^0.0.0"
-    string.prototype.trim "^1.2.5"
+    string.prototype.trim "^1.2.6"
     through "^2.3.8"
 
 tarr@1.1.0:

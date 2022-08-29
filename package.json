@@ -52,7 +52,7 @@
     "memory-level": "^1.0.0",
     "picoflex": "^1.0.0",
     "qrcode-generator": "^1.4.4",
-    "rollup": "^2.77.3",
+    "rollup": "^2.78.1",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-node-builtins": "^2.1.2",
@@ -66,11 +66,11 @@
     "surge": "^0.23.1",
     "svelte": "^3.49.0",
     "svelte-easy-crop": "^1.0.7",
-    "tape": "^5.5.3"
+    "tape": "^5.6.0"
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "picostack": "^1.5.3",
+    "picostack": "^1.5.4",
     "tiny-byte-size": "^1.1.0"
   }
 }
