@@ -40,7 +40,7 @@ async function spawnPeer (name, kOpts = {}) {
     spawnWire,
     async dump (fname = 'repo.dot') {
       const dot = await k.inspect()
-      require('fs').writeFileSync('repo.dot', dot)
+      require('fs').writeFileSync(fname, dot)
     }
   }
 }

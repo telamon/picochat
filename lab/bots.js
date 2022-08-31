@@ -1,10 +1,24 @@
 const { spawnPeer } = require('../test/test.helpers')
 const Modem56 = require('../modem56.js')
 const { rewrite, feedToGraph } = require('../blockend/game')
-const { combine } = require('piconuro')
+const { combine, settle } = require('piconuro')
 // const { settle, next } = require('../blockend/nuro')
 const FAILFAST = !!process.env.FAILFAST
 class PicoBot {
+  onError (type, err) {
+    this.signal(type)
+    console.error(this.name, type, err)
+    if (FAILFAST) {
+      this.dump('error.dot')
+        .then(() => this.kernel.feed())
+        .then(f => {
+          f.inspect()
+          console.error('journey: ', feedToGraph(f))
+          process.exit(-1)
+        })
+    }
+  }
+
   async onVibe (vibe) {
     console.info('PicoBot#onVibe(vibe) => Boolean, not implmented')
   }
@@ -33,13 +47,14 @@ class PicoBot {
     if (!ctx.signal) ctx.signal = console.info
     this.ctx = ctx
     const { swarm, signal, name } = ctx
-    const { k: kernel, spawnWire } = await this.spawnPeer(name)
+    const { k: kernel, spawnWire, dump } = await this.spawnPeer(name)
     this.kernel = kernel
     this.signal = signal
+    this.dump = dump
     this.name = name
-
     ctx.ontick(tick => {
       // kernel._collectGarbage(ctx.simulator.time)
+      debugger
     })
 
     const modem = new Modem56(swarm)
@@ -54,14 +69,15 @@ class PicoBot {
     const ph = this.onPeers.bind(this)
     const vh = this.onVibe.bind(this)
     const th = this.onTurn.bind(this)
+    const errorHandler = this.onError.bind(this)
 
-    combine(
-      kernel.$peers(),
-      kernel.$cooldowns()
+    settle(
+      combine(kernel.$peers(), kernel.$cooldowns()),
+      150
     )(
       ([peers, cooldowns]) => {
         if (cooldowns.state === 'loading') return
-        const canVibe = cooldowns.canVibe
+        const { canVibe } = cooldowns
         // const wait = cooldowns.vibe - Date.now()
         // signal(`$PC ${name} ${canVibe}`)
         if (!canVibe) return
@@ -70,18 +86,7 @@ class PicoBot {
           // console.log('SendVibe()', canVibe, kernel.pk.hexSlice(0, 6), ' => ', key.hexSlice(0, 6))
           kernel.sendVibe(key)
             .then(cid => subscribeChat(cid))
-            .catch(err => {
-              signal('sendVibe() Error')
-              console.error('sendVibe() failed:', err)
-              if (FAILFAST) {
-                kernel.feed()
-                  .then(f => {
-                    f.inspect()
-                    console.error('journey: ', feedToGraph(f))
-                    process.exit(-1)
-                  })
-              }
-            })
+            .catch(err => errorHandler('sendVibe() Error', err))
         })
       })
 
@@ -98,11 +103,7 @@ class PicoBot {
       if (typeof response === 'undefined') return
       kernel.respondVibe(v.id, !!response) // Alice responds to vibes using reasons only known to her.
         .then(cid => subscribeChat(cid))
-        .catch(err => {
-          signal('respondVibe() Error')
-          console.error(`${name} k.respondVibe() failed!`, err)
-          if (FAILFAST) process.exit(-1)
-        })
+        .catch(err => errorHandler('respondVibe() Error', err))
     }
 
     function subscribeChat (cid) {
@@ -119,10 +120,8 @@ class PicoBot {
         }
         if (chat.state === 'active' && chat.myTurn) return onturn(chat)
         if (chat.state === 'error') {
-          signal('Chat error')
           unsubscribeChat(cid, chat)
-          console.error('Error loading chat', chat)
-          if (FAILFAST) process.exit(-1)
+          errorHandler('Chat error', chat)
         }
       })
     }
@@ -135,14 +134,13 @@ class PicoBot {
       unsub()
     }
 
-    function onturn (chat) {
+    async function onturn (chat) {
       signal('turn')
-      th(chat)
-        .catch(err => {
-          signal('TurnError')
-          console.error(err)
-          if (FAILFAST) process.exit(-1)
-        })
+      try {
+        await th(chat)
+      } catch (err) {
+        errorHandler('TurnError', err)
+      }
     }
   }
 }
@@ -156,7 +154,7 @@ class Alice extends PicoBot {
     return { sex: 0 }
   }
 
-  async onPeers () {} // Alice ignores peers
+  async onPeers () {} // Alices are shy
 
   async onVibe (vibe) {
     return true // vibe.peer.sex === 1
@@ -192,13 +190,14 @@ class Alice extends PicoBot {
  */
 class Bob extends PicoBot {
   mkProfile () {
-    return { sex: 0 }
+    return { sex: 1 }
   }
 
   async onPeers (peers, sendVibe) {
+    if (peers.filter(p => !p.sex).length < 3) return
     const peer = peers
-      .sort(() => -0.5 + this.ctx.random())
-      .find(p => p.sex === 0)
+      .filter(p => !p.sex)
+      .sort(() => -0.5 + this.ctx.random())[0]
 
     if (peer) sendVibe(peer.pk)
   }
@@ -232,7 +231,7 @@ function spawnBob (ctx, done) {
   a.boot(ctx, done)
     .catch(err => {
       ctx.signal('BootFailure')
-      console.error('spawnAlice() failed:', err)
+      console.error('spawnBob() failed:', err)
       process.exit(-1)
     })
   return a

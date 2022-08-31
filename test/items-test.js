@@ -88,8 +88,6 @@ test('ACTION_OFFER', async t => {
 
   inv = await next(mute(gaul.k.$profile(), p => p.inventory))
   t.equal(inv[0].qty, 1, '1 water')
-  const dot = await gaul.k.inspect()
-  require('fs').writeFileSync('repo.dot', dot)
 })
 
 // Disable on mint effect for now, getting the item is reward enough

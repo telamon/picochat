@@ -31,7 +31,10 @@ module.exports = function InspectModule () {
             ${data.seq}:${author}
           `
           switch (data.type) {
-            case TYPE_PROFILE: return str
+            case TYPE_PROFILE: return bq`
+              ${str}
+              ${data.sex ? '👨' : '👩' }
+            `
             case TYPE_VIBE: {
               const { t: transactions } = data
               const give = transactions.filter(ts => ts.t === ACTION_OFFER)
