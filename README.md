@@ -2,13 +2,11 @@
 [`code style | standard`](https://standardjs.com/)
 # picochat
 
-**Picochat** is a metaverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
+**Picochat** is a miniverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
-**Picostack** is an extremely immature and experimental
-Web3 framework that focuses on contracts instead of crypto.
+**Picostack** is an experimental Web6 framework that focuses on contracts instead of crypto.
 
-A custom zero-cost blockchain
-that uses a functional-consensus.
+A custom coinless blockchain that uses a functional-consensus.
 
 It dosen't waste energy such as PoW nor does it run corrupt same way as DPoS.
 Boasting zero transaction costs it provides a means to reaching longer lasting decentralization.
