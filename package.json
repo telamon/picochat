@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/telamon/picochat",
   "devDependencies": {
-    "@picocss/pico": "^1.5.3",
+    "@picocss/pico": "^1.5.7",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
@@ -58,13 +58,13 @@
     "sirv-cli": "^2.0.2",
     "standard": "^17.0.0",
     "surge": "^0.23.1",
-    "svelte": "^3.49.0",
-    "tape": "^5.6.0"
+    "svelte": "^3.56.0",
+    "tape": "^5.6.3"
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "picostack": "^1.5.4",
-    "dayjs": "^1.11.5",
+    "picostack": "^1.5.16",
+    "dayjs": "^1.11.7",
     "picoflex": "^1.0.0",
     "qrcode-generator": "^1.4.4",
     "browser-level": "^1.0.1",
