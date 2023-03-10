@@ -44,7 +44,7 @@ class PicoBot {
 
   async boot (ctx, done, topic = 'PicoBotnet') {
     if (!done) done = () => console.log(`<${name}> färdig!`)
-    if (!ctx.signal) ctx.signal = console.info
+    if (!ctx.signal) ctx.signal = console.info // stub
     this.ctx = ctx
     const { swarm, signal, name } = ctx
     const { k: kernel, spawnWire, dump } = await this.spawnPeer(name)
@@ -54,7 +54,7 @@ class PicoBot {
     this.name = name
     ctx.ontick(tick => {
       // kernel._collectGarbage(ctx.simulator.time)
-      debugger
+      // debugger
     })
 
     const modem = new Modem56(swarm)

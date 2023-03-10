@@ -151,6 +151,7 @@ module.exports = function GarbageCollectModule (store) {
 
 // TODO; Accuracy of browser might overwrite previous index,
 // add couple bytes of signature to end and maybe slice name
+// String conversion has to be faster than byte-alloc?
 function mkKey (date) {
   const b = Buffer.alloc(9)
   b.writeBigUInt64BE(BigInt(date), 1)

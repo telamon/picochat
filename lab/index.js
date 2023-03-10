@@ -6,20 +6,20 @@ async function main () {
   const sim = new Simulator()
   await sim.ready()
   // Spawn alices
-  for (let i = 0; i < 5; i++) {
-    const name = pick(ladies)
+  for (let i = 0; i < 8; i++) {
+    const name = pick(ladies) || `fBot${i}`
     sim.launch(name, { linkRate: 56 << 10 }, (ctx, done) =>
       spawnAlice(ctx, done)
     )
   }
   // Spawn bobs
-  for (let i = 0; i < 8; i++) {
-    const name = pick(lads)
+  for (let i = 0; i < 10; i++) {
+    const name = pick(lads) || `mBot${i}`
     sim.launch(name, { linkRate: 56 << 10 }, (ctx, done) =>
       spawnBob(ctx, done)
     )
   }
-  return sim.run(1, 100)
+  return sim.run(1, 500)
 }
 
 main()

@@ -33,7 +33,7 @@ module.exports = function InspectModule () {
           switch (data.type) {
             case TYPE_PROFILE: return bq`
               ${str}
-              ${data.sex ? '👨' : '👩' }
+              ${data.sex ? '👨' : '👩'}
             `
             case TYPE_VIBE: {
               const { t: transactions } = data
