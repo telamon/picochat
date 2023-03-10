@@ -24,15 +24,7 @@ module.exports = function GarbageCollectModule (store) {
   return {
     async _collectGarbage (now) {
       D('Locking store')
-      const unlock = await store._waitLock()
-      try {
-        const res = await collectGarbage.bind(this)(now)
-        unlock()
-        return res
-      } catch (err) {
-        unlock()
-        throw err
-      }
+      return store._lockRun(async () => collectGarbage.bind(this)(now))
     },
 
     startGC (interval = 3 * 1000) {
