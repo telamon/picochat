@@ -53,11 +53,19 @@ export function setView (path, id, search) {
 }
 
 function apply () {
-  if (window.location.hash === '') return setView('pub', null, new URLSearchParams())
-  const virt = new URL(
-    window.location.hash.replace(/^#\/?/, 'x:')
-  )
-  const [path, id] = virt.pathname.split('/')
+  const { hash, origin } = window.location
+  if (hash === '' && hash !== '#/') return setView('pub', null, new URLSearchParams())
+
+  const virt = new URL(origin + '/' + hash.replace(/^#\/?/, ''))
+  // Naive approach "/path/:id", "/nested/deep/paths/:id" not supported
+  let path = ''
+  let id
+  const match = virt.pathname.match(/^\/([^/]+)(?:\/(.+))?/)
+  if (match) {
+    path = match[1]
+    id = match[2]
+  }
+  path = path.toLowerCase() // Make paths case-insensitive
   const search = new URLSearchParams(virt.search)
   const q = {}
   let searchEmpty = true
@@ -65,7 +73,7 @@ function apply () {
     q[k] = v
     searchEmpty = false
   }
-  setView(path.toLowerCase(), id, searchEmpty ? undefined : q)
+  setView(path, id, searchEmpty ? undefined : q)
 }
 export function navigate (path) {
   window.history.pushState(null, null, `/#${path}`.replace(/^#\/+/, '#/'))
