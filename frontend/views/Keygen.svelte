@@ -1,4 +1,5 @@
 <script>
+// this is now start view, keygen is gone
 import { navigate } from '../router'
 import { keychain, keygen, decodePk, storeIdentity, purge, saveBackup } from '../api'
 import { writable } from 'svelte/store'
@@ -11,7 +12,7 @@ const progress = writable(100)
 const idsqr = writable()
 const secret = writable()
 const geohash = writable(null) // Geohash.encode(52.20, 0.12, 6))
-const gender = writable(0)
+const gender = writable(0) // team?
 const unlucky = writable(false)
 const fails = writable(0)
 const showImportDialog = writable(false)
@@ -78,37 +79,6 @@ async function validateImport () {
 
 </script>
 <keygen-view class="block container">
-  <h1 on:click={() => $showAboutDialog = true}>
-    Setup
-    <Icon id="icon-info" />
-  </h1>
-  <h5>Gender</h5>
-  <fieldset>
-    <input type="radio" value={1} bind:group={$gender} id="M" name="gender"/>
-    <label for="M">M</label>
-    <input type="radio" value={0} bind:group={$gender} id="F" name="gender"/>
-    <label for="F">F</label>
-    <input type="radio" value={2} bind:group={$gender} id="NB" name="gender"/>
-    <label for="NB">NB</label>
-  </fieldset>
-  <br/>
-  <!--
-  <h5>Location</h5>
-  <div class="flex row">
-    <div>
-      <a role="button" on:click={autoGeohash}><Icon id="icon-location" /></a>
-    </div>
-    <div>
-      <input type="text"
-        placeholder="Geohash"
-        readonly
-        on:click={autoGeohash}
-        bind:value={$geohash} >
-    </div>
-  </div>
-  -->
-  <h5>IDSQR</h5>
-
   <div class="flex column xcenter">
     <idsqr data-theme="dark" class="flex column space-around">
       {#await loadKeychain()}
@@ -147,20 +117,8 @@ async function validateImport () {
       {/await}
     </idsqr>
   </div>
-  <div class="row end hpad">
-    <small>
-      {#if $secret}
-        <a on:click={() => purge(true)}>Destroy</a> |
-        <a on:click={saveBackup}>Backup</a>
-      {:else}
-        <a on:click={() => roll(2)}>Anonkey</a> |
-        <a on:click={() => $showImportDialog = true}>Import</a>
-      {/if}
-    </small>
-  </div>
-  <br/>
   <button disabled={!$secret} on:click={() => navigate('/profile')}>next</button>
-
+  <!--
   {#if $showImportDialog}
     <Dialog open={true} on:fade={() => $showImportDialog = false}>
       <article>
@@ -176,52 +134,8 @@ async function validateImport () {
       </article>
     </Dialog>
   {/if}
-
-  {#if $showAboutDialog}
-    <Dialog open={true} on:fade={() => $showAboutDialog = false}>
-      <article>
-        <h3>Welcome to True Decentralization</h3>
-        <div class="about">
-          <p>
-            Picochat is a <strong>coinless blockchain</strong>, there
-            are no super-nodes and everything is slightly different from
-            what you're used to.<br/>
-            But don't worry, it's all good.
-          </p>
-          <p>
-            First of all, you have to generate your own key.<br/>
-            It takes about a minute or two on a handheld device.<br/>
-            Once you've found a one, keep it safe, it's your passport to hyperspace.
-            ✨
-          </p>
-          <p>
-            If you don't care about location nor gender, then
-            feel free to use an <i>anonymous</i> key.<br/>
-            Trees say "Thanks!" 🌱
-          </p>
-          <p>
-            Please don't generate more keys than you need, mining of any form is a pointless waste of world-resources.
-            Hate to say it; but don't ever trade a key, it is <strong>insecure and dangerous</strong>.
-          </p>
-          <p><i>
-            The hyperspace is vast.<br/>
-            It's real-estate, just like air -
-            worth nothing while there's enough for everyone.<br/>
-            Let's keep it that way
-          </i> 🙂</p>
-        </div>
-        <footer>
-          <button on:click={() => $showAboutDialog = false}>gotcha</button>
-        </footer>
-      </article>
-    </Dialog>
-  {/if}
+  -->
 </keygen-view>
 <style>
-danger { color: var(--blood); }
-.about {
-  max-height: 50vh;
-  overflow-y: scroll;
-}
 </style>
 

@@ -5,7 +5,9 @@ import Keychain from '../blockend/keychain'
 import { readable } from 'svelte/store'
 import { mute, gate, init, write, combine, get, nfo } from 'piconuro'
 import { navigate } from './router'
+// import { Modem56 } from './centralvaxeln.js' // TODO: repair streamWire or something
 const Modem56 = window.Modem56
+
 const TOPIC = 'picochat-testnet'
 
 /**
@@ -199,15 +201,10 @@ let modem = null // hardware is expensive, we can only afford a single modem for
 // Helper to wire up modem56 to kernel and enter a pub in a single action.
 export async function connectSwarm () {
   if (!Modem56) throw new Error('Modem not available, did you load it?')
-  const devOpts = {
-    // Attempted to debug: https://github.com/RangerMauve/hyperswarm-web/issues/20
-    // announceLocalAddress: true,
-    // webrtcBootstrap: ['ws://localhost:4977/signal']
-  }
-  if (!modem) modem = new Modem56(null, devOpts)
+  if (!modem) modem = new Modem56()
   else return // already connected
   // else modem.leave()
-  modem.join(TOPIC, kernel.spawnWire.bind(kernel))
+  await modem.join(TOPIC, kernel.spawnWire.bind(kernel))
   setSwarming(true)
 }
 

@@ -2,7 +2,8 @@ import { writable, gate, mute } from 'piconuro'
 import { svlt } from './api'
 
 // Import Views
-import Keygen from './views/Keygen.svelte'
+// import Keygen from './views/Keygen.svelte'
+import Splash from './views/Splash.svelte'
 import Pub from './views/Pub.svelte'
 import Profile from './views/Profile.svelte'
 import Shop from './views/Shop.svelte'
@@ -24,7 +25,7 @@ const $view = gate(mute($name, name => {
     case 'profile': return Profile
     case 'chat': return Chat
     case 'about': return About
-    case 'keygen': return Keygen
+    case 'keygen': return Splash // Keygen
     case 'append': return Append
     case 'wallet': return Wallet
     case 'devel': return Devel

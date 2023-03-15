@@ -1,4 +1,4 @@
-import '@picocss/pico'
+// import '@picocss/pico'
 import 'picoflex'
 import './icons'
 import './router'
