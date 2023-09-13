@@ -4,7 +4,7 @@
 
 **Picochat** is a miniverse bar that runs on top of picostack, it is the first of it's kind and will serve as a reference application for the framework.
 
-**Picostack** is an experimental Web6 framework that focuses on contracts instead of crypto.
+**Picostack** is an experimental Web8 framework that focuses on contracts instead of crypto.
 
 A custom coinless blockchain that uses a functional-consensus.
 
